@@ -1,0 +1,431 @@
+@import "@mantine/core/styles.css";
+@import "@mantine/dates/styles.css";
+@import "@mantine/notifications/styles.css";
+@import "@mantine/charts/styles.css";
+@import "tailwindcss";
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --secondary: oklch(0.968 0.007 247.896);
+  --secondary-foreground: oklch(0.208 0.042 265.755);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --accent-foreground: oklch(0.208 0.042 265.755);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(0.929 0.013 255.508);
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.704 0.04 256.788);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.984 0.003 247.858);
+  --sidebar-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.704 0.04 256.788);
+}
+
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+/*
+ * Centralized Theme Modes & Visual Tokens (lucesem®)
+ * Synchronously applied via data-app-mode attribute on <html> before first paint.
+ */
+:root,
+:root[data-app-mode="light"],
+html[data-app-mode="light"],
+[data-app-mode="light"] {
+  --app-bg-canvas: #F5F8FA;
+  --app-bg-surface: #FFFFFF;
+  --app-bg-elevated: #EBF2F7;
+  --app-bg-header: #0F172A;
+  --app-text-primary: #1E293B;
+  --app-text-secondary: #64748B;
+  --app-text-on-header: #FFFFFF;
+  --app-border-subtle: #E2E8F0;
+  --app-hover-surface: #EBF2F7;
+  --app-shadow-card: 0 1px 3px rgba(15,23,42,0.04), 0 6px 18px -3px rgba(15,23,42,0.07), 0 12px 28px -8px rgba(15,23,42,0.06);
+  --app-shadow-floating: 0 4px 6px -1px rgba(15,23,42,0.04), 0 12px 30px -4px rgba(15,23,42,0.1), 0 24px 44px -8px rgba(15,23,42,0.07);
+  --app-shadow-elevated: 0 20px 48px -12px rgba(15,23,42,0.22), 0 6px 16px rgba(15,23,42,0.06);
+  --app-bg-glass: rgba(255, 255, 255, 0.88);
+  --app-border-glass: rgba(226, 232, 240, 0.9);
+  --app-card-highlight: linear-gradient(180deg, rgba(0, 159, 227, 0.035) 0%, transparent 45%);
+  --app-skeleton-bg: rgba(15, 23, 42, 0.07);
+  --app-logo-sem: #1E293B;
+
+  --mantine-color-body: #F5F8FA;
+  --mantine-color-default: #FFFFFF;
+  --mantine-color-default-hover: #EBF2F7;
+  --mantine-color-default-border: #E2E8F0;
+  --mantine-color-default-color: #1E293B;
+  --mantine-color-text: #1E293B;
+  --mantine-color-dimmed: #64748B;
+  --mantine-color-placeholder: #64748B;
+
+  --app-brand-primary: #009FE3;
+  --app-brand-hover: #0088C2;
+  --app-brand-navy: #0F172A;
+  --app-success: #16A34A;
+  --app-warning: #D97706;
+  --app-danger: #DC2626;
+  --app-locked: #7C3AED;
+  --app-font-heading: 'Plus Jakarta Sans', 'Montserrat', sans-serif;
+  --app-font-body: 'Inter', 'Open Sans', sans-serif;
+  --app-font-mono: 'JetBrains Mono', monospace;
+  --app-heading-tracking: -0.02em;
+  --app-radius-sm: 8px;
+  --app-radius-md: 12px;
+  --app-radius-lg: 16px;
+  --app-grid-gap: 16px;
+  --app-font-size-base: 14px;
+}
+
+:root[data-app-mode="dark"],
+html[data-app-mode="dark"],
+[data-app-mode="dark"],
+html.dark:not([data-app-mode="night"]):not([data-app-mode="light"]) {
+  --app-bg-canvas: #0B1120 !important;
+  --app-bg-surface: #111827 !important;
+  --app-bg-elevated: #1F2937 !important;
+  --app-bg-header: #0F172A !important;
+  --app-text-primary: #E2E8F0 !important;
+  --app-text-secondary: #94A3B8 !important;
+  --app-text-on-header: #FFFFFF !important;
+  --app-border-subtle: #1F2A3C !important;
+  --app-hover-surface: #1F2937 !important;
+  --app-shadow-card: 0 2px 8px rgba(0,0,0,0.4), 0 8px 24px -4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+  --app-shadow-floating: 0 8px 32px rgba(0,0,0,0.65), 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+  --app-shadow-elevated: 0 24px 50px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+  --app-bg-glass: rgba(17, 24, 39, 0.85) !important;
+  --app-border-glass: rgba(255, 255, 255, 0.09) !important;
+  --app-card-highlight: linear-gradient(180deg, rgba(0, 159, 227, 0.08) 0%, transparent 50%) !important;
+  --app-skeleton-bg: rgba(255, 255, 255, 0.08) !important;
+  --app-logo-sem: #FFFFFF !important;
+
+  --mantine-color-body: #0B1120 !important;
+  --mantine-color-default: #111827 !important;
+  --mantine-color-default-hover: #1F2937 !important;
+  --mantine-color-default-border: #1F2A3C !important;
+  --mantine-color-default-color: #E2E8F0 !important;
+  --mantine-color-text: #E2E8F0 !important;
+  --mantine-color-dimmed: #94A3B8 !important;
+  --mantine-color-placeholder: #94A3B8 !important;
+  --mantine-color-dark-7: #111827 !important;
+  --mantine-color-dark-6: #1F2937 !important;
+  --mantine-color-dark-5: #1F2937 !important;
+  --mantine-color-dark-4: #1F2A3C !important;
+}
+
+:root[data-app-mode="night"],
+html[data-app-mode="night"],
+[data-app-mode="night"] {
+  --app-bg-canvas: #000000 !important;
+  --app-bg-surface: #090D14 !important;
+  --app-bg-elevated: #111722 !important;
+  --app-bg-header: #000000 !important;
+  --app-text-primary: #E5E7EB !important;
+  --app-text-secondary: #8B95A5 !important;
+  --app-text-on-header: #FFFFFF !important;
+  --app-border-subtle: #161D2A !important;
+  --app-hover-surface: #111722 !important;
+  --app-shadow-card: 0 2px 10px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+  --app-shadow-floating: 0 12px 36px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+  --app-shadow-elevated: 0 28px 60px rgba(0,0,0,0.92), inset 0 1px 0 rgba(255,255,255,0.14) !important;
+  --app-bg-glass: rgba(9, 13, 20, 0.88) !important;
+  --app-border-glass: rgba(255, 255, 255, 0.12) !important;
+  --app-card-highlight: linear-gradient(180deg, rgba(0, 159, 227, 0.09) 0%, transparent 50%) !important;
+  --app-skeleton-bg: rgba(255, 255, 255, 0.05) !important;
+  --app-logo-sem: #FFFFFF !important;
+
+  --mantine-color-body: #000000 !important;
+  --mantine-color-default: #090D14 !important;
+  --mantine-color-default-hover: #111722 !important;
+  --mantine-color-default-border: #161D2A !important;
+  --mantine-color-default-color: #E5E7EB !important;
+  --mantine-color-text: #E5E7EB !important;
+  --mantine-color-dimmed: #8B95A5 !important;
+  --mantine-color-placeholder: #8B95A5 !important;
+  --mantine-color-dark-7: #090D14 !important;
+  --mantine-color-dark-6: #111722 !important;
+  --mantine-color-dark-5: #111722 !important;
+  --mantine-color-dark-4: #161D2A !important;
+}
+
+@layer base {
+  * {
+    border-color: var(--app-border-subtle, var(--color-border));
+  }
+
+  body {
+    background-color: var(--app-bg-canvas);
+    color: var(--app-text-primary);
+    font-family: var(--app-font-body);
+  }
+}
+
+/* Mantine Date Picker & Calendar popovers theme synchronization */
+.mantine-DatePicker-day:not([data-selected]):not([data-disabled]),
+.mantine-DatePicker-month:not([data-selected]):not([data-disabled]),
+.mantine-DatePicker-year:not([data-selected]):not([data-disabled]) {
+  color: var(--app-text-primary);
+}
+.mantine-DatePicker-day[data-outside] {
+  color: var(--app-text-secondary);
+  opacity: 0.35;
+}
+.mantine-DatePicker-day:hover:not([data-selected]):not([data-disabled]),
+.mantine-DatePicker-month:hover:not([data-selected]):not([data-disabled]),
+.mantine-DatePicker-year:hover:not([data-selected]):not([data-disabled]) {
+  background-color: color-mix(in srgb, var(--app-brand-primary) 15%, var(--app-hover-surface)) !important;
+  color: var(--app-brand-primary) !important;
+}
+.mantine-DatePicker-day[data-selected],
+.mantine-DatePicker-month[data-selected],
+.mantine-DatePicker-year[data-selected] {
+  background-color: var(--app-brand-primary) !important;
+  color: #FFFFFF !important;
+}
+
+/* Global Dropdown, Combobox & Popover theme styling matching calendar dropdown across light, dark, and night */
+.mantine-Popover-dropdown,
+.mantine-Menu-dropdown,
+.mantine-Select-dropdown,
+.mantine-MultiSelect-dropdown,
+.mantine-Combobox-dropdown,
+.mantine-DateInput-dropdown,
+[data-dates-dropdown],
+[data-combobox-dropdown] {
+  background-color: var(--app-bg-surface) !important;
+  border: 1px solid var(--app-border-subtle) !important;
+  box-shadow: var(--app-shadow-elevated) !important;
+  color: var(--app-text-primary) !important;
+  border-radius: var(--app-radius-md) !important;
+}
+
+/* Inputs, Search Boxes, Dropdowns, Textareas Hover & Focus Highlighting */
+.mantine-Input-input,
+.mantine-TextInput-input,
+.mantine-Select-input,
+.mantine-MultiSelect-input,
+.mantine-Textarea-input,
+.mantine-DateInput-input,
+.mantine-NumberInput-input,
+.mantine-PasswordInput-input,
+input[type="text"],
+input[type="search"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="tel"],
+textarea {
+  transition: border-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 160ms cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 160ms ease !important;
+}
+
+/* Hover State - clean crisp border tint without fuzzy shadows */
+.mantine-Input-input:hover,
+.mantine-TextInput-input:hover,
+.mantine-Select-input:hover,
+.mantine-MultiSelect-input:hover,
+.mantine-Textarea-input:hover,
+.mantine-DateInput-input:hover,
+.mantine-NumberInput-input:hover,
+.mantine-PasswordInput-input:hover,
+.mantine-InputWrapper-root:hover .mantine-Input-input,
+.mantine-Input-wrapper:hover .mantine-Input-input,
+.mantine-Combobox-target:hover .mantine-Input-input,
+input[type="text"]:hover,
+input[type="search"]:hover,
+input[type="password"]:hover,
+input[type="email"]:hover,
+input[type="number"]:hover,
+input[type="tel"]:hover,
+textarea:hover {
+  border-color: color-mix(in srgb, var(--app-brand-primary) 65%, var(--app-border-subtle)) !important;
+  box-shadow: none !important;
+}
+
+/* Click / Focus / Active State - modern software solid thick line */
+.mantine-Input-input:focus,
+.mantine-Input-input:focus-within,
+.mantine-Input-input:active,
+.mantine-Input-input[data-focused="true"],
+.mantine-InputWrapper-root:focus-within .mantine-Input-input,
+.mantine-Input-wrapper:focus-within .mantine-Input-input,
+.mantine-TextInput-input:focus,
+.mantine-Select-input:focus,
+.mantine-MultiSelect-input:focus,
+.mantine-Textarea-input:focus,
+.mantine-DateInput-input:focus,
+.mantine-NumberInput-input:focus,
+.mantine-PasswordInput-input:focus,
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+input[type="number"]:focus,
+input[type="tel"]:focus,
+textarea:focus,
+[aria-expanded="true"].mantine-Input-input,
+[data-expanded="true"].mantine-Input-input,
+.mantine-InputWrapper-root:has([aria-expanded="true"]) .mantine-Input-input,
+.mantine-Input-wrapper:has([aria-expanded="true"]) .mantine-Input-input,
+.mantine-Combobox-target[aria-expanded="true"] .mantine-Input-input {
+  border-color: var(--app-brand-primary) !important;
+  box-shadow: 0 0 0 1px var(--app-brand-primary) !important;
+  outline: none !important;
+}
+
+/* Dropdown Option Hover & Active Highlighting based on theme palette */
+.mantine-Combobox-option,
+.mantine-Select-option,
+.mantine-MultiSelect-option,
+.mantine-Menu-item {
+  color: var(--app-text-primary) !important;
+  border-radius: var(--app-radius-sm) !important;
+  transition: background-color 140ms ease, color 140ms ease !important;
+  cursor: pointer;
+}
+
+.mantine-Combobox-option:hover,
+.mantine-Combobox-option[data-hovered],
+.mantine-Combobox-option[data-combobox-active="true"],
+.mantine-Select-option:hover,
+.mantine-Select-option[data-hovered],
+.mantine-MultiSelect-option:hover,
+.mantine-MultiSelect-option[data-hovered],
+.mantine-Menu-item:hover,
+.mantine-Menu-item[data-hovered] {
+  background-color: color-mix(in srgb, var(--app-brand-primary) 14%, var(--app-hover-surface)) !important;
+  color: var(--app-brand-primary) !important;
+}
+
+.mantine-Combobox-option[data-combobox-selected="true"],
+.mantine-Select-option[data-combobox-selected="true"],
+.mantine-MultiSelect-option[data-combobox-selected="true"],
+.mantine-Menu-item[data-active="true"],
+.mantine-Combobox-option:active,
+.mantine-Select-option:active,
+.mantine-MultiSelect-option:active,
+.mantine-Menu-item:active {
+  background-color: color-mix(in srgb, var(--app-brand-primary) 22%, var(--app-hover-surface)) !important;
+  color: var(--app-brand-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* Calendar Day Cells hover and focus */
+.app-calendar-day:hover:not(:disabled):not([data-disabled="true"]) {
+  border-color: color-mix(in srgb, var(--app-brand-primary) 55%, var(--app-border-subtle)) !important;
+  background-color: color-mix(in srgb, var(--app-brand-primary) 10%, var(--app-hover-surface)) !important;
+}
+
