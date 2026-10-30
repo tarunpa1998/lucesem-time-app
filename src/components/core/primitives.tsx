@@ -34,6 +34,8 @@ import {
   Center,
   Loader,
   Divider,
+  Box,
+  ScrollArea,
   type SwitchProps,
   type NumberInputProps,
   type PasswordInputProps,
@@ -466,3 +468,5 @@ export const AppAlert = Alert;
 export const AppCenter = Center;
 export const AppLoader = Loader;
 export const AppDivider = Divider;
+export const AppBox = Box;
+export const AppScrollArea = ScrollArea;

@@ -11,6 +11,7 @@ import {
   X,
   LockSimple,
   CalendarBlank,
+  CaretDown,
 } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
@@ -32,6 +33,8 @@ import {
   AppIconButton,
   AppTooltip,
   AppSegmented,
+  AppBox,
+  AppMenu,
   notify,
   TablePageSkeleton,
   AppPageHeader,
@@ -336,51 +339,112 @@ export function ReportsPage() {
           ) : undefined
         }
         actions={
-          <AppGroup gap="xs" wrap="nowrap">
-            {(["pdf", "xlsx", "csv", "html"] as const).map((k) => (
-              <AppButton
-                key={k}
-                size="xs"
-                variant="light"
-                leftSection={<FileArrowDown weight="duotone" size={14} />}
-                disabled={!sortedRows.length}
-                onClick={() => doExport(k)}
-              >
-                {k.toUpperCase()}
-              </AppButton>
-            ))}
-          </AppGroup>
+          <>
+            <AppGroup gap="xs" wrap="nowrap" visibleFrom="sm">
+              {(["pdf", "xlsx", "csv", "html"] as const).map((k) => (
+                <AppButton
+                  key={k}
+                  size="xs"
+                  variant="light"
+                  leftSection={<FileArrowDown weight="duotone" size={14} />}
+                  disabled={!sortedRows.length}
+                  onClick={() => doExport(k)}
+                >
+                  {k.toUpperCase()}
+                </AppButton>
+              ))}
+            </AppGroup>
+
+            <AppBox hiddenFrom="sm">
+              <AppMenu position="bottom-end" shadow="md" width={160}>
+                <AppMenu.Target>
+                  <AppButton
+                    size="xs"
+                    variant="light"
+                    leftSection={<FileArrowDown weight="duotone" size={14} />}
+                    rightSection={<CaretDown size={12} />}
+                    disabled={!sortedRows.length}
+                  >
+                    {t("exportReport")}
+                  </AppButton>
+                </AppMenu.Target>
+                <AppMenu.Dropdown>
+                  <AppMenu.Item
+                    leftSection={<FileArrowDown size={14} />}
+                    onClick={() => doExport("pdf")}
+                  >
+                    PDF (.pdf)
+                  </AppMenu.Item>
+                  <AppMenu.Item
+                    leftSection={<FileArrowDown size={14} />}
+                    onClick={() => doExport("xlsx")}
+                  >
+                    Excel (.xlsx)
+                  </AppMenu.Item>
+                  <AppMenu.Item
+                    leftSection={<FileArrowDown size={14} />}
+                    onClick={() => doExport("csv")}
+                  >
+                    CSV (.csv)
+                  </AppMenu.Item>
+                  <AppMenu.Item
+                    leftSection={<FileArrowDown size={14} />}
+                    onClick={() => doExport("html")}
+                  >
+                    HTML (.html)
+                  </AppMenu.Item>
+                </AppMenu.Dropdown>
+              </AppMenu>
+            </AppBox>
+          </>
         }
       />
 
       {/* Top Filter Section */}
       <AppCard>
         <AppStack gap="sm">
-          {/* Quick Date Range Pills */}
-          <AppGroup justify="space-between" align="center" wrap="wrap" gap="xs">
-            <AppGroup gap={6} wrap="wrap">
-              <AppText fz="xs" fw={700} c="var(--app-text-secondary)" tt="uppercase">
-                {t("quickRanges")}:
-              </AppText>
-              {(
-                [
-                  { key: "thisMonth", label: t("thisMonth") },
-                  { key: "lastMonth", label: t("lastMonth") },
-                  { key: "thisWeek", label: t("thisWeek") },
-                  { key: "today", label: t("today") },
-                  { key: "allYear", label: t("allYear") },
-                ] as const
-              ).map((q) => (
-                <AppButton
-                  key={q.key}
-                  size="compact-xs"
-                  variant={activeRange === q.key ? "filled" : "default"}
-                  onClick={() => handleQuickRange(q.key)}
+          {/* Quick Date Range Pills with Horizontal Scroll on Mobile */}
+          <AppGroup justify="space-between" align="center" wrap="nowrap" gap="xs">
+            <AppBox
+              style={{
+                flex: 1,
+                minWidth: 0,
+                overflowX: "auto",
+                WebkitOverflowScrolling: "touch",
+                scrollbarWidth: "none",
+              }}
+            >
+              <AppGroup gap={6} wrap="nowrap" pb={{ base: 4, sm: 0 }}>
+                <AppText
+                  fz="xs"
+                  fw={700}
+                  c="var(--app-text-secondary)"
+                  tt="uppercase"
+                  style={{ flexShrink: 0 }}
                 >
-                  {q.label}
-                </AppButton>
-              ))}
-            </AppGroup>
+                  {t("quickRanges")}:
+                </AppText>
+                {(
+                  [
+                    { key: "thisMonth", label: t("thisMonth") },
+                    { key: "lastMonth", label: t("lastMonth") },
+                    { key: "thisWeek", label: t("thisWeek") },
+                    { key: "today", label: t("today") },
+                    { key: "allYear", label: t("allYear") },
+                  ] as const
+                ).map((q) => (
+                  <AppButton
+                    key={q.key}
+                    size="compact-xs"
+                    variant={activeRange === q.key ? "filled" : "default"}
+                    style={{ flexShrink: 0 }}
+                    onClick={() => handleQuickRange(q.key)}
+                  >
+                    {q.label}
+                  </AppButton>
+                ))}
+              </AppGroup>
+            </AppBox>
 
             {hasActiveFilters && (
               <AppButton
@@ -388,6 +452,7 @@ export function ReportsPage() {
                 variant="subtle"
                 color="red"
                 leftSection={<X size={12} />}
+                style={{ flexShrink: 0 }}
                 onClick={resetFilters}
               >
                 {t("clearFilters")}
@@ -395,8 +460,8 @@ export function ReportsPage() {
             )}
           </AppGroup>
 
-          {/* Primary Filter Inputs */}
-          <AppGrid cols={{ base: 1, sm: 2, lg: isAdmin ? 5 : 3 }}>
+          {/* Primary Filter Inputs - 2 columns on mobile for Date range */}
+          <AppGrid cols={{ base: 2, sm: 2, lg: isAdmin ? 5 : 3 }}>
             <AppDateInput
               label={t("fromDate")}
               placeholder="DD.MM.YYYY"
@@ -499,49 +564,93 @@ export function ReportsPage() {
         </AppStack>
       </AppCard>
 
-      {/* KPI Stats Cards */}
-      <AppGrid cols={{ base: 1, sm: 2, lg: 4 }}>
-        <AppCard>
-          <AppGroup justify="space-between" align="flex-start" mb={4}>
-            <AppText fz="xs" fw={700} c="var(--app-text-secondary)" tt="uppercase">
+      {/* KPI Stats Cards - 2x2 grid on mobile for compact, executive readability */}
+      <AppGrid cols={{ base: 2, sm: 2, lg: 4 }}>
+        <AppCard p={{ base: 12, sm: "md" }}>
+          <AppGroup justify="space-between" align="flex-start" mb={4} wrap="nowrap">
+            <AppText
+              fz={{ base: 10, sm: "xs" }}
+              fw={700}
+              c="var(--app-text-secondary)"
+              tt="uppercase"
+              truncate
+            >
               {t("totalHours")}
             </AppText>
-            <Clock size={20} weight="duotone" color="var(--app-brand-primary)" />
+            <Clock
+              size={18}
+              weight="duotone"
+              color="var(--app-brand-primary)"
+              style={{ flexShrink: 0 }}
+            />
           </AppGroup>
-          <AppMono size="24px">{fmtHours(totals.hours)}</AppMono>
+          <AppMono size="20px">{fmtHours(totals.hours)}</AppMono>
         </AppCard>
 
-        <AppCard>
-          <AppGroup justify="space-between" align="flex-start" mb={4}>
-            <AppText fz="xs" fw={700} c="var(--app-text-secondary)" tt="uppercase">
+        <AppCard p={{ base: 12, sm: "md" }}>
+          <AppGroup justify="space-between" align="flex-start" mb={4} wrap="nowrap">
+            <AppText
+              fz={{ base: 10, sm: "xs" }}
+              fw={700}
+              c="var(--app-text-secondary)"
+              tt="uppercase"
+              truncate
+            >
               {t("entriesCount")}
             </AppText>
-            <FileText size={20} weight="duotone" color="var(--app-brand-primary)" />
+            <FileText
+              size={18}
+              weight="duotone"
+              color="var(--app-brand-primary)"
+              style={{ flexShrink: 0 }}
+            />
           </AppGroup>
-          <AppMono size="24px">{sortedRows.length}</AppMono>
+          <AppMono size="20px">{sortedRows.length}</AppMono>
         </AppCard>
 
-        <AppCard>
-          <AppGroup justify="space-between" align="flex-start" mb={4}>
-            <AppText fz="xs" fw={700} c="var(--app-text-secondary)" tt="uppercase">
+        <AppCard p={{ base: 12, sm: "md" }}>
+          <AppGroup justify="space-between" align="flex-start" mb={4} wrap="nowrap">
+            <AppText
+              fz={{ base: 10, sm: "xs" }}
+              fw={700}
+              c="var(--app-text-secondary)"
+              tt="uppercase"
+              truncate
+            >
               {t("billable")}
             </AppText>
-            <CurrencyEur size={20} weight="duotone" color="var(--app-success)" />
+            <CurrencyEur
+              size={18}
+              weight="duotone"
+              color="var(--app-success)"
+              style={{ flexShrink: 0 }}
+            />
           </AppGroup>
-          <AppMono size="24px">{money(totals.amount)}</AppMono>
+          <AppMono size="20px">{money(totals.amount)}</AppMono>
         </AppCard>
 
-        <AppCard>
-          <AppGroup justify="space-between" align="flex-start" mb={4}>
-            <AppText fz="xs" fw={700} c="var(--app-text-secondary)" tt="uppercase">
+        <AppCard p={{ base: 12, sm: "md" }}>
+          <AppGroup justify="space-between" align="flex-start" mb={4} wrap="nowrap">
+            <AppText
+              fz={{ base: 10, sm: "xs" }}
+              fw={700}
+              c="var(--app-text-secondary)"
+              tt="uppercase"
+              truncate
+            >
               {t("approvedHours")}
             </AppText>
-            <CheckCircle size={20} weight="duotone" color="var(--app-brand-primary)" />
+            <CheckCircle
+              size={18}
+              weight="duotone"
+              color="var(--app-brand-primary)"
+              style={{ flexShrink: 0 }}
+            />
           </AppGroup>
-          <AppGroup gap="xs" align="baseline">
-            <AppMono size="24px">{totals.approvalRate.toFixed(0)}%</AppMono>
-            <AppText fz="xs" c="var(--app-text-secondary)">
-              ({sortedRows.filter((r) => r.status === "approved").length} / {sortedRows.length})
+          <AppGroup gap={4} align="baseline" wrap="nowrap">
+            <AppMono size="20px">{totals.approvalRate.toFixed(0)}%</AppMono>
+            <AppText fz={11} c="var(--app-text-secondary)" truncate>
+              ({sortedRows.filter((r) => r.status === "approved").length}/{sortedRows.length})
             </AppText>
           </AppGroup>
         </AppCard>
@@ -586,8 +695,8 @@ export function ReportsPage() {
       {/* Entries Table Section with Sorting Toolbar (matches screenshot + sort options) */}
       <AppCard>
         <AppGroup justify="space-between" align="center" mb="sm" wrap="wrap" gap="xs">
-          {/* Export Action Buttons */}
-          <AppGroup gap="xs">
+          {/* Export Action Buttons - Visible on desktop */}
+          <AppGroup gap="xs" visibleFrom="sm">
             {(["pdf", "xlsx", "csv", "html"] as const).map((k) => (
               <AppButton
                 key={k}
@@ -603,13 +712,21 @@ export function ReportsPage() {
           </AppGroup>
 
           {/* Quick Sort Dropdown and Direction Toggle */}
-          <AppGroup gap="xs" align="center">
-            <AppText fz="xs" fw={600} c="var(--app-text-secondary)">
+          <AppGroup
+            gap="xs"
+            align="center"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              justifyContent: "flex-end",
+            }}
+          >
+            <AppText fz="xs" fw={600} c="var(--app-text-secondary)" visibleFrom="xs">
               {t("sortBy")}:
             </AppText>
             <AppSelect
               size="xs"
-              w={180}
+              style={{ flex: 1, maxWidth: 200 }}
               placeholder={t("sortBy")}
               value={sortField}
               onChange={(v) => v && setSortField(v as SortField)}
