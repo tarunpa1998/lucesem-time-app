@@ -119,10 +119,10 @@ function UserMenu({
       {expanded ? (
         <Menu.Target>
           <UnstyledButton
-            p="xs"
+            px="xs"
+            py="xs"
             style={{
               borderRadius: "var(--app-radius-md)",
-              border: "1px solid var(--app-border-subtle)",
               width: "100%",
             }}
           >
@@ -269,7 +269,7 @@ function SidebarNavItem({
               fw={isActive ? 600 : 500}
               truncate
               style={{
-                color: isActive ? "var(--app-text-primary)" : "var(--app-text-secondary)",
+                color: isActive ? "var(--app-brand-primary)" : "var(--app-text-secondary)",
                 userSelect: "none",
               }}
             >
@@ -388,15 +388,10 @@ export function AppSidebar({
       </Box>
 
       {me && (
-        <Box p="xs" style={{ flexShrink: 0 }}>
+        <Box px="sm" pb="md" pt="xs" style={{ flexShrink: 0 }}>
           <Stack
             gap={8}
-            p="xs"
             style={{
-              borderRadius: "var(--app-radius-lg)",
-              background: "var(--app-bg-elevated)",
-              border: "1px solid var(--app-border-subtle)",
-              boxShadow: "var(--app-shadow-card)",
               alignItems: expanded ? "stretch" : "center",
             }}
           >

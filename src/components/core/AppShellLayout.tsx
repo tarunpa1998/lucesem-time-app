@@ -244,6 +244,8 @@ export function AppShellLayout({
                 left: 12,
                 top: "calc(var(--app-shell-header-offset, 60px) + 12px)",
                 bottom: 12,
+                height: "calc(100dvh - var(--app-shell-header-offset, 60px) - 24px)",
+                maxHeight: "calc(100dvh - var(--app-shell-header-offset, 60px) - 24px)",
                 width: 250,
                 borderRadius: 24,
                 background: "var(--app-bg-surface)",
@@ -257,11 +259,13 @@ export function AppShellLayout({
               }
             : {
                 // Desktop: complete detached floating glass rail / card.
-                // The blue indicator capsule sits flush on the left border,
-                // while icons are placed dead-center in the rail.
+                // Explicit height ensures the bottom 14px margin is respected
+                // so the bottom corners are fully rounded and inside the viewport.
                 left: 14,
                 top: "calc(var(--app-shell-header-offset, 60px) + 14px)",
                 bottom: 14,
+                height: "calc(100dvh - var(--app-shell-header-offset, 60px) - 28px)",
+                maxHeight: "calc(100dvh - var(--app-shell-header-offset, 60px) - 28px)",
                 width: expanded ? 250 : 76,
                 borderRadius: 24,
                 background: "var(--app-bg-surface)",

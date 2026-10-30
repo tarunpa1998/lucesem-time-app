@@ -447,12 +447,21 @@ textarea:focus,
 }
 
 .app-sidebar-item[data-active="true"] {
-  background-color: color-mix(in srgb, var(--app-brand-primary) 12%, transparent) !important;
+  background-color: transparent !important;
+  color: var(--app-brand-primary) !important;
+}
+
+.app-sidebar-item[data-active="true"] svg {
   color: var(--app-brand-primary) !important;
 }
 
 .app-sidebar-item[data-active="true"]:hover {
-  background-color: color-mix(in srgb, var(--app-brand-primary) 18%, var(--app-hover-surface)) !important;
+  background-color: var(--app-hover-surface) !important;
   color: var(--app-brand-primary) !important;
+}
+
+.mantine-AppShell-navbar {
+  border-radius: 24px !important;
+  overflow: hidden !important;
 }
 
