@@ -171,9 +171,13 @@ npm run build
 
 ---
 
-## 7. Git Branching, Staging & Release Law
+## 7. Git Branching, Staging & Push Authorization Law
 
-### 7.1 Staging Branch Workflow (`staging`)
-- **Staging-First Mandate**: All new features, UI refactors, bug fixes, and code modifications MUST be committed and pushed to the `staging` (and `stagging`) branch first.
+### 7.1 Push Authorization Mandate (Ask Before Pushing)
+- **Zero Autonomous Pushes**: Not all changes need to be pushed to git. The AI agent MUST NEVER push code to git in ANY branch (`staging`, `main`, or any other branch) autonomously.
+- **Explicit User Consent**: Before executing `git push` on any branch, the AI agent MUST explicitly ask the user for permission and receive approval first.
+
+### 7.2 Staging Branch Workflow (`staging`)
+- **Staging-Only Target**: When pushing is authorized by the user, all new features, UI refactors, bug fixes, and code modifications MUST be committed and pushed to the `staging` branch first. The only development branch is `staging`.
 - **Main Branch Protection**: Direct commits and direct pushes to `main` are strictly prohibited during normal development.
-- **Merge Authorization Law**: Merging changes from the staging branch into `main` is strictly forbidden without explicit permission and authorization from the project owner.
+- **Merge Authorization Law**: Merging changes from `staging` into `main` is strictly forbidden without explicit permission and authorization from the project owner.
