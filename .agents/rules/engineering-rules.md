@@ -147,21 +147,33 @@
 
 ## 6. Pre-Commit Quality & Verification Protocol for AI Agents
 
-Whenever an AI agent completes a task or modifies code, it MUST execute this 4-step verification sequence before concluding:
+Whenever an AI agent completes a task or modifies code, it MUST execute this 5-step verification sequence before concluding:
 
 ```bash
 # 1. Format all code to meet Prettier standards
 npx prettier --write "src/**/*.{ts,tsx}"
 
-# 2. Verify ESLint rules (ensures Mantine wrapper law is 100% respected)
+# 2. Verify TypeScript strict type-checking
+npm run typecheck
+
+# 3. Verify ESLint rules (ensures Mantine wrapper law is 100% respected)
 npm run lint
 
-# 3. Verify pure domain logic and routing tests
+# 4. Verify pure domain logic and routing tests
 npm run test
 
-# 4. Verify build compilation
+# 5. Verify build compilation
 npm run build
 ```
 
 - If any step fails, the AI agent MUST resolve the issue before declaring the task finished.
 - Zero warnings/errors regarding restricted Mantine imports are tolerated.
+
+---
+
+## 7. Git Branching, Staging & Release Law
+
+### 7.1 Staging Branch Workflow (`staging`)
+- **Staging-First Mandate**: All new features, UI refactors, bug fixes, and code modifications MUST be committed and pushed to the `staging` (and `stagging`) branch first.
+- **Main Branch Protection**: Direct commits and direct pushes to `main` are strictly prohibited during normal development.
+- **Merge Authorization Law**: Merging changes from the staging branch into `main` is strictly forbidden without explicit permission and authorization from the project owner.
