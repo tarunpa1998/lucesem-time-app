@@ -2,13 +2,10 @@ import {
   AppShell,
   Burger,
   Group,
-  NavLink,
-  SegmentedControl,
   Box,
   Text,
   Badge,
   UnstyledButton,
-  Menu,
   Indicator,
   ActionIcon,
   Popover,
@@ -19,56 +16,18 @@ import {
 import { useDisclosure, useNetwork, useMediaQuery, useMounted } from "@mantine/hooks";
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  SquaresFour,
-  Kanban,
-  ChartBar,
-  Island,
-  WifiHigh,
-  WifiSlash,
-  Buildings,
-  Users,
-  UsersThree,
-  ClipboardText,
-  Bell,
-  SignOut,
-  Checks,
-  LockSimple,
-  Globe,
-  Key,
-  Tag,
-  type Icon,
-} from "@phosphor-icons/react";
+import { WifiHigh, WifiSlash, Bell } from "@phosphor-icons/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { NOTIFIED_EVENT } from "./notify";
 import { ShellSkeleton } from "./PageSkeleton";
 import { FloatingDock } from "./FloatingDock";
-import { useI18n, type TKey } from "@/lib/i18n";
-import { useThemeMode } from "@/theme/themeProvider";
-import type { ThemeMode } from "@/theme/tokens";
+import { AppSidebar } from "./AppSidebar";
+import { useI18n } from "@/lib/i18n";
 import { meQuery, notificationsQuery } from "@/lib/session";
 import { logout } from "@/backend/auth.functions";
 import { markNotificationsRead } from "@/backend/org.functions";
 import { AppLiveClock } from "./AppLiveClock";
 import { ChangePasswordModal } from "./ChangePasswordModal";
-
-type NavItem = { key: TKey; icon: Icon; to: string };
-const NAV: NavItem[] = [
-  { key: "dashboard", icon: SquaresFour, to: "/" },
-  { key: "myProjects", icon: Kanban, to: "/projects" },
-  { key: "reportsTitle", icon: ChartBar, to: "/reports" },
-  { key: "absences", icon: Island, to: "/absences" },
-];
-const ADMIN_NAV: NavItem[] = [
-  { key: "approvals", icon: Checks, to: "/admin/approvals" },
-  { key: "control", icon: LockSimple, to: "/admin/control" },
-  { key: "portal", icon: Globe, to: "/admin/portal" },
-  { key: "activities", icon: Tag, to: "/admin/activities" },
-  { key: "customers", icon: Buildings, to: "/admin/customers" },
-  { key: "projects", icon: ClipboardText, to: "/admin/projects" },
-  { key: "teams", icon: UsersThree, to: "/admin/teams" },
-  { key: "users", icon: Users, to: "/admin/users" },
-];
 
 export function Logo() {
   return (
@@ -178,7 +137,6 @@ export function AppShellLayout({
   const [pwOpen, setPwOpen] = useState(false);
   const [opened, { toggle, close }] = useDisclosure();
   const { t, lang, setLang } = useI18n();
-  const { mode, setMode } = useThemeMode();
   const net = useNetwork();
   const mobile = useMediaQuery("(max-width: 61.99em)");
   // Session-dependent UI renders after mount so server HTML and first client render match.
@@ -199,25 +157,9 @@ export function AppShellLayout({
     await router.navigate({ to: "/login" });
   };
 
-  // Desktop: slim icon rail that expands while the mouse is over it.
+  // Desktop: floating glass rail that expands while the mouse is over it.
   const [hovered, setHovered] = useState(false);
   const expanded = mobile || hovered;
-  const renderNav = (items: NavItem[]) =>
-    items.map((n) => (
-      <NavLink
-        key={n.to}
-        component={Link}
-        to={n.to}
-        label={expanded ? t(n.key) : undefined}
-        aria-label={t(n.key)}
-        active={path === n.to}
-        leftSection={<n.icon size={22} weight="duotone" />}
-        onClick={close}
-        styles={{
-          root: { borderRadius: "var(--app-radius-md)", color: "var(--app-text-primary)" },
-        }}
-      />
-    ));
 
   // Until the app is ready in the browser, show a layout-shaped placeholder instead of
   // rendering the page twice (server pass + browser pass).
@@ -226,16 +168,20 @@ export function AppShellLayout({
   return (
     <AppShell
       header={{ height: 60 }}
-      navbar={{ width: { base: 240, md: 72 }, breakpoint: "md", collapsed: { mobile: !opened } }}
+      // Desktop: 76px visual rail + 14px left margin + 14px right margin = 104px content offset.
+      navbar={{ width: { base: 250, md: 104 }, breakpoint: "md", collapsed: { mobile: !opened } }}
       footer={{ height: 72, collapsed: !bottomAction || !mobile, offset: true }}
       padding="md"
       styles={{
         header: {
           background: "var(--app-bg-header)",
-          borderColor: "var(--app-bg-header)",
+          borderColor: "var(--app-border-subtle)",
           color: "var(--app-text-on-header)",
         },
-        navbar: { background: "var(--app-bg-surface)", borderColor: "var(--app-border-subtle)" },
+        navbar: {
+          border: "none",
+          background: "transparent",
+        },
         main: { background: "var(--app-bg-canvas)" },
         footer: { background: "var(--app-bg-surface)", borderColor: "var(--app-border-subtle)" },
       }}
@@ -251,6 +197,7 @@ export function AppShellLayout({
               hiddenFrom="md"
               size="sm"
               color="var(--app-text-on-header)"
+              aria-label={t("menu")}
             />
             <Logo />
           </Group>
@@ -287,88 +234,54 @@ export function AppShellLayout({
       </AppShell.Header>
 
       <AppShell.Navbar
-        p="sm"
+        p={0}
         onMouseEnter={() => !mobile && setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={
           mobile
             ? {
+                // Mobile: floating glass drawer, inset below the header.
+                left: 12,
+                top: "calc(var(--app-shell-header-offset, 60px) + 12px)",
+                bottom: 12,
+                width: 250,
+                borderRadius: 24,
                 background: "var(--app-bg-surface)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                border: "1px solid var(--app-border-subtle)",
                 borderRight: "1px solid var(--app-border-subtle)",
+                boxShadow: "var(--app-shadow-elevated)",
+                overflow: "hidden",
+                zIndex: 150,
               }
             : {
-                width: hovered ? 240 : 72,
-                transition: "width 180ms ease, box-shadow 180ms ease",
-                overflowX: "hidden",
-                boxShadow: hovered ? "var(--app-shadow-elevated)" : "none",
-                zIndex: 150,
+                // Desktop: complete detached floating glass rail / card.
+                // The blue indicator capsule sits flush on the left border,
+                // while icons are placed dead-center in the rail.
+                left: 14,
+                top: "calc(var(--app-shell-header-offset, 60px) + 14px)",
+                bottom: 14,
+                width: expanded ? 250 : 76,
+                borderRadius: 24,
                 background: "var(--app-bg-surface)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                border: "1px solid var(--app-border-subtle)",
                 borderRight: "1px solid var(--app-border-subtle)",
+                boxShadow: expanded ? "var(--app-shadow-floating)" : "var(--app-shadow-card)",
+                overflow: "hidden",
+                zIndex: 150,
+                transition: "width 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms ease",
               }
         }
       >
-        <Box style={{ flex: 1 }}>
-          {renderNav(NAV)}
-          {me?.isAdmin && (
-            <>
-              <Text
-                fz="xs"
-                fw={700}
-                c="var(--app-text-secondary)"
-                tt="uppercase"
-                mt="md"
-                mb={4}
-                px="sm"
-              >
-                {expanded ? t("admin") : "·"}
-              </Text>
-              {renderNav(ADMIN_NAV)}
-            </>
-          )}
-        </Box>
-        {me && expanded && (
-          <Menu position="top-start" width={220}>
-            <Menu.Target>
-              <UnstyledButton
-                p="sm"
-                mb="sm"
-                style={{
-                  borderRadius: "var(--app-radius-md)",
-                  border: "1px solid var(--app-border-subtle)",
-                }}
-              >
-                <Text fz="sm" fw={600} c="var(--app-text-primary)" truncate>
-                  {me.displayName}
-                </Text>
-                <Text fz="xs" c="var(--app-text-secondary)" truncate>
-                  {me.email}
-                </Text>
-              </UnstyledButton>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item leftSection={<Key size={14} />} onClick={() => setPwOpen(true)}>
-                {t("changePassword")}
-              </Menu.Item>
-              <Menu.Item leftSection={<SignOut size={14} />} onClick={doLogout}>
-                {t("signOut")}
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-        )}
-        {expanded && (
-          <>
-            <Text fz="xs" c="var(--app-text-secondary)" mb={6} fw={600}>
-              {t("theme")}
-            </Text>
-            <SegmentedControl
-              fullWidth
-              size="xs"
-              value={mode}
-              onChange={(v) => setMode(v as ThemeMode)}
-              data={(["light", "dark", "night"] as const).map((m) => ({ value: m, label: t(m) }))}
-            />
-          </>
-        )}
+        <AppSidebar
+          expanded={expanded}
+          onNavigate={close}
+          onLogout={doLogout}
+          onChangePassword={() => setPwOpen(true)}
+        />
       </AppShell.Navbar>
 
       <AppShell.Main pb={96}>{children}</AppShell.Main>

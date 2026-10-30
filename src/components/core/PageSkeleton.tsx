@@ -161,21 +161,52 @@ export function ShellSkeleton({ dashboard }: { dashboard: boolean }) {
         </Group>
       </Box>
       <Box style={{ display: "flex" }}>
+        {/* Floating glass rail placeholder — mirrors the collapsed AppSidebar card. */}
         <Box
           visibleFrom="md"
-          w={240}
-          p="sm"
+          w={76}
+          p={0}
           style={{
+            position: "sticky",
+            top: 74,
+            marginLeft: 14,
+            height: "calc(100vh - 88px)",
+            alignSelf: "flex-start",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            paddingTop: 14,
+            paddingBottom: 14,
+            borderRadius: 24,
             background: "var(--app-bg-surface)",
-            borderRight: "1px solid var(--app-border-subtle)",
-            minHeight: "calc(100vh - 60px)",
+            border: "1px solid var(--app-border-subtle)",
+            boxShadow: "var(--app-shadow-card)",
           }}
         >
-          <Stack gap="xs">
-            {[0, 1, 2, 3].map((i) => (
-              <Skel key={i} h={34} />
+          <Stack gap={8} w="100%" align="center">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skel key={i} h={44} w={44} style={{ borderRadius: "var(--app-radius-md)" }} />
             ))}
           </Stack>
+          {/* Floating user/theme sub-pill placeholder docked at the bottom. */}
+          <Box
+            mt="auto"
+            p="xs"
+            w="calc(100% - 16px)"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 8,
+              borderRadius: "var(--app-radius-lg)",
+              background: "var(--app-bg-elevated)",
+              border: "1px solid var(--app-border-subtle)",
+              boxShadow: "var(--app-shadow-card)",
+            }}
+          >
+            <Skel h={40} w={40} style={{ borderRadius: "50%" }} />
+            <Skel h={40} w={40} style={{ borderRadius: "var(--app-radius-md)" }} />
+          </Box>
         </Box>
         <Box p="md" style={{ flex: 1, minWidth: 0, background: "var(--app-bg-canvas)" }}>
           {dashboard ? <DashboardSkeleton /> : <TablePageSkeleton />}

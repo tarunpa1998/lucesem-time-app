@@ -234,6 +234,8 @@ const dict = {
     notifications: "Benachrichtigungen",
     noNotifications: "Keine Benachrichtigungen",
     markRead: "Alle gelesen",
+    menu: "Menü",
+    switchTo: "Wechseln zu",
     myProjects: "Meine Projekte",
     createProject: "Projekt anlegen",
     projectPendingHint:
@@ -486,6 +488,8 @@ const dict = {
     notifications: "Notifications",
     noNotifications: "No notifications",
     markRead: "Mark all read",
+    menu: "Menu",
+    switchTo: "Switch to",
     myProjects: "My projects",
     createProject: "Create project",
     projectPendingHint: "New projects are reviewed by an admin. You can log time right away.",
