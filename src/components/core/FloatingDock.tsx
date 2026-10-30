@@ -7,7 +7,7 @@ export const LOG_TIME_EVENT = "app:log-time";
 export const LOG_TIME_FLAG = "lucesem-open-log";
 
 /** Floating quick-action bar at the bottom of the screen (dashboard, reports, log time). */
-export function FloatingDock() {
+export function FloatingDock({ menuOpen }: { menuOpen?: boolean } = {}) {
   const { t } = useI18n();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const router = useRouter();
@@ -36,8 +36,11 @@ export function FloatingDock() {
         position: "fixed",
         left: "50%",
         bottom: 20,
-        transform: "translateX(-50%)",
-        zIndex: 200,
+        transform: menuOpen ? "translate(-50%, calc(100% + 40px))" : "translate(-50%, 0)",
+        opacity: menuOpen ? 0 : 1,
+        pointerEvents: menuOpen ? "none" : "auto",
+        transition: "transform 260ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease",
+        zIndex: 100,
         background: "var(--app-bg-surface)",
         border: "1px solid var(--app-border-subtle)",
         boxShadow: "var(--app-shadow-elevated)",

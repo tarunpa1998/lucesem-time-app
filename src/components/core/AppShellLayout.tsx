@@ -255,7 +255,7 @@ export function AppShellLayout({
                 borderRight: "1px solid var(--app-border-subtle)",
                 boxShadow: "var(--app-shadow-elevated)",
                 overflow: "hidden",
-                zIndex: 150,
+                zIndex: 250,
               }
             : {
                 // Desktop: complete detached floating glass rail / card.
@@ -289,7 +289,7 @@ export function AppShellLayout({
       </AppShell.Navbar>
 
       <AppShell.Main pb={96}>{children}</AppShell.Main>
-      {me && <FloatingDock />}
+      {me && <FloatingDock menuOpen={opened} />}
       <ChangePasswordModal opened={pwOpen} onClose={() => setPwOpen(false)} />
       {bottomAction && (
         <AppShell.Footer p="sm" hiddenFrom="md">
