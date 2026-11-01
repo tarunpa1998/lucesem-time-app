@@ -719,6 +719,22 @@ textarea:focus,
   border-color: var(--app-border-subtle);
   transform: translateY(-1px);
 }
+.app-calendar-day:hover:not(:disabled):not([data-disabled="true"]):not([data-selected="true"]) .app-cal-num {
+  color: var(--app-brand-primary) !important;
+}
+
+/* Calendar (DateInput popover & DatePicker) day hover: show text in primary color */
+.m_396ce5cb:hover:not([data-disabled]):not([data-selected]),
+.mantine-DatePicker-day:hover:not([data-disabled]):not([data-selected]),
+.mantine-DateInput-day:hover:not([data-disabled]):not([data-selected]),
+.mantine-Calendar-day:hover:not([data-disabled]):not([data-selected]),
+.m_dc6a3c71:hover:not([data-disabled]):not([data-selected]),
+button[data-picker-control]:hover:not([data-disabled]):not([data-selected]),
+.mantine-Popover-dropdown table button:hover:not([data-disabled]):not([data-selected]),
+.mantine-DateInput-dropdown table button:hover:not([data-disabled]):not([data-selected]) {
+  color: var(--app-brand-primary) !important;
+}
+
 .app-calendar-day:focus-visible {
   outline: 2px solid var(--app-brand-primary);
   outline-offset: 1px;

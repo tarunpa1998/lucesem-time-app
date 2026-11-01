@@ -26,6 +26,10 @@ export function AppDataTable<T>({
   empty,
   sortState,
   onSort,
+  minWidth = 600,
+  maxHeight,
+  scrollable = false,
+  stickyHeader = false,
 }: {
   rows: T[];
   columns: Column<T>[];
@@ -33,6 +37,10 @@ export function AppDataTable<T>({
   empty: string;
   sortState?: SortState | null;
   onSort?: (key: string) => void;
+  minWidth?: number | string;
+  maxHeight?: number | string;
+  scrollable?: boolean;
+  stickyHeader?: boolean;
 }) {
   const mobile = useMediaQuery(`(max-width: ${CENTRAL_DESIGN_TOKENS.breakpointMobile}px)`);
 
@@ -44,7 +52,7 @@ export function AppDataTable<T>({
     );
   }
 
-  if (mobile) {
+  if (mobile && !scrollable) {
     return (
       <Stack gap="xs">
         {rows.map((r) => (
@@ -80,22 +88,38 @@ export function AppDataTable<T>({
     );
   }
 
+  const effectiveMaxHeight = maxHeight ?? (scrollable ? 520 : undefined);
+  const isSticky = Boolean(stickyHeader || scrollable || maxHeight);
+
   return (
-    <Table.ScrollContainer minWidth={600}>
+    <Table.ScrollContainer
+      minWidth={minWidth}
+      style={{
+        maxHeight: effectiveMaxHeight,
+        overflowY: effectiveMaxHeight ? "auto" : undefined,
+        overflowX: "auto",
+        scrollbarWidth: "thin",
+      }}
+    >
       <Table
         highlightOnHover
+        stickyHeader={isSticky}
+        stickyHeaderOffset={0}
         verticalSpacing="sm"
         styles={{
           th: {
             color: "var(--app-text-secondary)",
             fontWeight: 600,
             fontSize: 13,
+            background: "var(--app-bg-surface)",
             borderBottom: "1px solid var(--app-border-subtle)",
             whiteSpace: "nowrap",
+            zIndex: 1,
           },
           td: {
             color: "var(--app-text-primary)",
             borderBottom: "1px solid var(--app-border-subtle)",
+            whiteSpace: "nowrap",
           },
         }}
       >

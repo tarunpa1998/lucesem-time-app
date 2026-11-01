@@ -123,7 +123,7 @@ export function ProjectsPage({ admin = false }: { admin?: boolean }) {
               key: "s",
               label: t("status"),
               render: (r) => (
-                <AppGroup gap={4} justify="flex-end" wrap="nowrap">
+                <AppGroup gap={4} wrap="nowrap">
                   <StateBadge state={r.approval_state} />
                   {!r.is_visible && <AppBadge color="gray">{t("archived")}</AppBadge>}
                 </AppGroup>

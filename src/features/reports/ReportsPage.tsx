@@ -739,6 +739,10 @@ export function ReportsPage() {
           sortState={{ key: sortField, direction: sortDirection }}
           onSort={handleSortColumn}
           empty={report.isLoading ? "…" : t("noEntries")}
+          scrollable
+          minWidth={780}
+          maxHeight={520}
+          stickyHeader
           columns={[
             {
               key: "date",
