@@ -141,10 +141,6 @@ export function Dashboard() {
     lang === "de"
       ? ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
       : ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
-  const monthLabel = month.toLocaleDateString(lang === "de" ? "de-AT" : "en-US", {
-    month: "long",
-    year: "numeric",
-  });
 
   const timerButton = data.timer ? (
     <AppButton
@@ -328,7 +324,6 @@ export function Dashboard() {
                 onSelect={setSelected}
                 today={today}
                 weekdayLabels={weekdayLabels}
-                monthLabel={monthLabel}
                 dayInfo={(d) => {
                   if (d > today) return { disabled: true, muted: true };
                   const h = hoursByDate.get(d);

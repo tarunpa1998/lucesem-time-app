@@ -144,43 +144,48 @@
 :root[data-app-mode="light"],
 html[data-app-mode="light"],
 [data-app-mode="light"] {
-  --app-bg-canvas: #F5F8FA;
-  --app-bg-surface: #FFFFFF;
-  --app-bg-elevated: #EBF2F7;
-  --app-bg-header: #0F172A;
-  --app-text-primary: #1E293B;
-  --app-text-secondary: #64748B;
-  --app-text-on-header: #FFFFFF;
-  --app-border-subtle: #E2E8F0;
-  --app-hover-surface: #EBF2F7;
-  --app-shadow-card: 0 1px 3px rgba(15,23,42,0.04), 0 6px 18px -3px rgba(15,23,42,0.07), 0 12px 28px -8px rgba(15,23,42,0.06);
-  --app-shadow-floating: 0 4px 6px -1px rgba(15,23,42,0.04), 0 12px 30px -4px rgba(15,23,42,0.1), 0 24px 44px -8px rgba(15,23,42,0.07);
-  --app-shadow-elevated: 0 20px 48px -12px rgba(15,23,42,0.22), 0 6px 16px rgba(15,23,42,0.06);
+  --app-bg-canvas: #f5f8fa;
+  --app-bg-surface: #ffffff;
+  --app-bg-elevated: #ebf2f7;
+  --app-bg-header: #0f172a;
+  --app-text-primary: #1e293b;
+  --app-text-secondary: #64748b;
+  --app-text-on-header: #ffffff;
+  --app-border-subtle: #e2e8f0;
+  --app-hover-surface: #ebf2f7;
+  --app-shadow-card:
+    0 1px 3px rgba(15, 23, 42, 0.04), 0 6px 18px -3px rgba(15, 23, 42, 0.07),
+    0 12px 28px -8px rgba(15, 23, 42, 0.06);
+  --app-shadow-floating:
+    0 4px 6px -1px rgba(15, 23, 42, 0.04), 0 12px 30px -4px rgba(15, 23, 42, 0.1),
+    0 24px 44px -8px rgba(15, 23, 42, 0.07);
+  --app-shadow-elevated:
+    0 20px 48px -12px rgba(15, 23, 42, 0.22), 0 6px 16px rgba(15, 23, 42, 0.06);
   --app-bg-glass: rgba(255, 255, 255, 0.88);
   --app-border-glass: rgba(226, 232, 240, 0.9);
   --app-card-highlight: linear-gradient(180deg, rgba(0, 159, 227, 0.035) 0%, transparent 45%);
   --app-skeleton-bg: rgba(15, 23, 42, 0.07);
-  --app-logo-sem: #1E293B;
+  --app-logo-sem: #1e293b;
 
-  --mantine-color-body: #F5F8FA;
-  --mantine-color-default: #FFFFFF;
-  --mantine-color-default-hover: #EBF2F7;
-  --mantine-color-default-border: #E2E8F0;
-  --mantine-color-default-color: #1E293B;
-  --mantine-color-text: #1E293B;
-  --mantine-color-dimmed: #64748B;
-  --mantine-color-placeholder: #64748B;
+  --mantine-color-body: #f5f8fa;
+  --mantine-color-default: #ffffff;
+  --mantine-color-default-hover: #ebf2f7;
+  --mantine-color-default-border: #e2e8f0;
+  --mantine-color-default-color: #1e293b;
+  --mantine-color-text: #1e293b;
+  --mantine-color-dimmed: #64748b;
+  --mantine-color-placeholder: #64748b;
 
-  --app-brand-primary: #009FE3;
-  --app-brand-hover: #0088C2;
-  --app-brand-navy: #0F172A;
-  --app-success: #16A34A;
-  --app-warning: #D97706;
-  --app-danger: #DC2626;
-  --app-locked: #7C3AED;
-  --app-font-heading: 'Plus Jakarta Sans', 'Montserrat', sans-serif;
-  --app-font-body: 'Inter', 'Open Sans', sans-serif;
-  --app-font-mono: 'JetBrains Mono', monospace;
+  --app-brand-primary: #009fe3;
+  --app-brand-hover: #0088c2;
+  --app-brand-navy: #0f172a;
+  --app-success: #16a34a;
+  --app-warning: #d97706;
+  --app-danger: #dc2626;
+  --app-locked: #7c3aed;
+  --app-font-heading: "Plus Jakarta Sans", "Montserrat", sans-serif;
+  --app-font-body: "Inter", "Open Sans", sans-serif;
+  --app-font-mono: "JetBrains Mono", monospace;
   --app-heading-tracking: -0.02em;
   --app-radius-sm: 8px;
   --app-radius-md: 12px;
@@ -193,71 +198,88 @@ html[data-app-mode="light"],
 html[data-app-mode="dark"],
 [data-app-mode="dark"],
 html.dark:not([data-app-mode="night"]):not([data-app-mode="light"]) {
-  --app-bg-canvas: #0B1120 !important;
+  --app-bg-canvas: #0b1120 !important;
   --app-bg-surface: #111827 !important;
-  --app-bg-elevated: #1F2937 !important;
-  --app-bg-header: #0F172A !important;
-  --app-text-primary: #E2E8F0 !important;
-  --app-text-secondary: #94A3B8 !important;
-  --app-text-on-header: #FFFFFF !important;
-  --app-border-subtle: #1F2A3C !important;
-  --app-hover-surface: #1F2937 !important;
-  --app-shadow-card: 0 2px 8px rgba(0,0,0,0.4), 0 8px 24px -4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06) !important;
-  --app-shadow-floating: 0 8px 32px rgba(0,0,0,0.65), 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08) !important;
-  --app-shadow-elevated: 0 24px 50px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+  --app-bg-elevated: #1f2937 !important;
+  --app-bg-header: #0f172a !important;
+  --app-text-primary: #e2e8f0 !important;
+  --app-text-secondary: #94a3b8 !important;
+  --app-text-on-header: #ffffff !important;
+  --app-border-subtle: #1f2a3c !important;
+  --app-hover-surface: #1f2937 !important;
+  --app-shadow-card:
+    0 2px 8px rgba(0, 0, 0, 0.4), 0 8px 24px -4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  --app-shadow-floating:
+    0 8px 32px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  --app-shadow-elevated:
+    0 24px 50px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
   --app-bg-glass: rgba(17, 24, 39, 0.85) !important;
   --app-border-glass: rgba(255, 255, 255, 0.09) !important;
-  --app-card-highlight: linear-gradient(180deg, rgba(0, 159, 227, 0.08) 0%, transparent 50%) !important;
+  --app-card-highlight: linear-gradient(
+    180deg,
+    rgba(0, 159, 227, 0.08) 0%,
+    transparent 50%
+  ) !important;
   --app-skeleton-bg: rgba(255, 255, 255, 0.08) !important;
-  --app-logo-sem: #FFFFFF !important;
+  --app-logo-sem: #ffffff !important;
 
-  --mantine-color-body: #0B1120 !important;
+  --mantine-color-body: #0b1120 !important;
   --mantine-color-default: #111827 !important;
-  --mantine-color-default-hover: #1F2937 !important;
-  --mantine-color-default-border: #1F2A3C !important;
-  --mantine-color-default-color: #E2E8F0 !important;
-  --mantine-color-text: #E2E8F0 !important;
-  --mantine-color-dimmed: #94A3B8 !important;
-  --mantine-color-placeholder: #94A3B8 !important;
+  --mantine-color-default-hover: #1f2937 !important;
+  --mantine-color-default-border: #1f2a3c !important;
+  --mantine-color-default-color: #e2e8f0 !important;
+  --mantine-color-text: #e2e8f0 !important;
+  --mantine-color-dimmed: #94a3b8 !important;
+  --mantine-color-placeholder: #94a3b8 !important;
   --mantine-color-dark-7: #111827 !important;
-  --mantine-color-dark-6: #1F2937 !important;
-  --mantine-color-dark-5: #1F2937 !important;
-  --mantine-color-dark-4: #1F2A3C !important;
+  --mantine-color-dark-6: #1f2937 !important;
+  --mantine-color-dark-5: #1f2937 !important;
+  --mantine-color-dark-4: #1f2a3c !important;
 }
 
 :root[data-app-mode="night"],
 html[data-app-mode="night"],
 [data-app-mode="night"] {
   --app-bg-canvas: #000000 !important;
-  --app-bg-surface: #090D14 !important;
+  --app-bg-surface: #090d14 !important;
   --app-bg-elevated: #111722 !important;
   --app-bg-header: #000000 !important;
-  --app-text-primary: #E5E7EB !important;
-  --app-text-secondary: #8B95A5 !important;
-  --app-text-on-header: #FFFFFF !important;
-  --app-border-subtle: #161D2A !important;
+  --app-text-primary: #e5e7eb !important;
+  --app-text-secondary: #8b95a5 !important;
+  --app-text-on-header: #ffffff !important;
+  --app-border-subtle: #161d2a !important;
   --app-hover-surface: #111722 !important;
-  --app-shadow-card: 0 2px 10px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08) !important;
-  --app-shadow-floating: 0 12px 36px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.12) !important;
-  --app-shadow-elevated: 0 28px 60px rgba(0,0,0,0.92), inset 0 1px 0 rgba(255,255,255,0.14) !important;
+  --app-shadow-card:
+    0 2px 10px rgba(0, 0, 0, 0.8), 0 10px 30px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  --app-shadow-floating:
+    0 12px 36px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  --app-shadow-elevated:
+    0 28px 60px rgba(0, 0, 0, 0.92), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
   --app-bg-glass: rgba(9, 13, 20, 0.88) !important;
   --app-border-glass: rgba(255, 255, 255, 0.12) !important;
-  --app-card-highlight: linear-gradient(180deg, rgba(0, 159, 227, 0.09) 0%, transparent 50%) !important;
+  --app-card-highlight: linear-gradient(
+    180deg,
+    rgba(0, 159, 227, 0.09) 0%,
+    transparent 50%
+  ) !important;
   --app-skeleton-bg: rgba(255, 255, 255, 0.05) !important;
-  --app-logo-sem: #FFFFFF !important;
+  --app-logo-sem: #ffffff !important;
 
   --mantine-color-body: #000000 !important;
-  --mantine-color-default: #090D14 !important;
+  --mantine-color-default: #090d14 !important;
   --mantine-color-default-hover: #111722 !important;
-  --mantine-color-default-border: #161D2A !important;
-  --mantine-color-default-color: #E5E7EB !important;
-  --mantine-color-text: #E5E7EB !important;
-  --mantine-color-dimmed: #8B95A5 !important;
-  --mantine-color-placeholder: #8B95A5 !important;
-  --mantine-color-dark-7: #090D14 !important;
+  --mantine-color-default-border: #161d2a !important;
+  --mantine-color-default-color: #e5e7eb !important;
+  --mantine-color-text: #e5e7eb !important;
+  --mantine-color-dimmed: #8b95a5 !important;
+  --mantine-color-placeholder: #8b95a5 !important;
+  --mantine-color-dark-7: #090d14 !important;
   --mantine-color-dark-6: #111722 !important;
   --mantine-color-dark-5: #111722 !important;
-  --mantine-color-dark-4: #161D2A !important;
+  --mantine-color-dark-4: #161d2a !important;
 }
 
 @layer base {
@@ -285,14 +307,18 @@ html[data-app-mode="night"],
 .mantine-DatePicker-day:hover:not([data-selected]):not([data-disabled]),
 .mantine-DatePicker-month:hover:not([data-selected]):not([data-disabled]),
 .mantine-DatePicker-year:hover:not([data-selected]):not([data-disabled]) {
-  background-color: color-mix(in srgb, var(--app-brand-primary) 15%, var(--app-hover-surface)) !important;
+  background-color: color-mix(
+    in srgb,
+    var(--app-brand-primary) 15%,
+    var(--app-hover-surface)
+  ) !important;
   color: var(--app-brand-primary) !important;
 }
 .mantine-DatePicker-day[data-selected],
 .mantine-DatePicker-month[data-selected],
 .mantine-DatePicker-year[data-selected] {
   background-color: var(--app-brand-primary) !important;
-  color: #FFFFFF !important;
+  color: #ffffff !important;
 }
 
 /* Global Dropdown, Combobox & Popover theme styling matching calendar dropdown across light, dark, and night */
@@ -327,9 +353,10 @@ input[type="email"],
 input[type="number"],
 input[type="tel"],
 textarea {
-  transition: border-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 160ms cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 160ms ease !important;
+  transition:
+    border-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 160ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 160ms ease !important;
 }
 
 /* Hover State - clean crisp border tint without fuzzy shadows */
@@ -351,7 +378,11 @@ input[type="email"]:hover,
 input[type="number"]:hover,
 input[type="tel"]:hover,
 textarea:hover {
-  border-color: color-mix(in srgb, var(--app-brand-primary) 65%, var(--app-border-subtle)) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--app-brand-primary) 65%,
+    var(--app-border-subtle)
+  ) !important;
   box-shadow: none !important;
 }
 
@@ -393,7 +424,9 @@ textarea:focus,
 .mantine-Menu-item {
   color: var(--app-text-primary) !important;
   border-radius: var(--app-radius-sm) !important;
-  transition: background-color 140ms ease, color 140ms ease !important;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease !important;
   cursor: pointer;
 }
 
@@ -406,7 +439,11 @@ textarea:focus,
 .mantine-MultiSelect-option[data-hovered],
 .mantine-Menu-item:hover,
 .mantine-Menu-item[data-hovered] {
-  background-color: color-mix(in srgb, var(--app-brand-primary) 14%, var(--app-hover-surface)) !important;
+  background-color: color-mix(
+    in srgb,
+    var(--app-brand-primary) 14%,
+    var(--app-hover-surface)
+  ) !important;
   color: var(--app-brand-primary) !important;
 }
 
@@ -418,23 +455,311 @@ textarea:focus,
 .mantine-Select-option:active,
 .mantine-MultiSelect-option:active,
 .mantine-Menu-item:active {
-  background-color: color-mix(in srgb, var(--app-brand-primary) 22%, var(--app-hover-surface)) !important;
+  background-color: color-mix(
+    in srgb,
+    var(--app-brand-primary) 22%,
+    var(--app-hover-surface)
+  ) !important;
   color: var(--app-brand-primary) !important;
   font-weight: 600 !important;
 }
 
-/* Calendar Day Cells hover and focus */
-.app-calendar-day:hover:not(:disabled):not([data-disabled="true"]) {
-  border-color: color-mix(in srgb, var(--app-brand-primary) 55%, var(--app-border-subtle)) !important;
-  background-color: color-mix(in srgb, var(--app-brand-primary) 10%, var(--app-hover-surface)) !important;
+/* ===== Dashboard Calendar (AppCalendar) ============================== */
+
+/* Header: Pill Dropdown Triggers */
+.app-cal-header-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--app-radius-md);
+  border: 1px solid var(--app-border-subtle);
+  background: var(--app-bg-surface);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.app-cal-header-pill:hover {
+  background-color: var(--app-hover-surface);
+  border-color: color-mix(in srgb, var(--app-brand-primary) 35%, var(--app-border-subtle));
+}
+.app-cal-header-pill:focus-visible {
+  outline: 2px solid var(--app-brand-primary);
+  outline-offset: 1px;
+}
+
+/* Header Dropdowns */
+.app-cal-dropdown {
+  background: var(--app-bg-surface);
+  border: 1px solid var(--app-border-subtle);
+  box-shadow: var(--app-shadow-elevated);
+  border-radius: var(--app-radius-md);
+  padding: 4px;
+}
+.app-cal-menu-item {
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--app-radius-sm);
+  color: var(--app-text-primary);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+.app-cal-menu-item:hover {
+  background-color: var(--app-hover-surface);
+}
+.app-cal-menu-item[data-active="true"] {
+  background-color: color-mix(in srgb, var(--app-brand-primary) 14%, transparent) !important;
+  color: var(--app-brand-primary) !important;
+  font-weight: 700 !important;
+}
+
+/* Header: joined prev / today / next navigation cluster */
+.app-cal-nav {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 2px;
+  flex-shrink: 0;
+  border-radius: var(--app-radius-md);
+  border: 1px solid var(--app-border-subtle);
+  background: var(--app-bg-surface);
+  gap: 2px;
+}
+.app-cal-nav-btn {
+  height: 26px;
+  width: 26px;
+  border-radius: var(--app-radius-sm);
+  color: var(--app-text-secondary);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+.app-cal-nav-btn:hover {
+  background-color: var(--app-hover-surface);
+  color: var(--app-text-primary);
+}
+.app-cal-today-btn {
+  height: 26px;
+  padding-inline: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: var(--app-radius-sm);
+  transition: background-color 120ms ease;
+}
+.app-cal-today-btn:hover {
+  background-color: var(--app-hover-surface);
+}
+
+/* Weekday header */
+.app-cal-weekday {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--app-text-secondary);
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+.app-cal-weekday[data-weekend="true"] {
+  opacity: 0.65;
+}
+
+/* Day cells: uniform height, rock-solid baseline alignment */
+.app-calendar-day {
+  height: 54px;
+  min-height: 54px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 7px;
+  padding-bottom: 5px;
+  padding-inline: 2px;
+  position: relative;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.app-calendar-day:hover:not(:disabled):not([data-disabled="true"]):not([data-selected="true"]) {
+  background-color: var(--app-hover-surface);
+  border-color: var(--app-border-subtle);
+  transform: translateY(-1px);
+}
+.app-calendar-day:focus-visible {
+  outline: 2px solid var(--app-brand-primary);
+  outline-offset: 1px;
+}
+
+/* Cell States */
+.app-calendar-day[data-muted="true"]:not([data-selected="true"]):not([data-today="true"]) {
+  opacity: 0.7;
+}
+.app-calendar-day[data-outside="true"]:not([data-selected="true"]) {
+  opacity: 0.35;
+}
+.app-calendar-day[data-disabled="true"] {
+  opacity: 0.22;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Today highlight */
+.app-calendar-day[data-today="true"]:not([data-selected="true"]) {
+  border-color: var(--app-brand-primary);
+  background: color-mix(in srgb, var(--app-brand-primary) 6%, transparent);
+}
+.app-calendar-day[data-today="true"]:not([data-selected="true"]) .app-cal-num {
+  color: var(--app-brand-primary);
+  font-weight: 700;
+}
+.app-calendar-day[data-today="true"][data-outside="true"]:not([data-selected="true"]) {
+  border-color: color-mix(in srgb, var(--app-brand-primary) 35%, transparent);
+  border-style: dashed;
+  background: transparent;
+}
+
+/* Selected state: high-contrast brand filled card */
+.app-calendar-day[data-selected="true"] {
+  background: var(--app-brand-primary) !important;
+  border-color: var(--app-brand-primary) !important;
+  box-shadow: 0 4px 14px -1px color-mix(in srgb, var(--app-brand-primary) 45%, transparent) !important;
+  opacity: 1 !important;
+  transform: translateY(-1px);
+}
+.app-calendar-day[data-selected="true"] .app-cal-num {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+.app-calendar-day[data-selected="true"] .app-cal-hours {
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+.app-calendar-day[data-selected="true"] .app-cal-hours-text {
+  color: #ffffff !important;
+}
+.app-calendar-day[data-selected="true"] .app-cal-dot {
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45) !important;
+}
+
+/* Day cell inner layout */
+.app-cal-num {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--app-text-primary);
+  font-variant-numeric: tabular-nums;
+  transition:
+    color 150ms ease,
+    font-weight 150ms ease;
+}
+
+.app-cal-slot {
+  height: 20px;
+  min-height: 20px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Hours chip */
+.app-cal-hours {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--app-brand-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--app-brand-primary) 18%, transparent);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+.app-cal-hours-text {
+  font-family: var(--app-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 14px;
+  color: var(--app-brand-primary);
+  letter-spacing: -0.01em;
+}
+
+[data-app-mode="dark"] .app-cal-hours,
+[data-app-mode="night"] .app-cal-hours {
+  background: color-mix(in srgb, var(--app-brand-primary) 18%, transparent);
+  border-color: color-mix(in srgb, var(--app-brand-primary) 28%, transparent);
+}
+[data-app-mode="dark"] .app-cal-hours-text,
+[data-app-mode="night"] .app-cal-hours-text {
+  color: #38bdf8;
+}
+
+/* Tone Dot / Indicator */
+.app-cal-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--app-warning) 22%, transparent);
+  flex-shrink: 0;
+  transition: transform 150ms ease;
+}
+.app-cal-mini-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Footer: month summary + legend */
+.app-cal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--app-border-subtle);
+}
+.app-cal-legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--app-warning) 25%, transparent);
 }
 
 /* Floating Sidebar Navigation Item Styles */
 .app-sidebar-item {
   position: relative;
-  transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1),
-              color 150ms cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition:
+    background-color 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    color 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .app-sidebar-item:hover {
@@ -464,4 +789,3 @@ textarea:focus,
   border-radius: 24px !important;
   overflow: hidden !important;
 }
-

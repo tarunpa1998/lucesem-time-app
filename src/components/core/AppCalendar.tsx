@@ -1,15 +1,22 @@
 import {
+  ActionIcon,
+  Badge,
   Box,
+  Button,
   Group,
+  Menu,
+  ScrollArea,
   SimpleGrid,
   Text,
   UnstyledButton,
-  ActionIcon,
-  Select,
-  Button,
-  Stack,
 } from "@mantine/core";
-import { CaretLeft, CaretRight, ArrowCounterClockwise } from "@phosphor-icons/react";
+import {
+  CaretLeft,
+  CaretRight,
+  CaretDown,
+  ArrowCounterClockwise,
+  Clock,
+} from "@phosphor-icons/react";
 import { ymd } from "@/domain/holidays";
 import { useI18n } from "@/lib/i18n";
 
@@ -27,12 +34,25 @@ interface Props {
   onSelect: (date: string) => void;
   dayInfo: (date: string) => CalendarDayInfo;
   weekdayLabels: string[];
-  monthLabel: string;
   today: string;
   selectedDate?: string | null | undefined;
 }
 
-/** Month grid with month/year selects, direct date picker, quick today jump, and equal-sized cells. */
+const toneColor = {
+  holiday: "var(--app-warning)",
+  locked: "var(--app-locked)",
+  pending: "var(--app-warning)",
+} as const;
+
+/**
+ * Modern month grid for the dashboard:
+ * - Clean pill dropdowns for month & year with active item highlighting
+ * - Symmetrical navigation cluster (prev, today, next)
+ * - Rock-solid cell baseline: day numbers and indicator slots never jump vertically
+ * - Modern monospace micro-chip for logged hours
+ * - High-contrast selected state and refined today indicator
+ * - Executive status footer with icon, label, and hours badge
+ */
 export function AppCalendar({
   month,
   onMonthChange,
@@ -42,31 +62,37 @@ export function AppCalendar({
   today,
   selectedDate,
 }: Props) {
-  const { lang, t } = useI18n();
+  const { lang, t, fmtDate, fmtHours } = useI18n();
+  const locale = lang === "de" ? "de-AT" : "en-US";
 
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: 12 }, (_, i) => {
     const y = currentYear - 6 + i;
     return { value: String(y), label: String(y) };
   });
-
   const monthOptions = Array.from({ length: 12 }, (_, i) => {
-    const d = new Date(2026, i, 1);
-    const name = d.toLocaleDateString(lang === "de" ? "de-AT" : "en-US", { month: "long" });
+    const name = new Date(currentYear, i, 1).toLocaleDateString(locale, { month: "long" });
     return { value: String(i), label: name.charAt(0).toUpperCase() + name.slice(1) };
   });
 
+  // Only render the weeks the month actually occupies (5 or 6 rows).
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
-  const offset = (first.getDay() + 6) % 7;
+  const offset = (first.getDay() + 6) % 7; // Monday-first
+  const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
   const cells = Array.from(
-    { length: 42 },
+    { length: Math.ceil((offset + daysInMonth) / 7) * 7 },
     (_, i) => new Date(first.getFullYear(), first.getMonth(), i - offset + 1),
   );
-  const toneColor = {
-    holiday: "var(--app-warning)",
-    locked: "var(--app-locked)",
-    pending: "var(--app-warning)",
-  };
+
+  // Month summary: total logged hours and whether any holiday marker shows.
+  let monthTotal = 0;
+  let hasHoliday = false;
+  for (const d of cells) {
+    if (d.getMonth() !== month.getMonth()) continue;
+    const info = dayInfo(ymd(d));
+    monthTotal += info.hours ?? 0;
+    if (info.tone) hasHoliday = true;
+  }
 
   const jumpToToday = () => {
     const now = new Date();
@@ -74,181 +100,229 @@ export function AppCalendar({
     onSelect(today);
   };
 
+  const compactHours = (h: number) =>
+    h.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+  const activeMonthName = monthOptions[month.getMonth()]?.label ?? "";
+
   return (
     <Box>
-      {/* Top Controls: Month Select, Year Select, Navigation & Today Jump */}
-      <Stack gap="xs" mb="sm">
-        <Group justify="space-between" align="center" wrap="wrap" gap="xs">
-          <Group gap="xs" align="center" style={{ flex: 1, minWidth: 220 }}>
-            <Select
-              size="xs"
-              value={String(month.getMonth())}
-              onChange={(val) => {
-                if (val !== null) {
-                  onMonthChange(new Date(month.getFullYear(), Number(val), 1));
-                }
-              }}
-              data={monthOptions}
-              allowDeselect={false}
-              aria-label={t("selectMonth")}
-              style={{ flex: 1, minWidth: 120, maxWidth: 160 }}
-              comboboxProps={{ shadow: "lg", withinPortal: true, zIndex: 1000 }}
-              styles={{
-                input: {
-                  fontWeight: 600,
-                  background: "var(--app-bg-surface)",
-                  borderColor: "var(--app-border-subtle)",
-                  color: "var(--app-text-primary)",
-                },
-                dropdown: {
-                  background: "var(--app-bg-surface)",
-                  borderColor: "var(--app-border-subtle)",
-                  boxShadow: "var(--app-shadow-elevated)",
-                },
-              }}
-            />
-            <Select
-              size="xs"
-              value={String(month.getFullYear())}
-              onChange={(val) => {
-                if (val !== null) {
-                  onMonthChange(new Date(Number(val), month.getMonth(), 1));
-                }
-              }}
-              data={yearOptions}
-              allowDeselect={false}
-              aria-label={t("selectYear")}
-              style={{ width: 85 }}
-              comboboxProps={{ shadow: "lg", withinPortal: true, zIndex: 1000 }}
-              styles={{
-                input: {
-                  fontWeight: 600,
-                  background: "var(--app-bg-surface)",
-                  borderColor: "var(--app-border-subtle)",
-                  color: "var(--app-text-primary)",
-                },
-                dropdown: {
-                  background: "var(--app-bg-surface)",
-                  borderColor: "var(--app-border-subtle)",
-                  boxShadow: "var(--app-shadow-elevated)",
-                },
-              }}
-            />
-          </Group>
+      {/* Header: sleek month/year pill dropdowns + joined navigation cluster */}
+      <Group justify="space-between" align="center" gap="xs" mb="md" wrap="nowrap">
+        <Group gap={6} wrap="nowrap" style={{ minWidth: 0 }}>
+          {/* Month Dropdown */}
+          <Menu
+            shadow="md"
+            width={160}
+            position="bottom-start"
+            radius="md"
+            withinPortal
+            zIndex={1000}
+          >
+            <Menu.Target>
+              <UnstyledButton className="app-cal-header-pill" aria-label={t("selectMonth")}>
+                <Text fw={700} fz="sm" c="var(--app-text-primary)">
+                  {activeMonthName}
+                </Text>
+                <CaretDown size={12} weight="bold" style={{ color: "var(--app-text-secondary)" }} />
+              </UnstyledButton>
+            </Menu.Target>
+            <Menu.Dropdown className="app-cal-dropdown">
+              <ScrollArea.Autosize mah={260}>
+                {monthOptions.map((opt) => {
+                  const isCurrent = Number(opt.value) === month.getMonth();
+                  return (
+                    <Menu.Item
+                      key={opt.value}
+                      onClick={() =>
+                        onMonthChange(new Date(month.getFullYear(), Number(opt.value), 1))
+                      }
+                      className="app-cal-menu-item"
+                      data-active={isCurrent || undefined}
+                    >
+                      {opt.label}
+                    </Menu.Item>
+                  );
+                })}
+              </ScrollArea.Autosize>
+            </Menu.Dropdown>
+          </Menu>
 
-          <Group gap={6} align="center">
-            <Button
-              size="xs"
-              variant="light"
-              color="lucesem"
-              onClick={jumpToToday}
-              leftSection={<ArrowCounterClockwise size={12} weight="bold" />}
-              style={{ height: 30, fontSize: 12 }}
-            >
-              {t("goToToday")}
-            </Button>
-            <ActionIcon
-              variant="default"
-              size="sm"
-              onClick={() => onMonthChange(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
-              aria-label="Previous month"
-              style={{ height: 30, width: 30 }}
-            >
-              <CaretLeft weight="duotone" size={16} />
-            </ActionIcon>
-            <ActionIcon
-              variant="default"
-              size="sm"
-              onClick={() => onMonthChange(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
-              aria-label="Next month"
-              style={{ height: 30, width: 30 }}
-            >
-              <CaretRight weight="duotone" size={16} />
-            </ActionIcon>
-          </Group>
+          {/* Year Dropdown */}
+          <Menu
+            shadow="md"
+            width={110}
+            position="bottom-start"
+            radius="md"
+            withinPortal
+            zIndex={1000}
+          >
+            <Menu.Target>
+              <UnstyledButton className="app-cal-header-pill" aria-label={t("selectYear")}>
+                <Text fw={700} fz="sm" c="var(--app-text-primary)">
+                  {month.getFullYear()}
+                </Text>
+                <CaretDown size={12} weight="bold" style={{ color: "var(--app-text-secondary)" }} />
+              </UnstyledButton>
+            </Menu.Target>
+            <Menu.Dropdown className="app-cal-dropdown">
+              <ScrollArea.Autosize mah={260}>
+                {yearOptions.map((opt) => {
+                  const isCurrent = Number(opt.value) === month.getFullYear();
+                  return (
+                    <Menu.Item
+                      key={opt.value}
+                      onClick={() =>
+                        onMonthChange(new Date(Number(opt.value), month.getMonth(), 1))
+                      }
+                      className="app-cal-menu-item"
+                      data-active={isCurrent || undefined}
+                    >
+                      {opt.label}
+                    </Menu.Item>
+                  );
+                })}
+              </ScrollArea.Autosize>
+            </Menu.Dropdown>
+          </Menu>
         </Group>
-      </Stack>
+
+        {/* Navigation Cluster: Prev, Today, Next */}
+        <Box className="app-cal-nav">
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="sm"
+            onClick={() => onMonthChange(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
+            aria-label={t("prevMonth")}
+            className="app-cal-nav-btn"
+          >
+            <CaretLeft weight="bold" size={14} />
+          </ActionIcon>
+          <Button
+            size="compact-xs"
+            variant="subtle"
+            color="lucesem"
+            onClick={jumpToToday}
+            leftSection={<ArrowCounterClockwise size={11} weight="bold" />}
+            className="app-cal-today-btn"
+          >
+            {t("goToToday")}
+          </Button>
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="sm"
+            onClick={() => onMonthChange(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
+            aria-label={t("nextMonth")}
+            className="app-cal-nav-btn"
+          >
+            <CaretRight weight="bold" size={14} />
+          </ActionIcon>
+        </Box>
+      </Group>
 
       {/* Weekdays */}
-      <SimpleGrid cols={7} spacing={4} mb={4}>
-        {weekdayLabels.map((w) => (
-          <Text key={w} ta="center" fz="xs" fw={600} c="var(--app-text-secondary)">
-            {w}
-          </Text>
-        ))}
+      <SimpleGrid cols={7} spacing={6} mb={8}>
+        {weekdayLabels.map((w, idx) => {
+          const isWeekend = idx >= 5;
+          return (
+            <Text
+              key={w}
+              className="app-cal-weekday"
+              data-weekend={isWeekend || undefined}
+              ta="center"
+            >
+              {w}
+            </Text>
+          );
+        })}
       </SimpleGrid>
 
-      {/* Days Grid */}
-      <SimpleGrid cols={7} spacing={4}>
+      {/* Days grid: uniform height & rock-solid baseline */}
+      <SimpleGrid cols={7} spacing={6} verticalSpacing={6}>
         {cells.map((d) => {
           const key = ymd(d);
           const inMonth = d.getMonth() === month.getMonth();
           const info = dayInfo(key);
           const isToday = key === today;
           const isSelected = key === selectedDate;
+          const dayNum = d.getDate();
+
           return (
             <UnstyledButton
               key={key}
               className="app-calendar-day"
-              disabled={info.disabled}
+              data-selected={isSelected || undefined}
+              data-today={isToday || undefined}
+              data-outside={!inMonth || undefined}
+              data-muted={(info.muted && !info.disabled && inMonth) || undefined}
               data-disabled={info.disabled || undefined}
+              disabled={info.disabled}
+              aria-pressed={isSelected}
+              aria-current={isToday ? "date" : undefined}
+              aria-label={`${fmtDate(key)}${info.hours ? ` — ${fmtHours(info.hours)}` : ""}${info.label ? ` (${info.label})` : ""}`}
               onClick={() => !info.disabled && onSelect(key)}
-              style={{
-                cursor: info.disabled ? "not-allowed" : "pointer",
-                aspectRatio: "1 / 1",
-                minHeight: 44,
-                borderRadius: "var(--app-radius-sm)",
-                border: isSelected
-                  ? "2px solid var(--app-brand-primary)"
-                  : `1px solid ${isToday ? "var(--app-brand-primary)" : "var(--app-border-subtle)"}`,
-                background: isSelected
-                  ? "var(--app-hover-surface)"
-                  : info.muted || !inMonth
-                    ? "var(--app-bg-canvas)"
-                    : "var(--app-bg-surface)",
-                boxShadow: isSelected ? "0 0 0 1px var(--app-brand-primary)" : undefined,
-                opacity: info.disabled ? 0.35 : inMonth ? 1 : 0.45,
-                padding: 4,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                overflow: "hidden",
-                transition: "border-color 150ms ease, background 150ms ease",
-              }}
             >
-              <Group justify="space-between" align="center" gap={2}>
-                <Text
-                  fz="xs"
-                  fw={isSelected || isToday ? 700 : 500}
-                  c={isSelected || isToday ? "var(--app-brand-primary)" : "var(--app-text-primary)"}
-                >
-                  {d.getDate()}
-                </Text>
-                {isToday && (
-                  <Box
-                    style={{
-                      width: 5,
-                      height: 5,
-                      borderRadius: "50%",
-                      background: "var(--app-brand-primary)",
-                    }}
+              <span className="app-cal-num">{dayNum}</span>
+              <span className="app-cal-slot">
+                {info.hours ? (
+                  <span className="app-cal-hours">
+                    {info.tone && (
+                      <span
+                        className="app-cal-mini-dot"
+                        style={{ backgroundColor: toneColor[info.tone] }}
+                      />
+                    )}
+                    <span className="app-cal-hours-text">{compactHours(info.hours)}</span>
+                  </span>
+                ) : info.tone ? (
+                  <span
+                    title={info.label}
+                    className="app-cal-dot"
+                    style={{ backgroundColor: toneColor[info.tone] }}
                   />
-                )}
-              </Group>
-              {info.hours ? (
-                <Text fz={10} ff="var(--app-font-mono)" fw={600} c="var(--app-brand-primary)">
-                  {info.hours.toFixed(1)}
-                </Text>
-              ) : info.tone ? (
-                <Box
-                  style={{ height: 4, borderRadius: 2, background: toneColor[info.tone] }}
-                  title={info.label}
-                />
-              ) : null}
+                ) : null}
+              </span>
             </UnstyledButton>
           );
         })}
       </SimpleGrid>
+
+      {/* Footer: month summary + holiday legend */}
+      <Box className="app-cal-footer">
+        <Group gap={8} wrap="nowrap" align="center">
+          <Clock size={15} weight="duotone" style={{ color: "var(--app-brand-primary)" }} />
+          <Text fz="xs" fw={500} c="var(--app-text-secondary)">
+            {t("calLoggedThisMonth")}
+          </Text>
+          <Badge
+            variant="light"
+            color="lucesem"
+            size="sm"
+            radius="sm"
+            styles={{
+              root: {
+                fontFamily: "var(--app-font-mono)",
+                fontWeight: 700,
+                letterSpacing: "-0.01em",
+                height: 22,
+                paddingInline: 8,
+              },
+            }}
+          >
+            {fmtHours(monthTotal)}
+          </Badge>
+        </Group>
+        {hasHoliday && (
+          <Group gap={6} wrap="nowrap" align="center">
+            <Box className="app-cal-legend-dot" style={{ backgroundColor: toneColor.holiday }} />
+            <Text fz="xs" fw={500} c="var(--app-text-secondary)">
+              {t("holiday")}
+            </Text>
+          </Group>
+        )}
+      </Box>
     </Box>
   );
 }
