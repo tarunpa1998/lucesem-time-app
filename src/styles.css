@@ -294,6 +294,73 @@ html[data-app-mode="night"],
   }
 }
 
+/* ==========================================================================
+   Centralized Global Scrollbar Concealment
+   Hides visual scrollbars everywhere across the application while preserving
+   100% full mouse-wheel, touchpad, touch, and keyboard scrolling.
+   ========================================================================== */
+
+/* 1. Universal standards-based scrollbar suppression */
+html,
+body,
+*,
+*::before,
+*::after {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+/* 2. WebKit / Blink fallback for Chrome, Safari, Edge, Electron */
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track,
+::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-corner {
+  display: none !important;
+  background: transparent !important;
+}
+
+/* 3. Component overrides for Mantine (Modals, Drawers, ScrollAreas, Textareas, Inputs, Tables) */
+.mantine-Modal-content,
+.mantine-Modal-body,
+.mantine-Modal-inner,
+.mantine-Drawer-content,
+.mantine-Drawer-body,
+.mantine-ScrollArea-root,
+.mantine-ScrollArea-viewport,
+.mantine-ScrollArea-scrollbar,
+.mantine-ScrollArea-thumb,
+.mantine-Input-input,
+.mantine-Textarea-input,
+textarea,
+input {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.mantine-ScrollArea-scrollbar {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Textareas: controlled height and smooth internal scrolling without modal stretching */
+textarea,
+.mantine-Textarea-input {
+  overflow-y: auto !important;
+  resize: none !important;
+}
+
 /* Mantine Date Picker & Calendar popovers theme synchronization */
 .mantine-DatePicker-day:not([data-selected]):not([data-disabled]),
 .mantine-DatePicker-month:not([data-selected]):not([data-disabled]),

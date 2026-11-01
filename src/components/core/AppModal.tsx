@@ -16,6 +16,8 @@ export function AppModal({ title, children, ...rest }: ModalProps) {
         content: {
           background: "var(--app-bg-surface)",
           borderTop: "4px solid var(--app-brand-primary)",
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
         },
         header: {
           background: "var(--app-bg-surface)",
@@ -27,7 +29,11 @@ export function AppModal({ title, children, ...rest }: ModalProps) {
           letterSpacing: "var(--app-heading-tracking)",
           color: "var(--app-text-primary)",
         },
-        body: { paddingTop: 16 },
+        body: {
+          paddingTop: 16,
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+        },
       }}
       {...rest}
     >

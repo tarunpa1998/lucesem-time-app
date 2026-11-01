@@ -178,9 +178,21 @@ export const AppMultiSelect = (p: MultiSelectProps) => {
     />
   );
 };
-export const AppTextarea = (p: TextareaProps) => (
-  <Textarea autosize minRows={3} styles={inputStyles} {...p} />
-);
+export const AppTextarea = ({ minRows = 3, maxRows = 4, styles, ...p }: TextareaProps) => {
+  const mergedStyles = {
+    ...inputStyles,
+    input: {
+      ...inputStyles.input,
+      overflowY: "auto" as const,
+      resize: "none" as const,
+      maxHeight: "120px",
+      scrollbarWidth: "none" as const,
+      msOverflowStyle: "none" as const,
+    },
+    ...(typeof styles === "object" ? styles : {}),
+  };
+  return <Textarea autosize minRows={minRows} maxRows={maxRows} styles={mergedStyles} {...p} />;
+};
 export const AppTextInput = (p: TextInputProps) => <TextInput styles={inputStyles} {...p} />;
 
 export function parseYmd(val: string | Date | null | undefined): Date | null {
