@@ -22,6 +22,7 @@ import {
   AppDataTable,
   AppProgress,
   AppSegmented,
+  AppFolderTabs,
   formatDuration,
 } from "@/components/core";
 import { useI18n } from "@/lib/i18n";
@@ -275,18 +276,19 @@ export function Dashboard() {
         </AppCard>
 
         {/* Target vs worked */}
-        <AppGroup justify="space-between">
+        <AppGroup justify="space-between" align="flex-end">
           <AppHeading order={4}>
             {t("target")} / {t("worked")}
           </AppHeading>
-          <AppSegmented
-            size="xs"
+          <AppFolderTabs
+            compact
             value={period}
             onChange={(v) => setPeriod(v as Period)}
-            data={(["day", "week", "month", "year"] as Period[]).map((p) => ({
+            items={(["day", "week", "month", "year"] as Period[]).map((p) => ({
               value: p,
               label: t(p),
             }))}
+            style={{ width: "auto", marginBottom: 0 }}
           />
         </AppGroup>
         <AppGrid cols={{ base: 2, lg: 4 }}>

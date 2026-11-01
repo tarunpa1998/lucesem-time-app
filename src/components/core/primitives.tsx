@@ -395,6 +395,55 @@ AppTabs.List = Tabs.List;
 AppTabs.Tab = Tabs.Tab;
 AppTabs.Panel = Tabs.Panel;
 
+export interface AppFolderTabItem {
+  value: string;
+  label: ReactNode;
+  icon?: ReactNode;
+  isAdd?: boolean;
+}
+
+export function AppFolderTabs({
+  value,
+  onChange,
+  items,
+  compact = false,
+  className,
+  style,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  items: AppFolderTabItem[];
+  compact?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <div
+      className={`app-folder-tabs-list ${compact ? "is-compact" : ""} ${className ?? ""}`}
+      style={style}
+      role="tablist"
+    >
+      {items.map((item) => {
+        const active = item.value === value;
+        return (
+          <button
+            key={item.value}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            data-active={active}
+            className={`app-folder-tab ${compact ? "is-compact" : ""} ${item.isAdd ? "is-add" : ""} ${active ? "is-active" : ""}`}
+            onClick={() => onChange(item.value)}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export const AppDrawer = (p: DrawerProps) => (
   <Drawer
     styles={{

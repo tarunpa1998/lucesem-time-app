@@ -1,10 +1,8 @@
-import { Island } from "@phosphor-icons/react";
+import { Island, CaretLeft, CaretRight, Trash } from "@phosphor-icons/react";
 import { useState } from "react";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { CaretLeft, CaretRight } from "@phosphor-icons/react";
+import { useQuery, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AppCard,
-  AppHeading,
   AppGroup,
   AppStack,
   AppButton,
@@ -14,16 +12,25 @@ import {
   AppDataTable,
   notify,
   AppPageHeader,
+  AppConfirmModal,
 } from "@/components/core";
 import { useI18n, type TKey } from "@/lib/i18n";
 import { meQuery } from "@/lib/session";
 import { absenceOverview, decideAbsence, type AbsenceEntry } from "@/backend/extra.functions";
+import { deleteMyEntry } from "@/backend/time.functions";
+import { adminDeleteEntry } from "@/backend/workflow.functions";
 
 export function AbsencesPage() {
   const { t, fmtDate } = useI18n();
+  const qc = useQueryClient();
   const { data: me } = useSuspenseQuery(meQuery);
   const isAdmin = !!me?.isAdmin;
   const [year, setYear] = useState(() => new Date().getFullYear());
+  const [targetToDelete, setTargetToDelete] = useState<AbsenceEntry | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const [decidingId, setDecidingId] = useState<string | null>(null);
+
   const q = useQuery({
     queryKey: ["absences", year],
     queryFn: () => absenceOverview({ data: { year } }),
@@ -32,10 +39,43 @@ export function AbsencesPage() {
   const entries = q.data?.entries ?? [];
 
   const decide = async (id: string, approve: boolean) => {
-    await decideAbsence({ data: { id, approve } });
-    notify.show({ color: "lucesem", message: approve ? "@absenceApproved" : "@absenceRejected" });
-    q.refetch();
+    try {
+      setDecidingId(id);
+      await decideAbsence({ data: { id, approve } });
+      notify.show({ color: "lucesem", message: approve ? "@absenceApproved" : "@absenceRejected" });
+      q.refetch();
+    } finally {
+      setDecidingId(null);
+    }
   };
+
+  const handleDelete = async () => {
+    if (!targetToDelete) return;
+    try {
+      setDeleting(true);
+      if (isAdmin && targetToDelete.user_id !== me?.id) {
+        await adminDeleteEntry({ data: { id: targetToDelete.id } });
+      } else {
+        await deleteMyEntry({ data: { id: targetToDelete.id } });
+      }
+      try {
+        const { db } = await import("@/lib/offline-db");
+        await db().entries.delete(targetToDelete.id);
+      } catch {
+        // ignore
+      }
+      notify.show({ color: "lucesem", message: "@entryDeleted" });
+      setTargetToDelete(null);
+      q.refetch();
+      qc.invalidateQueries({ queryKey: ["my-entries"] });
+    } catch (e) {
+      notify.show({ color: "red", message: e instanceof Error ? e.message : t("error") });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const isBusy = deleting || !!decidingId;
 
   const statusBadge = (s: string) => (
     <AppBadge
@@ -105,33 +145,59 @@ export function AbsencesPage() {
             { key: "d", label: t("date"), render: (r) => fmtDate(r.entry_date) },
             { key: "m", label: t("mode"), render: (r) => t(r.entry_mode as TKey) },
             { key: "s", label: t("status"), render: (r) => statusBadge(r.status) },
-            ...(isAdmin
-              ? [
-                  {
-                    key: "a",
-                    label: "",
-                    render: (r: AbsenceEntry) =>
-                      r.status === "pending" ? (
-                        <AppGroup gap={4} wrap="nowrap">
-                          <AppButton size="compact-xs" onClick={() => decide(r.id, true)}>
-                            {t("approve")}
-                          </AppButton>
-                          <AppButton
-                            size="compact-xs"
-                            color="red"
-                            variant="light"
-                            onClick={() => decide(r.id, false)}
-                          >
-                            {t("reject")}
-                          </AppButton>
-                        </AppGroup>
-                      ) : null,
-                  },
-                ]
-              : []),
+            {
+              key: "actions",
+              label: t("actions"),
+              render: (r: AbsenceEntry) => (
+                <AppGroup gap={6} wrap="nowrap">
+                  {isAdmin && r.status === "pending" && (
+                    <>
+                      <AppButton
+                        size="compact-xs"
+                        onClick={() => decide(r.id, true)}
+                        loading={decidingId === r.id}
+                        disabled={isBusy}
+                      >
+                        {t("approve")}
+                      </AppButton>
+                      <AppButton
+                        size="compact-xs"
+                        color="red"
+                        variant="light"
+                        onClick={() => decide(r.id, false)}
+                        disabled={isBusy}
+                      >
+                        {t("reject")}
+                      </AppButton>
+                    </>
+                  )}
+                  {(isAdmin || r.user_id === me?.id) && (
+                    <AppButton
+                      size="compact-xs"
+                      color="red"
+                      variant="subtle"
+                      leftSection={<Trash size={13} weight="duotone" />}
+                      onClick={() => setTargetToDelete(r)}
+                      disabled={isBusy}
+                    >
+                      {t("delete")}
+                    </AppButton>
+                  )}
+                </AppGroup>
+              ),
+            },
           ]}
         />
       </AppCard>
+
+      <AppConfirmModal
+        opened={!!targetToDelete}
+        onClose={() => setTargetToDelete(null)}
+        onConfirm={handleDelete}
+        title={t("deleteConfirmTitle")}
+        message={t("deleteConfirmMessage")}
+        loading={deleting}
+      />
     </AppStack>
   );
 }

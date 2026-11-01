@@ -38,6 +38,7 @@ export function AdminEntryModal({
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setF(row);
@@ -50,6 +51,7 @@ export function AdminEntryModal({
 
   const save = async () => {
     try {
+      setSaving(true);
       await adminSaveEntry({
         data: {
           id: f.id,
@@ -66,6 +68,8 @@ export function AdminEntryModal({
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : t("error"));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -143,14 +147,23 @@ export function AdminEntryModal({
           onChange={(e) => setF({ ...f, work_notes: e.currentTarget.value })}
         />
         <AppGroup justify="space-between">
-          <AppButton color="red" variant="light" onClick={() => setConfirmDelete(true)}>
+          <AppButton
+            color="red"
+            variant="light"
+            onClick={() => setConfirmDelete(true)}
+            disabled={saving || deleting}
+          >
             {t("remove")}
           </AppButton>
           <AppGroup gap="xs">
-            <AppButton variant="default" onClick={onClose}>
+            <AppButton variant="default" onClick={onClose} disabled={saving || deleting}>
               {t("cancel")}
             </AppButton>
-            <AppButton disabled={f.to_time <= f.from_time} onClick={save}>
+            <AppButton
+              disabled={f.to_time <= f.from_time || saving || deleting}
+              onClick={save}
+              loading={saving}
+            >
               {t("save")}
             </AppButton>
           </AppGroup>

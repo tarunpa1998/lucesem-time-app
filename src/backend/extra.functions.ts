@@ -84,6 +84,7 @@ export interface AbsenceRow {
 }
 export interface AbsenceEntry {
   id: string;
+  user_id: string;
   user_name: string;
   entry_date: string;
   entry_mode: string;
@@ -109,7 +110,7 @@ export const absenceOverview = createServerFn({ method: "POST" })
       where us.is_active and (${u.isAdmin} or us.id = ${u.id})
       group by us.id order by us.display_name`;
     const entries = await sql()<AbsenceEntry[]>`
-      select distinct on (e.user_id, e.entry_date, e.entry_mode) e.id, us.display_name user_name,
+      select distinct on (e.user_id, e.entry_date, e.entry_mode) e.id, e.user_id, us.display_name user_name,
         to_char(e.entry_date,'YYYY-MM-DD') entry_date, e.entry_mode, e.status
       from time_entries e join app_users us on us.id = e.user_id
       where e.entry_mode in ('Vacation_Urlaub','SickLeave_Krankenstand','Compensatory_Zeitausgleich')

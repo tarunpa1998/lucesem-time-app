@@ -11,10 +11,11 @@ import {
   AppGrid,
   AppText,
   AppBadge,
-  AppSegmented,
+  AppTabs,
+  AppFolderTabs,
   AppConfirmModal,
 } from "@/components/core";
-import { Trash, CalendarBlank } from "@phosphor-icons/react";
+import { Trash, CalendarBlank, Clock, Plus } from "@phosphor-icons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useI18n } from "@/lib/i18n";
 import { myAccessQuery, activitiesQuery } from "@/lib/session";
@@ -48,7 +49,6 @@ const PRESETS: Partial<Record<EntryMode, [string, string]>> = {
 
 function getWorkingDaysInRange(fromStr: string, toStr: string): string[] {
   if (!fromStr || !toStr || fromStr > toStr) return [];
-  if (fromStr === toStr) return [fromStr];
   const days: string[] = [];
   const [y1, m1, d1] = fromStr.split("-").map(Number);
   const [y2, m2, d2] = toStr.split("-").map(Number);
@@ -56,10 +56,7 @@ function getWorkingDaysInRange(fromStr: string, toStr: string): string[] {
   const curr = new Date(y1, m1 - 1, d1);
   const end = new Date(y2, m2 - 1, d2);
   while (curr <= end) {
-    const day = curr.getDay(); // 0 = Sun, 6 = Sat
-    if (day !== 0 && day !== 6) {
-      days.push(ymd(curr));
-    }
+    days.push(ymd(curr));
     curr.setDate(curr.getDate() + 1);
   }
   return days;
@@ -109,6 +106,7 @@ export function TimeAllocationModal({
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [startDate, setStartDate] = useState(date ?? today);
   const [endDate, setEndDate] = useState(date ?? today);
@@ -268,47 +266,25 @@ export function TimeAllocationModal({
       return;
     }
 
-    if (isAbsence && startDate && endDate) {
-      const workingDays = getWorkingDaysInRange(startDate, endDate);
-      if (workingDays.length === 0) {
-        setErrors(["date"]);
-        return;
-      }
-      if (workingDays.length === 1) {
-        const draft = {
-          ...(activeEntry ? { id: activeEntry.id } : {}),
-          entryDate: workingDays[0]!,
-          fromTime: "08:00",
-          toTime: "16:00",
-          projectId: null,
-          workNotes: notes.trim() || t(mode),
-          entryMode: mode,
-          activityId: null,
-        };
-        const errs = validateEntry(draft, existing, today, {
-          isAdmin: true,
-          unlocked: true,
-          nowTime: nowHHMM(),
-        });
-        if (errs.length) {
-          setErrors(errs);
+    try {
+      setSaving(true);
+      if (isAbsence && startDate && endDate) {
+        const workingDays = getWorkingDaysInRange(startDate, endDate);
+        if (workingDays.length === 0) {
+          setErrors(["date"]);
           return;
         }
-        await onSave(draft);
-        onClose();
-        return;
-      } else {
-        const drafts = workingDays.map((d, idx) => ({
-          ...(activeEntry && idx === 0 ? { id: activeEntry.id } : {}),
-          entryDate: d,
-          fromTime: "08:00",
-          toTime: "16:00",
-          projectId: null,
-          workNotes: notes.trim() || t(mode),
-          entryMode: mode,
-          activityId: null,
-        }));
-        for (const draft of drafts) {
+        if (workingDays.length === 1) {
+          const draft = {
+            ...(activeEntry ? { id: activeEntry.id } : {}),
+            entryDate: workingDays[0]!,
+            fromTime: "08:00",
+            toTime: "16:00",
+            projectId: null,
+            workNotes: notes.trim() || t(mode),
+            entryMode: mode,
+            activityId: null,
+          };
           const errs = validateEntry(draft, existing, today, {
             isAdmin: true,
             unlocked: true,
@@ -318,38 +294,65 @@ export function TimeAllocationModal({
             setErrors(errs);
             return;
           }
-        }
-        if (onSaveMultiple) {
-          await onSaveMultiple(drafts);
+          await onSave(draft);
+          onClose();
+          return;
         } else {
+          const drafts = workingDays.map((d, idx) => ({
+            ...(activeEntry && idx === 0 ? { id: activeEntry.id } : {}),
+            entryDate: d,
+            fromTime: "08:00",
+            toTime: "16:00",
+            projectId: null,
+            workNotes: notes.trim() || t(mode),
+            entryMode: mode,
+            activityId: null,
+          }));
           for (const draft of drafts) {
-            await onSave(draft);
+            const errs = validateEntry(draft, existing, today, {
+              isAdmin: true,
+              unlocked: true,
+              nowTime: nowHHMM(),
+            });
+            if (errs.length) {
+              setErrors(errs);
+              return;
+            }
           }
+          if (onSaveMultiple) {
+            await onSaveMultiple(drafts);
+          } else {
+            for (const draft of drafts) {
+              await onSave(draft);
+            }
+          }
+          onClose();
+          return;
         }
-        onClose();
-        return;
       }
+
+      const targetDate = isAbsence ? startDate : date;
+      const targetFrom = isAbsence ? "08:00" : from;
+      const targetTo = isAbsence ? "16:00" : to;
+
+      const draft = {
+        ...(activeEntry ? { id: activeEntry.id } : {}),
+        entryDate: targetDate,
+        fromTime: targetFrom,
+        toTime: targetTo,
+        projectId: isAbsence ? null : (projectId ?? ""),
+        workNotes: notes.trim() || (isAbsence ? t(mode) : ""),
+        entryMode: mode,
+        activityId: isAbsence ? null : activityId,
+      };
+      const errs = validateEntry(draft, existing, today, { isAdmin, unlocked, nowTime: nowHHMM() });
+      setErrors(errs);
+      if (errs.length) return;
+      await onSave(draft);
+      onClose();
+    } finally {
+      setSaving(false);
     }
-
-    const targetDate = isAbsence ? startDate : date;
-    const targetFrom = isAbsence ? "08:00" : from;
-    const targetTo = isAbsence ? "16:00" : to;
-
-    const draft = {
-      ...(activeEntry ? { id: activeEntry.id } : {}),
-      entryDate: targetDate,
-      fromTime: targetFrom,
-      toTime: targetTo,
-      projectId: isAbsence ? null : (projectId ?? ""),
-      workNotes: notes.trim() || (isAbsence ? t(mode) : ""),
-      entryMode: mode,
-      activityId: isAbsence ? null : activityId,
-    };
-    const errs = validateEntry(draft, existing, today, { isAdmin, unlocked, nowTime: nowHHMM() });
-    setErrors(errs);
-    if (errs.length) return;
-    await onSave(draft);
-    onClose();
   };
 
   const err = (k: ValidationError) => (errors.includes(k) ? t(`err.${k}` as const) : undefined);
@@ -382,18 +385,29 @@ export function TimeAllocationModal({
       ) : (
         <AppStack gap="md">
           {dayEntries.length > 0 && (
-            <AppSegmented
-              size="xs"
+            <AppFolderTabs
               value={selectedEntryId ?? "new"}
               onChange={handleSelectEntry}
-              data={[
+              items={[
                 ...dayEntries.map((e) => ({
                   value: e.id,
-                  label: isAbsenceMode(e.entryMode)
-                    ? `${t(e.entryMode)}`
-                    : `${e.fromTime}–${e.toTime}`,
+                  label: isAbsenceMode(e.entryMode) ? t(e.entryMode) : `${e.fromTime}–${e.toTime}`,
+                  icon: isAbsenceMode(e.entryMode) ? (
+                    <CalendarBlank size={14} weight="duotone" />
+                  ) : (
+                    <Clock size={14} weight="duotone" />
+                  ),
                 })),
-                ...(!dayAbsence ? [{ value: "new", label: `+ ${t("newItem")}` }] : []),
+                ...(!dayAbsence
+                  ? [
+                      {
+                        value: "new",
+                        label: t("newItem"),
+                        icon: <Plus size={14} weight="bold" />,
+                        isAdd: true,
+                      },
+                    ]
+                  : []),
               ]}
             />
           )}
@@ -577,6 +591,7 @@ export function TimeAllocationModal({
                 leftSection={<Trash size={16} />}
                 onClick={handleDelete}
                 loading={deleting}
+                disabled={saving || deleting}
               >
                 {t("delete")}
               </AppButton>
@@ -584,10 +599,14 @@ export function TimeAllocationModal({
               <div />
             )}
             <AppGroup gap="xs">
-              <AppButton variant="default" onClick={onClose}>
+              <AppButton variant="default" onClick={onClose} disabled={saving || deleting}>
                 {t("cancel")}
               </AppButton>
-              <AppButton onClick={submit} disabled={isConflictBlocked}>
+              <AppButton
+                onClick={submit}
+                disabled={isConflictBlocked || saving || deleting}
+                loading={saving}
+              >
                 {t("save")}
               </AppButton>
             </AppGroup>

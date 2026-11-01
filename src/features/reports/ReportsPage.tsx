@@ -33,6 +33,7 @@ import {
   AppIconButton,
   AppTooltip,
   AppSegmented,
+  AppFolderTabs,
   AppBox,
   AppMenu,
   notify,
@@ -414,7 +415,7 @@ export function ReportsPage() {
                 scrollbarWidth: "none",
               }}
             >
-              <AppGroup gap={6} wrap="nowrap" pb={{ base: 4, sm: 0 }}>
+              <AppGroup gap="xs" wrap="nowrap" align="center" pb={{ base: 4, sm: 0 }}>
                 <AppText
                   fz="xs"
                   fw={700}
@@ -424,25 +425,23 @@ export function ReportsPage() {
                 >
                   {t("quickRanges")}:
                 </AppText>
-                {(
-                  [
-                    { key: "thisMonth", label: t("thisMonth") },
-                    { key: "lastMonth", label: t("lastMonth") },
-                    { key: "thisWeek", label: t("thisWeek") },
-                    { key: "today", label: t("today") },
-                    { key: "allYear", label: t("allYear") },
-                  ] as const
-                ).map((q) => (
-                  <AppButton
-                    key={q.key}
-                    size="compact-xs"
-                    variant={activeRange === q.key ? "filled" : "default"}
-                    style={{ flexShrink: 0 }}
-                    onClick={() => handleQuickRange(q.key)}
-                  >
-                    {q.label}
-                  </AppButton>
-                ))}
+                <AppFolderTabs
+                  compact
+                  value={activeRange ?? ""}
+                  onChange={(v) =>
+                    handleQuickRange(
+                      v as "thisMonth" | "lastMonth" | "thisWeek" | "today" | "allYear",
+                    )
+                  }
+                  items={[
+                    { value: "thisMonth", label: t("thisMonth") },
+                    { value: "lastMonth", label: t("lastMonth") },
+                    { value: "thisWeek", label: t("thisWeek") },
+                    { value: "today", label: t("today") },
+                    { value: "allYear", label: t("allYear") },
+                  ]}
+                  style={{ width: "auto", marginBottom: 0 }}
+                />
               </AppGroup>
             </AppBox>
 

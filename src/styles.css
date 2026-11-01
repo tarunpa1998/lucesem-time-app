@@ -453,6 +453,53 @@ textarea:hover {
   box-shadow: none !important;
 }
 
+/* Button hover style matching input hover style */
+.mantine-Button-root,
+.mantine-ActionIcon-root {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease,
+    transform 100ms ease !important;
+}
+
+.mantine-Button-root:hover:not(:disabled),
+.mantine-ActionIcon-root:hover:not(:disabled) {
+  border-color: color-mix(
+    in srgb,
+    var(--app-brand-primary) 65%,
+    var(--app-border-subtle)
+  ) !important;
+}
+
+.mantine-Button-root[data-variant="default"]:hover:not(:disabled),
+.mantine-ActionIcon-root[data-variant="default"]:hover:not(:disabled) {
+  background-color: var(--app-hover-surface) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--app-brand-primary) 65%,
+    var(--app-border-subtle)
+  ) !important;
+  color: var(--app-text-primary) !important;
+}
+
+.mantine-Button-root[data-variant="subtle"]:hover:not(:disabled),
+.mantine-ActionIcon-root[data-variant="subtle"]:hover:not(:disabled) {
+  background-color: var(--app-hover-surface) !important;
+  border: 1px solid color-mix(in srgb, var(--app-brand-primary) 65%, var(--app-border-subtle)) !important;
+  color: var(--app-text-primary) !important;
+}
+
+.mantine-Button-root[data-variant="light"]:hover:not(:disabled),
+.mantine-ActionIcon-root[data-variant="light"]:hover:not(:disabled) {
+  border-color: color-mix(
+    in srgb,
+    var(--app-brand-primary) 65%,
+    var(--app-border-subtle)
+  ) !important;
+}
+
 /* Click / Focus / Active State - modern software solid thick line */
 .mantine-Input-input:focus,
 .mantine-Input-input:focus-within,
@@ -906,4 +953,116 @@ textarea:focus,
 .mantine-AppShell-navbar {
   border-radius: 24px !important;
   overflow: hidden !important;
+}
+
+/* ===== Folder Tab Navigation (Screenshot Style) ===== */
+.app-folder-tabs-list {
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 8px !important;
+  border-bottom: 1px solid var(--app-border-subtle) !important;
+  padding: 0 4px !important;
+  margin: 0 0 16px 0;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+  width: 100%;
+}
+.app-folder-tabs-list::-webkit-scrollbar {
+  display: none !important;
+}
+
+.app-folder-tab {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 8px 18px !important;
+  border-top-left-radius: 8px !important;
+  border-top-right-radius: 8px !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--app-text-secondary) !important;
+  background-color: var(--app-bg-elevated) !important;
+  border: 1px solid var(--app-border-subtle) !important;
+  margin-bottom: -1px !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  outline: none !important;
+  line-height: 1.2 !important;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease !important;
+  z-index: 1 !important;
+}
+
+.app-folder-tab:hover:not([data-active="true"]):not(.is-active):not(:disabled) {
+  background-color: var(--app-hover-surface) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--app-brand-primary) 65%,
+    var(--app-border-subtle)
+  ) !important;
+  color: var(--app-text-primary) !important;
+}
+
+.app-folder-tab[data-active="true"],
+.app-folder-tab.is-active {
+  background-color: var(--folder-tab-active-bg, var(--app-bg-surface)) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--app-brand-primary) 45%,
+    var(--app-border-subtle)
+  ) !important;
+  border-bottom: 1px solid var(--folder-tab-active-bg, var(--app-bg-surface)) !important;
+  color: var(--app-text-primary) !important;
+  font-weight: 700 !important;
+  z-index: 3 !important;
+}
+
+/* Compact variant for dashboards / headers / filter bars */
+.app-folder-tabs-list.is-compact {
+  gap: 6px !important;
+  margin: 0 0 8px 0 !important;
+  padding: 0 !important;
+}
+.app-folder-tabs-list.is-compact .app-folder-tab,
+.app-folder-tab.is-compact {
+  padding: 4px 12px !important;
+  font-size: 12px !important;
+  border-top-left-radius: 6px !important;
+  border-top-right-radius: 6px !important;
+}
+
+/* Dashed Add / New tab */
+.app-folder-tab.is-add {
+  border-style: dashed !important;
+}
+.app-folder-tab.is-add:hover {
+  border-style: solid !important;
+}
+
+/* Tab pills fallback */
+.mantine-Tabs-tab[data-variant="pills"] {
+  transition: all 150ms ease !important;
+}
+.mantine-Tabs-tab[data-variant="pills"]:hover:not([data-active="true"]) {
+  background-color: var(--app-hover-surface) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--app-brand-primary) 65%,
+    var(--app-border-subtle)
+  ) !important;
+}
+.mantine-Tabs-tab[data-variant="pills"][data-active="true"] {
+  background-color: var(--app-brand-primary) !important;
+  color: #ffffff !important;
+  border-color: var(--app-brand-primary) !important;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--app-brand-primary) 35%, transparent) !important;
 }
