@@ -7,6 +7,7 @@ import {
   ChartBar,
   Checks,
   ClipboardText,
+  FolderSimple,
   Globe,
   Island,
   Kanban,
@@ -32,7 +33,8 @@ type NavItem = { key: TKey; icon: Icon; to: string };
 
 const NAV: NavItem[] = [
   { key: "dashboard", icon: SquaresFour, to: "/" },
-  { key: "myProjects", icon: Kanban, to: "/projects" },
+  { key: "workBoard", icon: Kanban, to: "/board" },
+  { key: "myProjects", icon: FolderSimple, to: "/projects" },
   { key: "reportsTitle", icon: ChartBar, to: "/reports" },
   { key: "absences", icon: Island, to: "/absences" },
 ];

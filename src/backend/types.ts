@@ -75,3 +75,46 @@ export interface NotificationRow {
   read_at: string | null;
   created_at: string;
 }
+
+export type BoardTaskStatus = "pending" | "in_progress" | "closed";
+export type BoardTaskPriority = "low" | "medium" | "high" | "urgent";
+
+export interface BoardTaskAssignee {
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+  jobTitle: string | null;
+}
+
+export interface BoardTaskRow {
+  id: string;
+  task_number: number;
+  project_id: string;
+  project_name: string;
+  customer_name: string;
+  title: string;
+  description: string;
+  status: BoardTaskStatus;
+  priority: BoardTaskPriority;
+  created_by: string;
+  creator_name: string;
+  creator_avatar_url: string | null;
+  assignee_ids: string[];
+  assignees: BoardTaskAssignee[];
+  comment_count: number;
+  github_issue_number: number | null;
+  github_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BoardTaskCommentRow {
+  id: string;
+  task_id: string;
+  user_id: string;
+  user_name: string;
+  avatar_url: string | null;
+  job_title: string | null;
+  comment: string;
+  created_at: string;
+}

@@ -58,6 +58,25 @@ export const myAccessQuery = queryOptions({
   queryFn: () => myUnlockedDates(),
 });
 
+import { listBoardTasks, listAssignableUsers } from "@/backend/board.functions";
+export const assignableUsersQuery = queryOptions({
+  queryKey: ["board", "assignable-users"],
+  queryFn: () => listAssignableUsers(),
+  staleTime: 60_000,
+});
+export type BoardTaskFilters = {
+  projectId?: string | undefined;
+  status?: "pending" | "in_progress" | "closed" | undefined;
+  assigneeId?: string | undefined;
+  search?: string | undefined;
+};
+
+export const boardTasksQuery = (filters?: BoardTaskFilters) =>
+  queryOptions({
+    queryKey: ["board", "tasks", filters ?? {}],
+    queryFn: () => listBoardTasks({ data: filters }),
+  });
+
 import { listActivities, budgetUsage } from "@/backend/extra.functions";
 export const activitiesQuery = queryOptions({
   queryKey: ["activities"],
