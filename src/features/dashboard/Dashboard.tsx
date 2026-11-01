@@ -277,9 +277,11 @@ export function Dashboard() {
 
         {/* Target vs worked */}
         <div className="app-folder-tabs-row">
-          <AppHeading order={4}>
-            {t("target")} / {t("worked")}
-          </AppHeading>
+          <div className="app-section-heading">
+            <AppHeading order={4}>
+              {t("target")} / {t("worked")}
+            </AppHeading>
+          </div>
           <AppFolderTabs
             compact
             value={period}
@@ -374,12 +376,14 @@ export function Dashboard() {
             )}
           </AppCard>
           <AppCard>
-            <AppGroup justify="space-between">
-              <AppHeading order={4}>{t("recent")}</AppHeading>
+            <div className="app-folder-tabs-row">
+              <div className="app-section-heading">
+                <AppHeading order={4}>{t("recent")}</AppHeading>
+              </div>
               <Link to="/reports" style={{ color: "var(--app-brand-primary)", fontSize: 14 }}>
                 {lang === "de" ? "Alle meine Zeiten →" : "All my hours →"}
               </Link>
-            </AppGroup>
+            </div>
             <AppStack mt="sm" style={{ maxHeight: 420, overflowY: "auto" }}>
               <AppDataTable<LocalEntry>
                 rows={weekEntries}

@@ -199,8 +199,8 @@ export function AppShellLayout({
             />
             <Logo />
           </Group>
-          <Group gap="xs" wrap="nowrap">
-            <Box visibleFrom="sm">
+          <Group gap="xs" wrap="nowrap" align="center">
+            <Box visibleFrom="sm" style={{ display: "flex", alignItems: "center" }}>
               <AppLiveClock />
             </Box>
             {me && <NotificationBell />}
@@ -208,7 +208,6 @@ export function AppShellLayout({
               compact
               value={lang}
               onChange={(v) => setLang(v as "de" | "en")}
-              style={{ marginTop: 4 }}
               items={[
                 { value: "de", label: "DE" },
                 { value: "en", label: "EN" },

@@ -632,13 +632,13 @@ export function ReportsPage() {
       {/* Modern Analytics & Chart Section */}
       {(totals.chart.length > 0 || totals.daily.length > 0) && (
         <AppCard>
-          <AppGroup justify="space-between" align="center" mb="md" wrap="wrap">
-            <AppGroup gap="xs">
+          <div className="app-folder-tabs-row">
+            <div className="app-section-heading">
               <ChartBar size={20} weight="duotone" color="var(--app-brand-primary)" />
               <AppText fw={700} fz="sm">
                 {chartView === "project" ? t("byProject") : t("dailyTrend")}
               </AppText>
-            </AppGroup>
+            </div>
             <AppFolderTabs
               compact
               value={chartView}
@@ -648,7 +648,7 @@ export function ReportsPage() {
                 { value: "daily", label: t("dailyTrend") },
               ]}
             />
-          </AppGroup>
+          </div>
           {chartView === "project" ? (
             <AppChart
               data={totals.chart}
