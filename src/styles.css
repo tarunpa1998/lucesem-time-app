@@ -699,6 +699,7 @@ textarea:focus,
   padding-bottom: 5px;
   padding-inline: 2px;
   position: relative;
+  overflow: visible !important;
   background: transparent;
   border: 1px solid transparent;
   cursor: pointer;
@@ -736,7 +737,8 @@ textarea:focus,
 /* Today highlight */
 .app-calendar-day[data-today="true"]:not([data-selected="true"]) {
   border-color: var(--app-brand-primary);
-  background: color-mix(in srgb, var(--app-brand-primary) 6%, transparent);
+  box-shadow: 0 0 0 1px var(--app-brand-primary);
+  background: transparent !important;
 }
 .app-calendar-day[data-today="true"]:not([data-selected="true"]) .app-cal-num {
   color: var(--app-brand-primary);
@@ -745,31 +747,45 @@ textarea:focus,
 .app-calendar-day[data-today="true"][data-outside="true"]:not([data-selected="true"]) {
   border-color: color-mix(in srgb, var(--app-brand-primary) 35%, transparent);
   border-style: dashed;
+  box-shadow: none;
   background: transparent;
 }
 
-/* Selected state: high-contrast brand filled card */
+/* Selected state: transparent card with input active outline and floating blue line indicator */
 .app-calendar-day[data-selected="true"] {
-  background: var(--app-brand-primary) !important;
+  background: transparent !important;
   border-color: var(--app-brand-primary) !important;
-  box-shadow: 0 4px 14px -1px color-mix(in srgb, var(--app-brand-primary) 45%, transparent) !important;
+  box-shadow: 0 0 0 1px var(--app-brand-primary) !important;
   opacity: 1 !important;
-  transform: translateY(-1px);
 }
 .app-calendar-day[data-selected="true"] .app-cal-num {
-  color: #ffffff !important;
+  color: var(--app-brand-primary) !important;
   font-weight: 700 !important;
 }
+.app-calendar-day[data-selected="true"]::after,
+.app-calendar-day[data-today="true"]:not([data-outside="true"])::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 2.5px;
+  border-radius: 3px;
+  background-color: var(--app-brand-primary);
+  box-shadow: none;
+  z-index: 2;
+}
 .app-calendar-day[data-selected="true"] .app-cal-hours {
-  background: rgba(255, 255, 255, 0.22) !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
+  background: transparent !important;
+  border: 1px solid var(--app-border-subtle) !important;
 }
 .app-calendar-day[data-selected="true"] .app-cal-hours-text {
-  color: #ffffff !important;
+  color: var(--app-brand-primary) !important;
 }
-.app-calendar-day[data-selected="true"] .app-cal-dot {
-  background-color: #ffffff !important;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45) !important;
+[data-app-mode="dark"] .app-calendar-day[data-selected="true"] .app-cal-hours-text,
+[data-app-mode="night"] .app-calendar-day[data-selected="true"] .app-cal-hours-text {
+  color: #38bdf8 !important;
 }
 
 /* Day cell inner layout */
@@ -798,7 +814,7 @@ textarea:focus,
   width: 100%;
 }
 
-/* Hours chip */
+/* Hours chip - transparent background with non-active input border and kept text color */
 .app-cal-hours {
   display: inline-flex;
   align-items: center;
@@ -806,8 +822,9 @@ textarea:focus,
   gap: 3px;
   padding: 1px 6px;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--app-brand-primary) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--app-brand-primary) 18%, transparent);
+  background: transparent !important;
+  border: 1px solid var(--app-border-subtle) !important;
+  box-shadow: none !important;
   transition:
     background-color 150ms ease,
     border-color 150ms ease,
@@ -824,8 +841,8 @@ textarea:focus,
 
 [data-app-mode="dark"] .app-cal-hours,
 [data-app-mode="night"] .app-cal-hours {
-  background: color-mix(in srgb, var(--app-brand-primary) 18%, transparent);
-  border-color: color-mix(in srgb, var(--app-brand-primary) 28%, transparent);
+  background: transparent !important;
+  border-color: var(--app-border-subtle) !important;
 }
 [data-app-mode="dark"] .app-cal-hours-text,
 [data-app-mode="night"] .app-cal-hours-text {

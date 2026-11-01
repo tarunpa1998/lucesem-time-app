@@ -246,7 +246,7 @@ export function AppCalendar({
       </SimpleGrid>
 
       {/* Days grid: uniform height & rock-solid baseline */}
-      <SimpleGrid cols={7} spacing={6} verticalSpacing={6}>
+      <SimpleGrid cols={7} spacing={6} verticalSpacing={10}>
         {cells.map((d) => {
           const key = ymd(d);
           const inMonth = d.getMonth() === month.getMonth();
