@@ -218,7 +218,6 @@ export function UsersPage() {
               />
               <AppPasswordInput
                 label={t("password")}
-                description={form.id ? t("newPasswordHint") : "min. 10"}
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.currentTarget.value })}
               />

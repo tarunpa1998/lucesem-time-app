@@ -1309,6 +1309,16 @@ button[data-picker-control]:hover:not([data-disabled]):not([data-selected]),
   font-weight: 600 !important;
 }
 
+.recharts-cartesian-grid-horizontal line {
+  stroke: var(--app-border-subtle) !important;
+  stroke-dasharray: 4 4 !important;
+  stroke-opacity: 0.6 !important;
+}
+
+.mantine-AreaChart-area {
+  filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--app-brand-primary) 28%, transparent));
+}
+
 .mantine-ChartTooltip-root {
   background: var(--app-bg-surface) !important;
   border: 1px solid var(--app-border-subtle) !important;

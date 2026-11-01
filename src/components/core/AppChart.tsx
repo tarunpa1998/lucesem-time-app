@@ -8,15 +8,15 @@ import {
 } from "@mantine/charts";
 
 export const AppChart = (p: BarChartProps) => (
-  <BarChart h={220} gridAxis="y" tickLine="none" {...p} />
+  <BarChart h={220} gridAxis="x" tickLine="none" {...p} />
 );
 
 export const AppBarChart = (p: BarChartProps) => (
   <BarChart
-    h={260}
-    gridAxis="y"
+    h={250}
+    gridAxis="x"
     tickLine="none"
-    maxBarWidth={34}
+    maxBarWidth={30}
     barProps={{ radius: [6, 6, 0, 0] }}
     {...p}
   />
@@ -24,14 +24,13 @@ export const AppBarChart = (p: BarChartProps) => (
 
 export const AppAreaChart = (p: AreaChartProps) => (
   <AreaChart
-    h={260}
-    gridAxis="y"
+    h={250}
+    gridAxis="x"
     tickLine="none"
     curveType="monotone"
     withGradient
-    fillOpacity={0.2}
+    fillOpacity={0.25}
     strokeWidth={2.5}
-    withDots
     {...p}
   />
 );

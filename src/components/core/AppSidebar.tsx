@@ -192,7 +192,7 @@ function SidebarNavItem({
       <Box
         style={{
           width: "100%",
-          height: 46,
+          height: 38,
           position: "relative",
           display: "flex",
           alignItems: "center",
@@ -207,8 +207,8 @@ function SidebarNavItem({
               left: 0,
               top: "50%",
               transform: "translateY(-50%)",
-              width: 5,
-              height: 26,
+              width: 4,
+              height: 20,
               borderTopRightRadius: 4,
               borderBottomRightRadius: 4,
               background: "var(--app-brand-primary)",
@@ -223,24 +223,24 @@ function SidebarNavItem({
           data-active={isActive || undefined}
           className="app-sidebar-item"
           style={{
-            width: expanded ? "calc(100% - 16px)" : 44,
-            height: 44,
+            width: expanded ? "calc(100% - 16px)" : 38,
+            height: 34,
             marginLeft: expanded ? 8 : "auto",
             marginRight: expanded ? 8 : "auto",
             borderRadius: "var(--app-radius-md)",
             display: "flex",
             alignItems: "center",
             justifyContent: expanded ? "flex-start" : "center",
-            paddingLeft: expanded ? 12 : 0,
-            paddingRight: expanded ? 12 : 0,
-            gap: expanded ? 12 : 0,
+            paddingLeft: expanded ? 10 : 0,
+            paddingRight: expanded ? 10 : 0,
+            gap: expanded ? 10 : 0,
             cursor: "pointer",
           }}
         >
           <Box
             style={{
-              width: 24,
-              height: 24,
+              width: 22,
+              height: 22,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -248,7 +248,7 @@ function SidebarNavItem({
             }}
           >
             <IconComponent
-              size={22}
+              size={19}
               weight={isActive ? "bold" : "duotone"}
               style={{
                 color: isActive ? "var(--app-brand-primary)" : "currentColor",
@@ -257,7 +257,7 @@ function SidebarNavItem({
           </Box>
           {expanded && (
             <Text
-              fz="sm"
+              fz="13px"
               fw={isActive ? 600 : 500}
               truncate
               style={{
@@ -317,18 +317,18 @@ export function AppSidebar({
   };
 
   return (
-    <Stack h="100%" gap={0} justify="space-between" style={{ overflow: "hidden" }}>
+    <Stack h="100%" gap={0} justify="space-between" pt={12} pb={8} style={{ overflow: "hidden" }}>
       <Box
-        pt={14}
-        pb={8}
         style={{
           flex: 1,
           minHeight: 0,
           overflowY: "auto",
           overflowX: "hidden",
+          scrollPaddingTop: 8,
+          scrollPaddingBottom: 8,
         }}
       >
-        <Stack gap={2}>
+        <Stack gap={1}>
           {NAV.map((n) => (
             <SidebarNavItem
               key={n.to}
@@ -344,27 +344,27 @@ export function AppSidebar({
           <>
             {expanded ? (
               <Text
-                fz={11}
+                fz={10}
                 fw={700}
                 c="var(--app-text-secondary)"
                 tt="uppercase"
                 px="md"
-                mt="md"
-                mb={6}
-                style={{ letterSpacing: "0.06em", opacity: 0.8 }}
+                mt={8}
+                mb={3}
+                style={{ letterSpacing: "0.08em", opacity: 0.8 }}
               >
                 {t("admin")}
               </Text>
             ) : (
               <Box
-                my={10}
-                w={32}
+                my={8}
+                w={28}
                 h={1}
                 mx="auto"
                 style={{ background: "var(--app-border-subtle)" }}
               />
             )}
-            <Stack gap={2}>
+            <Stack gap={1}>
               {ADMIN_NAV.map((n) => (
                 <SidebarNavItem
                   key={n.to}
@@ -380,9 +380,9 @@ export function AppSidebar({
       </Box>
 
       {me && (
-        <Box px="sm" pb="md" pt="xs" style={{ flexShrink: 0 }}>
+        <Box px="xs" pb="xs" pt={6} style={{ flexShrink: 0 }}>
           <Stack
-            gap={8}
+            gap={6}
             style={{
               alignItems: expanded ? "stretch" : "center",
             }}

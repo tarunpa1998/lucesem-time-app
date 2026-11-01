@@ -976,20 +976,27 @@ export function ReportsPage() {
               <AppBox pt="xs">
                 {trendStyle === "bars" ? (
                   <AppBarChart
-                    h={270}
+                    h={250}
                     data={totals.daily}
                     dataKey="label"
-                    series={[{ name: "hours", color: "lucesem.5", label: t("hours") }]}
-                    maxBarWidth={34}
+                    series={[{ name: "hours", color: "#009FE3", label: t("hours") }]}
+                    maxBarWidth={28}
                     barProps={{ radius: [6, 6, 0, 0] }}
-                    gridAxis="y"
+                    gridAxis="x"
                     tickLine="none"
+                    withXAxis={false}
+                    withYAxis
+                    yAxisProps={{
+                      stroke: "transparent",
+                      width: 44,
+                      tickFormatter: (v: number) => `${v} h`,
+                    }}
                     referenceLines={
                       totals.avgDailyHours > 0
                         ? [
                             {
                               y: totals.avgDailyHours,
-                              color: "lucesem.4",
+                              color: "#009FE3",
                               strokeDasharray: "4 4",
                               label: `${t("avgLineLabel")}: ${totals.avgDailyHours.toFixed(1)} h`,
                             },
@@ -1000,23 +1007,42 @@ export function ReportsPage() {
                   />
                 ) : (
                   <AppAreaChart
-                    h={270}
+                    h={250}
                     data={totals.daily}
                     dataKey="label"
-                    series={[{ name: "hours", color: "lucesem.5", label: t("hours") }]}
+                    series={[{ name: "hours", color: "#009FE3", label: t("hours") }]}
                     curveType="monotone"
                     withGradient
                     fillOpacity={0.25}
                     strokeWidth={2.5}
                     withDots={totals.daily.length <= 25}
-                    gridAxis="y"
+                    dotProps={{
+                      r: 3.5,
+                      strokeWidth: 1.5,
+                      stroke: "#009FE3",
+                      fill: "var(--app-bg-surface)",
+                    }}
+                    activeDotProps={{
+                      r: 5.5,
+                      strokeWidth: 2,
+                      stroke: "#009FE3",
+                      fill: "#FFFFFF",
+                    }}
+                    gridAxis="x"
                     tickLine="none"
+                    withXAxis={false}
+                    withYAxis
+                    yAxisProps={{
+                      stroke: "transparent",
+                      width: 44,
+                      tickFormatter: (v: number) => `${v} h`,
+                    }}
                     referenceLines={
                       totals.avgDailyHours > 0
                         ? [
                             {
                               y: totals.avgDailyHours,
-                              color: "lucesem.4",
+                              color: "#009FE3",
                               strokeDasharray: "4 4",
                               label: `${t("avgLineLabel")}: ${totals.avgDailyHours.toFixed(1)} h`,
                             },
@@ -1026,6 +1052,42 @@ export function ReportsPage() {
                     valueFormatter={(v) => `${v.toFixed(2)} ${t("hours")}`}
                   />
                 )}
+
+                {/* Clean From-To Date Range Timeline Bar (replaces overcrowded axis ticks) */}
+                <AppGroup
+                  justify="space-between"
+                  align="center"
+                  pt="xs"
+                  px="xs"
+                  style={{
+                    borderTop: "1px solid var(--app-border-subtle)",
+                    marginTop: 8,
+                  }}
+                >
+                  <AppGroup gap={6} align="center">
+                    <CalendarBlank size={14} weight="duotone" color="var(--app-brand-primary)" />
+                    <AppText fz="xs" fw={500} c="var(--app-text-secondary)">
+                      {t("from")}:{" "}
+                      <AppMono fw={700} c="var(--app-text-primary)">
+                        {fmtDate(from)}
+                      </AppMono>
+                    </AppText>
+                  </AppGroup>
+
+                  <AppBadge size="xs" variant="light" color="gray" radius="sm">
+                    {totals.daily.length} {t("days")} · {totals.workedDays} {t("workedDays")}
+                  </AppBadge>
+
+                  <AppGroup gap={6} align="center">
+                    <CalendarBlank size={14} weight="duotone" color="var(--app-brand-primary)" />
+                    <AppText fz="xs" fw={500} c="var(--app-text-secondary)">
+                      {t("to")}:{" "}
+                      <AppMono fw={700} c="var(--app-text-primary)">
+                        {fmtDate(to)}
+                      </AppMono>
+                    </AppText>
+                  </AppGroup>
+                </AppGroup>
               </AppBox>
             </AppStack>
           )}
