@@ -1015,12 +1015,22 @@ textarea:focus,
   color: var(--app-brand-primary) !important;
 }
 
-/* Active Tab - matching sidebar blue identity */
+/* Active Tab - transparent background with input-matching active outline */
 .app-folder-tab[data-active="true"],
 .app-folder-tab.is-active {
-  background-color: color-mix(in srgb, var(--app-brand-primary) 10%, transparent) !important;
+  background-color: transparent !important;
+  border-color: var(--app-brand-primary) !important;
+  box-shadow: 0 0 0 1px var(--app-brand-primary) !important;
   color: var(--app-brand-primary) !important;
   font-weight: 600 !important;
+}
+
+.app-folder-tab[data-active="true"]:hover,
+.app-folder-tab.is-active:hover {
+  background-color: transparent !important;
+  border-color: var(--app-brand-primary) !important;
+  box-shadow: 0 0 0 1px var(--app-brand-primary) !important;
+  color: var(--app-brand-primary) !important;
 }
 
 .app-folder-tab[data-active="true"] svg,
