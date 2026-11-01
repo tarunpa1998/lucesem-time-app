@@ -153,6 +153,8 @@ export function Dashboard() {
       fullWidth
       size="md"
       color="red"
+      loading={data.stopping}
+      disabled={data.stopping}
       leftSection={<Stop weight="duotone" size={16} />}
       onClick={() => {
         data.stopTimer(notes);

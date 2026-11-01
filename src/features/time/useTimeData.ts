@@ -23,6 +23,7 @@ export interface TimeCtx {
 export function useTimeData(ctx: TimeCtx) {
   const [entries, setEntries] = useState<LocalEntry[]>([]);
   const [timer, setTimer] = useState<ActiveTimer | null>(null);
+  const [stopping, setStopping] = useState(false);
   const [outbox, setOutbox] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const [ready, setReady] = useState(false);
@@ -83,9 +84,19 @@ export function useTimeData(ctx: TimeCtx) {
       // Timer-start markers are local-only; everything sent is done.
       await d.syncOutbox.bulkDelete(items.map((i) => i.id!));
       const server = await listMyEntries();
+      // Deduplicate server entries by slot before local storage
+      const seen = new Set<string>();
+      const deduped: LocalEntry[] = [];
+      for (const item of server as LocalEntry[]) {
+        const key = `${item.entryDate}_${item.fromTime}_${item.toTime}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          deduped.push(item);
+        }
+      }
       await d.transaction("rw", d.entries, async () => {
         await d.entries.clear();
-        await d.entries.bulkPut(server as LocalEntry[]);
+        await d.entries.bulkPut(deduped);
       });
     } catch {
       // Stay queued; retried on next online event / interval.
@@ -140,39 +151,73 @@ export function useTimeData(ctx: TimeCtx) {
   };
 
   const stopTimer = async (workNotes: string) => {
-    if (!timer) return;
-    const start = new Date(timer.startTimeUtc);
-    const end = new Date();
-    const entry: LocalEntry = {
-      id: uid(),
-      entryDate: ymd(start),
-      fromTime: hhmm(start),
-      toTime: hhmm(end) === hhmm(start) ? hhmm(new Date(end.getTime() + 60_000)) : hhmm(end),
-      projectId: timer.projectId,
-      workNotes: workNotes || timer.workNotes,
-      entryMode: "CustomHours",
-      status: statusFor(timer.projectId, "CustomHours"),
-      createdAt: Date.now(),
-    };
-    await db().entries.put(entry);
-    await db().activeTimers.delete(timer.clientTimerId);
-    reportTimer({ data: { running: false } }).catch(() => {});
-    await db().syncOutbox.add({
-      kind: "timer.stop",
-      payload: entry,
-      userId: ctx.userId,
-      createdAt: Date.now(),
-    });
-    // Online: save to the database right away. Offline: stays queued until reconnect.
-    await sync();
+    if (!timer || stopping) return;
+    setStopping(true);
+    const currentTimer = timer;
+    // Clear active timer immediately to prevent repeated button clicks
+    setTimer(null);
+    try {
+      const start = new Date(currentTimer.startTimeUtc);
+      const end = new Date();
+      const entryDate = ymd(start);
+      const fromTime = hhmm(start);
+      const toTime = hhmm(end) === hhmm(start) ? hhmm(new Date(end.getTime() + 60_000)) : hhmm(end);
+
+      // Check if this slot already exists in Dexie to avoid duplicating
+      const existingSlot = await db()
+        .entries.where("entryDate")
+        .equals(entryDate)
+        .filter((e) => e.fromTime === fromTime && e.toTime === toTime)
+        .first();
+
+      const entryId = existingSlot?.id ?? uid();
+      const entry: LocalEntry = {
+        id: entryId,
+        entryDate,
+        fromTime,
+        toTime,
+        projectId: currentTimer.projectId,
+        workNotes: workNotes || currentTimer.workNotes,
+        entryMode: "CustomHours",
+        status: statusFor(currentTimer.projectId, "CustomHours"),
+        createdAt: Date.now(),
+      };
+
+      await db().entries.put(entry);
+      await db().activeTimers.delete(currentTimer.clientTimerId);
+      reportTimer({ data: { running: false } }).catch(() => {});
+      await db().syncOutbox.add({
+        kind: "timer.stop",
+        payload: entry,
+        userId: ctx.userId,
+        createdAt: Date.now(),
+      });
+      // Online: save to the database right away. Offline: stays queued until reconnect.
+      await sync();
+    } finally {
+      setStopping(false);
+    }
   };
 
   const saveEntry = async (
     e: Omit<LocalEntry, "id" | "createdAt" | "status"> & { id?: string },
   ) => {
+    // If id is not specified, check if an existing entry shares the exact same slot
+    let targetId = e.id;
+    if (!targetId) {
+      const sameSlot = await db()
+        .entries.where("entryDate")
+        .equals(e.entryDate)
+        .filter((x) => x.fromTime === e.fromTime && x.toTime === e.toTime)
+        .first();
+      if (sameSlot) {
+        targetId = sameSlot.id;
+      }
+    }
+
     const entry: LocalEntry = {
       ...e,
-      id: e.id ?? uid(),
+      id: targetId ?? uid(),
       createdAt: Date.now(),
       status: statusFor(e.projectId, e.entryMode),
     };
@@ -251,6 +296,7 @@ export function useTimeData(ctx: TimeCtx) {
     ready,
     entries,
     timer,
+    stopping,
     elapsed,
     outbox,
     startTimer,

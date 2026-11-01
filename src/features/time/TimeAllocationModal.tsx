@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AppModal,
   AppSelect,
@@ -116,7 +116,24 @@ export function TimeAllocationModal({
   const [startDate, setStartDate] = useState(date ?? today);
   const [endDate, setEndDate] = useState(date ?? today);
 
-  const dayEntries = date ? existing.filter((e) => e.entryDate === date) : [];
+  const dayEntries = useMemo(() => {
+    if (!date) return [];
+    const entriesForDay = existing.filter((e) => e.entryDate === date);
+    // Deduplicate by time slot (fromTime–toTime) so no duplicate tabs are ever rendered
+    const seen = new Set<string>();
+    const unique: LocalEntry[] = [];
+    for (const item of entriesForDay) {
+      const slotKey = isAbsenceMode(item.entryMode)
+        ? item.entryMode
+        : `${item.fromTime}–${item.toTime}`;
+      if (!seen.has(slotKey)) {
+        seen.add(slotKey);
+        unique.push(item);
+      }
+    }
+    return unique;
+  }, [date, existing]);
+
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
 
   const isAbsence = isAbsenceMode(mode);
@@ -152,8 +169,7 @@ export function TimeAllocationModal({
       setActivityId(entry.activityId ?? null);
       return;
     }
-    const forDay = date ? existing.filter((e) => e.entryDate === date) : [];
-    const first = forDay[0];
+    const first = dayEntries[0];
     if (first) {
       setSelectedEntryId(first.id);
       setMode(first.entryMode);
@@ -170,7 +186,7 @@ export function TimeAllocationModal({
     setTo("");
     setProjectId(null);
     setActivityId(null);
-  }, [date, entry, existing, today]);
+  }, [date, entry, dayEntries, today]);
 
   if (!date) return null;
   const isFuture = date > today;
@@ -276,6 +292,7 @@ export function TimeAllocationModal({
   };
 
   const submit = async () => {
+    if (saving) return;
     if (isConflictBlocked) {
       setErrors(["dayHasAbsence"]);
       return;

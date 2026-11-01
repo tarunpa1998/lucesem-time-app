@@ -134,6 +134,30 @@ export const syncEntries = createServerFn({ method: "POST" })
         (p && p.approval_state !== "Approved")
           ? "pending"
           : "approved";
+      // Check if an entry for this user and time slot already exists under another ID
+      const [existingSlot] = await sql()<{ id: string }[]>`
+        select id from time_entries
+        where user_id = ${u.id}
+          and entry_date = ${e.entryDate}
+          and from_time = ${e.fromTime}
+          and to_time = ${e.toTime}
+          and id <> ${e.id}
+      `;
+      if (existingSlot) {
+        // An entry already exists for this exact time slot: update it instead of creating a duplicate
+        await sql()`
+          update time_entries set
+            project_id = ${e.projectId ?? null},
+            work_notes = ${e.workNotes},
+            entry_mode = ${e.entryMode},
+            activity_id = ${e.activityId ?? null},
+            updated_at = now()
+          where id = ${existingSlot.id}
+        `;
+        saved.push(e.id);
+        continue;
+      }
+
       const r = await sql()`
         insert into time_entries (id, user_id, project_id, entry_date, from_time, to_time, work_notes, entry_mode, status, activity_id)
         values (${e.id}, ${u.id}, ${e.projectId ?? null}, ${e.entryDate}, ${e.fromTime}, ${e.toTime}, ${e.workNotes}, ${e.entryMode}, ${status}, ${e.activityId ?? null})
