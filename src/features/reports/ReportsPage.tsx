@@ -13,7 +13,6 @@ import {
   CalendarBlank,
   CalendarCheck,
   Lightning,
-  TrendUp,
   CaretDown,
   Folder,
   User as UserIcon,
@@ -36,7 +35,6 @@ import {
   AppBadge,
   AppChart,
   AppBarChart,
-  AppAreaChart,
   AppDonutChart,
   AppProgress,
   AppDataTable,
@@ -45,7 +43,6 @@ import {
   AppFolderTabs,
   AppBox,
   AppMenu,
-  AppSegmented,
   notify,
   TablePageSkeleton,
   AppPageHeader,
@@ -141,7 +138,6 @@ export function ReportsPage() {
 
   // Chart view toggle
   const [chartView, setChartView] = useState<"project" | "daily">("project");
-  const [trendStyle, setTrendStyle] = useState<"bars" | "area">("bars");
 
   // Other state
   const [lockAfter, setLockAfter] = useState(false);
@@ -943,115 +939,40 @@ export function ReportsPage() {
                     </AppBox>
                   )}
                 </AppGroup>
-
-                {/* View style toggle: Bars vs Curve */}
-                <AppSegmented
-                  size="xs"
-                  value={trendStyle}
-                  onChange={(v) => setTrendStyle(v as "bars" | "area")}
-                  data={[
-                    {
-                      value: "bars",
-                      label: (
-                        <AppGroup gap={6} wrap="nowrap" align="center">
-                          <ChartBar size={14} weight="duotone" />
-                          <span>{t("bars")}</span>
-                        </AppGroup>
-                      ),
-                    },
-                    {
-                      value: "area",
-                      label: (
-                        <AppGroup gap={6} wrap="nowrap" align="center">
-                          <TrendUp size={14} weight="duotone" />
-                          <span>{t("curve")}</span>
-                        </AppGroup>
-                      ),
-                    },
-                  ]}
-                />
               </AppGroup>
 
-              {/* Chart Visualization */}
+              {/* Chart Visualization (Rounded Bar Chart Default) */}
               <AppBox pt="xs">
-                {trendStyle === "bars" ? (
-                  <AppBarChart
-                    h={250}
-                    data={totals.daily}
-                    dataKey="label"
-                    series={[{ name: "hours", color: "#009FE3", label: t("hours") }]}
-                    maxBarWidth={28}
-                    barProps={{ radius: [6, 6, 0, 0] }}
-                    gridAxis="x"
-                    tickLine="none"
-                    withXAxis={false}
-                    withYAxis
-                    yAxisProps={{
-                      stroke: "transparent",
-                      width: 44,
-                      tickFormatter: (v: number) => `${v} h`,
-                    }}
-                    referenceLines={
-                      totals.avgDailyHours > 0
-                        ? [
-                            {
-                              y: totals.avgDailyHours,
-                              color: "#009FE3",
-                              strokeDasharray: "4 4",
-                              label: `${t("avgLineLabel")}: ${totals.avgDailyHours.toFixed(1)} h`,
-                            },
-                          ]
-                        : []
-                    }
-                    valueFormatter={(v) => `${v.toFixed(2)} ${t("hours")}`}
-                  />
-                ) : (
-                  <AppAreaChart
-                    h={250}
-                    data={totals.daily}
-                    dataKey="label"
-                    series={[{ name: "hours", color: "#009FE3", label: t("hours") }]}
-                    curveType="monotone"
-                    withGradient
-                    fillOpacity={0.25}
-                    strokeWidth={2.5}
-                    withDots={totals.daily.length <= 25}
-                    dotProps={{
-                      r: 3.5,
-                      strokeWidth: 1.5,
-                      stroke: "#009FE3",
-                      fill: "var(--app-bg-surface)",
-                    }}
-                    activeDotProps={{
-                      r: 5.5,
-                      strokeWidth: 2,
-                      stroke: "#009FE3",
-                      fill: "#FFFFFF",
-                    }}
-                    gridAxis="x"
-                    tickLine="none"
-                    withXAxis={false}
-                    withYAxis
-                    yAxisProps={{
-                      stroke: "transparent",
-                      width: 44,
-                      tickFormatter: (v: number) => `${v} h`,
-                    }}
-                    referenceLines={
-                      totals.avgDailyHours > 0
-                        ? [
-                            {
-                              y: totals.avgDailyHours,
-                              color: "#009FE3",
-                              strokeDasharray: "4 4",
-                              label: `${t("avgLineLabel")}: ${totals.avgDailyHours.toFixed(1)} h`,
-                            },
-                          ]
-                        : []
-                    }
-                    valueFormatter={(v) => `${v.toFixed(2)} ${t("hours")}`}
-                  />
-                )}
+                <AppBarChart
+                  h={250}
+                  data={totals.daily}
+                  dataKey="label"
+                  series={[{ name: "hours", color: "#009FE3", label: t("hours") }]}
+                  maxBarWidth={28}
+                  barProps={{ radius: [6, 6, 0, 0] }}
+                  gridAxis="x"
+                  tickLine="none"
+                  withXAxis={false}
+                  withYAxis
+                  yAxisProps={{
+                    stroke: "transparent",
+                    width: 44,
+                    tickFormatter: (v: number) => `${v} h`,
+                  }}
+                  referenceLines={
+                    totals.avgDailyHours > 0
+                      ? [
+                          {
+                            y: totals.avgDailyHours,
+                            color: "#009FE3",
+                            strokeDasharray: "4 4",
+                            label: `${t("avgLineLabel")}: ${totals.avgDailyHours.toFixed(1)} h`,
+                          },
+                        ]
+                      : []
+                  }
+                  valueFormatter={(v) => `${v.toFixed(2)} ${t("hours")}`}
+                />
 
                 {/* Clean From-To Date Range Timeline Bar (replaces overcrowded axis ticks) */}
                 <AppGroup
