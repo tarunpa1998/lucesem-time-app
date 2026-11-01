@@ -415,34 +415,35 @@ export function ReportsPage() {
                 scrollbarWidth: "none",
               }}
             >
-              <AppGroup gap="xs" wrap="nowrap" align="center" pb={{ base: 4, sm: 0 }}>
-                <AppText
-                  fz="xs"
-                  fw={700}
-                  c="var(--app-text-secondary)"
-                  tt="uppercase"
-                  style={{ flexShrink: 0 }}
-                >
-                  {t("quickRanges")}:
-                </AppText>
-                <AppFolderTabs
-                  compact
-                  value={activeRange ?? ""}
-                  onChange={(v) =>
-                    handleQuickRange(
-                      v as "thisMonth" | "lastMonth" | "thisWeek" | "today" | "allYear",
-                    )
-                  }
-                  items={[
-                    { value: "thisMonth", label: t("thisMonth") },
-                    { value: "lastMonth", label: t("lastMonth") },
-                    { value: "thisWeek", label: t("thisWeek") },
-                    { value: "today", label: t("today") },
-                    { value: "allYear", label: t("allYear") },
-                  ]}
-                  style={{ width: "auto", marginBottom: 0 }}
-                />
-              </AppGroup>
+              <div className="app-folder-tabs-row" style={{ marginBottom: 0 }}>
+                <AppGroup gap="xs" wrap="nowrap" align="center" style={{ width: "100%" }}>
+                  <AppText
+                    fz="xs"
+                    fw={700}
+                    c="var(--app-text-secondary)"
+                    tt="uppercase"
+                    style={{ flexShrink: 0 }}
+                  >
+                    {t("quickRanges")}:
+                  </AppText>
+                  <AppFolderTabs
+                    compact
+                    value={activeRange ?? ""}
+                    onChange={(v) =>
+                      handleQuickRange(
+                        v as "thisMonth" | "lastMonth" | "thisWeek" | "today" | "allYear",
+                      )
+                    }
+                    items={[
+                      { value: "thisMonth", label: t("thisMonth") },
+                      { value: "lastMonth", label: t("lastMonth") },
+                      { value: "thisWeek", label: t("thisWeek") },
+                      { value: "today", label: t("today") },
+                      { value: "allYear", label: t("allYear") },
+                    ]}
+                  />
+                </AppGroup>
+              </div>
             </AppBox>
 
             {hasActiveFilters && (

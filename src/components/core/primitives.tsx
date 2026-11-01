@@ -437,6 +437,7 @@ export function AppFolderTabs({
           >
             {item.icon}
             <span>{item.label}</span>
+            {active && <span className="app-tab-active-indicator" />}
           </button>
         );
       })}
@@ -457,17 +458,23 @@ export const AppDrawer = (p: DrawerProps) => (
 export function AppHeading({
   children,
   order = 2,
+  style,
+  className,
 }: {
   children: ReactNode;
   order?: 1 | 2 | 3 | 4;
+  style?: React.CSSProperties;
+  className?: string;
 }) {
   return (
     <Title
       order={order}
+      {...(className ? { className } : {})}
       style={{
         fontFamily: "var(--app-font-heading)",
         letterSpacing: "var(--app-heading-tracking)",
         color: "var(--app-text-primary)",
+        ...style,
       }}
     >
       {children}

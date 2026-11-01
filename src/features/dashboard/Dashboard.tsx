@@ -276,7 +276,7 @@ export function Dashboard() {
         </AppCard>
 
         {/* Target vs worked */}
-        <AppGroup justify="space-between" align="flex-end">
+        <div className="app-folder-tabs-row">
           <AppHeading order={4}>
             {t("target")} / {t("worked")}
           </AppHeading>
@@ -288,9 +288,8 @@ export function Dashboard() {
               value: p,
               label: t(p),
             }))}
-            style={{ width: "auto", marginBottom: 0 }}
           />
-        </AppGroup>
+        </div>
         <AppGrid cols={{ base: 2, lg: 4 }}>
           {stats &&
             (() => {

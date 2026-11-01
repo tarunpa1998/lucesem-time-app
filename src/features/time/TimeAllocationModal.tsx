@@ -388,6 +388,7 @@ export function TimeAllocationModal({
             <AppFolderTabs
               value={selectedEntryId ?? "new"}
               onChange={handleSelectEntry}
+              style={{ marginBottom: 0 }}
               items={[
                 ...dayEntries.map((e) => ({
                   value: e.id,
