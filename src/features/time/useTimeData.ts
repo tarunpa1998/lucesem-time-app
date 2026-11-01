@@ -130,13 +130,20 @@ export function useTimeData(ctx: TimeCtx) {
     return ctx.requiresApproval || ctx.isPendingProject(projectId) ? "pending" : "approved";
   };
 
-  const startTimer = async (projectId: string, workNotes: string) => {
+  const startTimer = async (
+    projectId: string,
+    workNotes: string,
+    task?: { id: string; title: string; number?: number | null } | null,
+  ) => {
     const t: ActiveTimer = {
       clientTimerId: uid(),
       userId: ctx.userId,
       projectId,
       startTimeUtc: Date.now(),
       workNotes,
+      taskId: task?.id ?? null,
+      taskTitle: task?.title ?? null,
+      taskNumber: task?.number ?? null,
     };
     await db().activeTimers.put(t);
     await db().syncOutbox.add({
@@ -178,6 +185,9 @@ export function useTimeData(ctx: TimeCtx) {
         fromTime,
         toTime,
         projectId: currentTimer.projectId,
+        taskId: currentTimer.taskId ?? null,
+        taskTitle: currentTimer.taskTitle ?? null,
+        taskNumber: currentTimer.taskNumber ?? null,
         workNotes: workNotes || currentTimer.workNotes,
         entryMode: "CustomHours",
         status: statusFor(currentTimer.projectId, "CustomHours"),
@@ -292,6 +302,23 @@ export function useTimeData(ctx: TimeCtx) {
     [timer, ctx.userId],
   );
 
+  const updateTimerTask = useCallback(
+    async (task?: { id: string; title: string; number?: number | null } | null) => {
+      const d = db();
+      const current = timer ?? (await d.activeTimers.where("userId").equals(ctx.userId).first());
+      if (!current) return;
+      const updated: ActiveTimer = {
+        ...current,
+        taskId: task?.id ?? null,
+        taskTitle: task?.title ?? null,
+        taskNumber: task?.number ?? null,
+      };
+      await d.activeTimers.put(updated);
+      setTimer(updated);
+    },
+    [timer, ctx.userId],
+  );
+
   const elapsed = timer ? elapsedSeconds(timer.startTimeUtc, now) : 0;
   return {
     ready,
@@ -303,6 +330,7 @@ export function useTimeData(ctx: TimeCtx) {
     startTimer,
     stopTimer,
     updateTimerNotes,
+    updateTimerTask,
     saveEntry,
     saveEntries,
     deleteEntry,

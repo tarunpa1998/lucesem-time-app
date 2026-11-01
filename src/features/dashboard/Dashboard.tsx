@@ -1,6 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { SquaresFour, Play, Stop, CloudSlash, PencilSimple } from "@phosphor-icons/react";
+import {
+  SquaresFour,
+  Play,
+  Stop,
+  CloudSlash,
+  PencilSimple,
+  Clock,
+  FolderSimple,
+  Kanban,
+  ArrowUpRight,
+  Plus,
+  ClipboardText,
+} from "@phosphor-icons/react";
 import {
   AppShellLayout,
   DashboardSkeleton,
@@ -33,6 +45,8 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { meQuery, myProjectsQuery, myAccessQuery } from "@/lib/session";
 import { useTimeData, entryHours } from "@/features/time/useTimeData";
 import { TimeAllocationModal } from "@/features/time/TimeAllocationModal";
+import { listOpenTasksForProject } from "@/backend/board.functions";
+import type { OpenTaskRow } from "@/backend/types";
 import type { LocalEntry } from "@/lib/offline-db";
 
 type Period = "day" | "week" | "month" | "year";
@@ -62,20 +76,34 @@ export function Dashboard() {
   const [editing, setEditing] = useState<LocalEntry | null>(null);
   const [readOnlyEntry, setReadOnlyEntry] = useState(false);
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [taskId, setTaskId] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [period, setPeriod] = useState<Period>("week");
 
   const DRAFT_NOTES_KEY = "lucesem_draft_notes";
 
-  // Synchronize work notes from active timer on load or refresh
+  const activeProjectId = data.timer?.projectId ?? projectId;
+
+  const { data: openTasks = [], isLoading: loadingTasks } = useQuery<OpenTaskRow[]>({
+    queryKey: ["open-tasks", activeProjectId],
+    queryFn: () =>
+      activeProjectId
+        ? listOpenTasksForProject({ data: { projectId: activeProjectId } })
+        : Promise.resolve([]),
+    enabled: !!activeProjectId,
+  });
+
+  // Synchronize work notes, project, and task from active timer on load or refresh
   useEffect(() => {
     if (data.timer) {
       setNotes(data.timer.workNotes ?? "");
+      setProjectId(data.timer.projectId ?? null);
+      setTaskId(data.timer.taskId ?? null);
     } else {
       const draft = sessionStorage.getItem(DRAFT_NOTES_KEY);
       if (draft) setNotes(draft);
     }
-  }, [data.timer?.clientTimerId]);
+  }, [data.timer]);
 
   const handleNotesChange = (val: string) => {
     setNotes(val);
@@ -83,6 +111,50 @@ export function Dashboard() {
       data.updateTimerNotes(val);
     } else {
       sessionStorage.setItem(DRAFT_NOTES_KEY, val);
+    }
+  };
+
+  const handleProjectChange = (val: string | null) => {
+    setProjectId(val);
+    setTaskId(null);
+  };
+
+  const handleTaskChange = (val: string | null) => {
+    setTaskId(val);
+    const chosen = openTasks.find((t) => t.id === val);
+    if (data.timer) {
+      data.updateTimerTask(
+        chosen ? { id: chosen.id, title: chosen.title, number: chosen.task_number } : null,
+      );
+    } else if (chosen && (!notes || notes.trim() === "")) {
+      // Auto-populate notes with task identifier if user hasn't typed anything yet
+      setNotes(`[#${chosen.task_number}] ${chosen.title}`);
+    }
+  };
+
+  const handleStartTimer = () => {
+    if (!activeProjectId) return;
+    const chosen = openTasks.find((t) => t.id === taskId);
+    data.startTimer(
+      activeProjectId,
+      notes,
+      chosen ? { id: chosen.id, title: chosen.title, number: chosen.task_number } : null,
+    );
+    try {
+      sessionStorage.removeItem(DRAFT_NOTES_KEY);
+    } catch {
+      // Ignore
+    }
+  };
+
+  const handleStopTimer = () => {
+    data.stopTimer(notes);
+    setNotes("");
+    setTaskId(null);
+    try {
+      sessionStorage.removeItem(DRAFT_NOTES_KEY);
+    } catch {
+      // Ignore
     }
   };
 
@@ -147,49 +219,6 @@ export function Dashboard() {
       ? ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
       : ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
-  const timerButton = data.timer ? (
-    <AppButton
-      mt="sm"
-      fullWidth
-      size="md"
-      color="red"
-      loading={data.stopping}
-      disabled={data.stopping}
-      leftSection={<Stop weight="duotone" size={16} />}
-      onClick={() => {
-        data.stopTimer(notes);
-        setNotes("");
-        try {
-          sessionStorage.removeItem(DRAFT_NOTES_KEY);
-        } catch {
-          // Ignore
-        }
-      }}
-    >
-      {t("stopWork")} · {formatDuration(data.elapsed)}
-    </AppButton>
-  ) : (
-    <AppButton
-      mt="sm"
-      fullWidth
-      size="md"
-      leftSection={<Play weight="duotone" size={16} />}
-      disabled={!projectId}
-      onClick={() => {
-        if (projectId) {
-          data.startTimer(projectId, notes);
-          try {
-            sessionStorage.removeItem(DRAFT_NOTES_KEY);
-          } catch {
-            // Ignore
-          }
-        }
-      }}
-    >
-      {t("startWork")}
-    </AppButton>
-  );
-
   // Floating "log time" button opens the hours window for today.
   useEffect(() => {
     if (!data.ready || !today) return;
@@ -241,70 +270,218 @@ export function Dashboard() {
           }
         />
 
-        {/* Live timer */}
-        <AppCard id="timer">
-          <AppGrid cols={{ base: 1, md: 2 }}>
-            <AppStack
-              gap={4}
-              justify="center"
-              role="button"
-              tabIndex={0}
-              aria-label={t("allocate")}
-              style={{ cursor: "pointer" }}
-              onClick={() => {
-                if (today) {
-                  setSelected(today);
-                  setEditing(null);
-                  setReadOnlyEntry(false);
-                }
-              }}
-              onKeyDown={(e) => {
-                if ((e.key === "Enter" || e.key === " ") && today) {
-                  setSelected(today);
-                  setEditing(null);
-                  setReadOnlyEntry(false);
-                }
-              }}
-            >
-              <AppText fz="xs" fw={600} c="var(--app-text-secondary)" tt="uppercase">
-                {data.timer ? (online ? t("running") : t("offlineRunning")) : t("startWork")}
-              </AppText>
-              <AppMono size="40px" c={data.timer ? "var(--app-brand-primary)" : undefined}>
-                {formatDuration(data.elapsed)}
-              </AppMono>
-              {data.timer && (
-                <AppText fz="sm" c="var(--app-text-secondary)">
-                  {project(data.timer.projectId)?.name}
-                </AppText>
-              )}
-            </AppStack>
-            <AppStack gap="xs">
-              <AppSelect
-                label={t("project")}
-                placeholder={t("selectProject")}
-                value={data.timer?.projectId ?? projectId}
-                disabled={!!data.timer}
-                onChange={setProjectId}
-                data={projects.map((p) => ({
-                  value: p.id,
-                  label: `${p.name} — ${p.customer_name}`,
-                }))}
-              />
-              <AppTextInput
-                label={t("notes")}
-                placeholder={t("whatWorking")}
-                value={notes}
-                onChange={(e) => handleNotesChange(e.currentTarget.value)}
-                onBlur={() => {
-                  if (data.timer) {
-                    data.updateTimerNotes(notes);
+        {/* Live chronometer & Work timer section */}
+        <div id="timer" className="app-timer-card" data-running={!!data.timer}>
+          <div style={{ padding: "20px 24px" }}>
+            <AppGrid cols={{ base: 1, md: 2 }}>
+              {/* Left Column: Interactive Chronometer Pod */}
+              <div
+                className="app-timer-display-pod"
+                data-running={!!data.timer}
+                role="button"
+                tabIndex={0}
+                aria-label={t("allocate")}
+                onClick={() => {
+                  if (today) {
+                    setSelected(today);
+                    setEditing(null);
+                    setReadOnlyEntry(false);
                   }
                 }}
-              />
-              {timerButton}
-            </AppStack>
-          </AppGrid>
-        </AppCard>
+                onKeyDown={(e) => {
+                  if ((e.key === "Enter" || e.key === " ") && today) {
+                    setSelected(today);
+                    setEditing(null);
+                    setReadOnlyEntry(false);
+                  }
+                }}
+              >
+                {/* Status header row */}
+                <AppGroup justify="space-between" align="center">
+                  <AppGroup gap={8} align="center">
+                    {data.timer ? (
+                      <>
+                        <span className="app-timer-pulse-dot" />
+                        <AppBadge
+                          color="green"
+                          variant="light"
+                          size="sm"
+                          style={{ fontWeight: 600, letterSpacing: "0.04em" }}
+                        >
+                          {online ? t("liveTracking") : t("offlineRunning")}
+                        </AppBadge>
+                      </>
+                    ) : (
+                      <AppBadge
+                        color="gray"
+                        variant="light"
+                        size="sm"
+                        leftSection={<Clock weight="bold" size={12} />}
+                        style={{ fontWeight: 600, letterSpacing: "0.04em" }}
+                      >
+                        {t("timerIdle")}
+                      </AppBadge>
+                    )}
+                  </AppGroup>
+                  {today && (
+                    <AppText fz="xs" c="var(--app-text-secondary)" fw={500}>
+                      {fmtDate(today)}
+                    </AppText>
+                  )}
+                </AppGroup>
+
+                {/* Big monospace digits */}
+                <div style={{ padding: "12px 0" }}>
+                  <div className="app-timer-digits" data-running={!!data.timer}>
+                    {formatDuration(data.elapsed)}
+                  </div>
+                </div>
+
+                {/* Metadata and footer */}
+                <div>
+                  {data.timer ? (
+                    <AppStack gap={4}>
+                      <AppGroup gap={6} align="center" wrap="nowrap">
+                        <FolderSimple weight="duotone" size={15} color="var(--app-brand-primary)" />
+                        <AppText fz="xs" fw={600} truncate c="var(--app-text-primary)">
+                          {project(data.timer.projectId)?.name ?? t("project")}
+                        </AppText>
+                      </AppGroup>
+                      {(data.timer.taskTitle || data.timer.taskId) && (
+                        <AppGroup gap={6} align="center" wrap="nowrap">
+                          <Kanban weight="duotone" size={15} color="var(--app-brand-primary)" />
+                          <AppBadge color="blue" variant="outline" size="xs">
+                            {data.timer.taskNumber ? `#${data.timer.taskNumber} ` : ""}
+                            {data.timer.taskTitle ?? t("linkedTask")}
+                          </AppBadge>
+                        </AppGroup>
+                      )}
+                      <AppText fz="11px" c="var(--app-text-secondary)" mt={2}>
+                        {t("clickToOpenDay")} →
+                      </AppText>
+                    </AppStack>
+                  ) : (
+                    <AppGroup justify="space-between" align="center">
+                      <AppText fz="xs" c="var(--app-text-secondary)">
+                        {t("clickToOpenDay")}
+                      </AppText>
+                      <ArrowUpRight size={14} color="var(--app-text-secondary)" />
+                    </AppGroup>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Work Session Controls */}
+              <div className="app-timer-form-pod">
+                <AppStack gap="xs">
+                  {/* Project & Task selection in responsive grid */}
+                  <AppGrid cols={{ base: 1, sm: 2 }}>
+                    <AppSelect
+                      label={t("project")}
+                      placeholder={t("selectProject")}
+                      value={activeProjectId}
+                      disabled={!!data.timer}
+                      searchable
+                      onChange={handleProjectChange}
+                      data={projects.map((p) => ({
+                        value: p.id,
+                        label: `${p.name} — ${p.customer_name}`,
+                      }))}
+                      leftSection={<FolderSimple weight="duotone" size={15} />}
+                    />
+                    <AppSelect
+                      label={
+                        <AppGroup gap={6} align="center">
+                          <span>{t("taskIssue")}</span>
+                          <AppBadge size="xs" variant="light" color="gray">
+                            {lang === "de" ? "Optional" : "Optional"}
+                          </AppBadge>
+                        </AppGroup>
+                      }
+                      placeholder={
+                        !activeProjectId
+                          ? t("selectProject")
+                          : loadingTasks
+                            ? `${t("selectTask")}...`
+                            : openTasks.length === 0
+                              ? t("noOpenTasks")
+                              : t("selectTaskPlaceholder")
+                      }
+                      value={taskId}
+                      clearable
+                      searchable
+                      disabled={!activeProjectId || openTasks.length === 0}
+                      onChange={handleTaskChange}
+                      data={openTasks.map((tsk) => ({
+                        value: tsk.id,
+                        label: `#${tsk.task_number} · ${tsk.title} (${tsk.status === "in_progress" ? t("inProgress") : t("pending")})`,
+                      }))}
+                      leftSection={<Kanban weight="duotone" size={15} />}
+                    />
+                  </AppGrid>
+
+                  {/* Work notes input */}
+                  <AppTextInput
+                    label={t("notes")}
+                    placeholder={t("whatWorking")}
+                    value={notes}
+                    onChange={(e) => handleNotesChange(e.currentTarget.value)}
+                    onBlur={() => {
+                      if (data.timer) {
+                        data.updateTimerNotes(notes);
+                      }
+                    }}
+                    leftSection={<ClipboardText weight="duotone" size={15} />}
+                  />
+                </AppStack>
+
+                {/* Actions Bar */}
+                <div style={{ marginTop: 12 }}>
+                  <AppGrid cols={{ base: 1, sm: 2 }}>
+                    {data.timer ? (
+                      <AppButton
+                        fullWidth
+                        size="md"
+                        color="red"
+                        loading={data.stopping}
+                        disabled={data.stopping}
+                        leftSection={<Stop weight="duotone" size={18} />}
+                        onClick={handleStopTimer}
+                      >
+                        {t("stopWork")} · {formatDuration(data.elapsed)}
+                      </AppButton>
+                    ) : (
+                      <AppButton
+                        fullWidth
+                        size="md"
+                        leftSection={<Play weight="duotone" size={18} />}
+                        disabled={!activeProjectId}
+                        onClick={handleStartTimer}
+                      >
+                        {t("startWork")}
+                      </AppButton>
+                    )}
+                    <AppButton
+                      fullWidth
+                      size="md"
+                      variant="default"
+                      leftSection={<Plus weight="bold" size={16} />}
+                      onClick={() => {
+                        if (today) {
+                          setSelected(today);
+                          setEditing(null);
+                          setReadOnlyEntry(false);
+                        }
+                      }}
+                    >
+                      {t("logTime")}
+                    </AppButton>
+                  </AppGrid>
+                </div>
+              </div>
+            </AppGrid>
+          </div>
+        </div>
 
         {/* Target vs worked */}
         <div className="app-folder-tabs-row">

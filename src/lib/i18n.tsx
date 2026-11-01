@@ -372,6 +372,12 @@ const dict = {
     taskTimeHistory: "Zeiterfassungs-Verlauf",
     totalLogged: "Gesamt erfasst",
     linkedTask: "Verknüpfte Aufgabe",
+    liveTracking: "Live-Zeiterfassung",
+    timerIdle: "Bereit zur Zeiterfassung",
+    clickToOpenDay: "Klicken, um Tagestabelle zu öffnen",
+    taskOptional: "Aufgabe (Optional)",
+    openDayTimesheet: "Tagestabelle öffnen",
+    selectTaskPlaceholder: "Aufgabe auswählen (optional)...",
   },
   en: {
     activity: "Activity",
@@ -738,6 +744,12 @@ const dict = {
     taskTimeHistory: "Time Log History",
     totalLogged: "Total logged",
     linkedTask: "Linked task",
+    liveTracking: "Live Tracking",
+    timerIdle: "Ready to Track",
+    clickToOpenDay: "Click to open day timesheet",
+    taskOptional: "Task / Issue (Optional)",
+    openDayTimesheet: "Open day timesheet",
+    selectTaskPlaceholder: "Select task or issue (optional)...",
   },
 } as const;
 

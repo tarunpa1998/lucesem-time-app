@@ -1705,3 +1705,127 @@ html.night {
     transparent 50%
   ) !important;
 }
+
+/* ===== Live Chronometer & Timer Section Redesign ===== */
+.app-timer-card {
+  position: relative;
+  background: var(--app-bg-surface);
+  border: 1px solid var(--app-border-subtle);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-card);
+  overflow: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.app-timer-card[data-running="true"] {
+  border-color: color-mix(in srgb, var(--app-brand-primary) 35%, var(--app-border-subtle));
+  box-shadow: 0 8px 30px -4px rgba(0, 159, 227, 0.15), var(--app-shadow-card);
+}
+
+.app-timer-card[data-running="true"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--app-brand-primary), #38bdf8, var(--app-brand-primary));
+  background-size: 200% 100%;
+  animation: app-timer-gradient-flow 3s ease infinite;
+  z-index: 2;
+}
+
+@keyframes app-timer-gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.app-timer-display-pod {
+  background: color-mix(in srgb, var(--app-bg-canvas) 85%, var(--app-bg-surface));
+  border: 1px solid var(--app-border-subtle);
+  border-radius: var(--app-radius-md);
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 160px;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.app-timer-display-pod:hover {
+  background: color-mix(in srgb, var(--app-bg-canvas) 65%, var(--app-bg-surface));
+  border-color: color-mix(in srgb, var(--app-brand-primary) 30%, var(--app-border-subtle));
+  transform: translateY(-1px);
+}
+
+.app-timer-display-pod[data-running="true"] {
+  background: color-mix(
+    in srgb,
+    var(--app-bg-canvas) 82%,
+    color-mix(in srgb, var(--app-brand-primary) 12%, transparent)
+  );
+  border-color: color-mix(in srgb, var(--app-brand-primary) 40%, var(--app-border-subtle));
+}
+
+.app-timer-digits {
+  font-family: var(--app-font-mono);
+  font-size: 2.5rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-text-primary);
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .app-timer-digits {
+    font-size: 2.85rem;
+  }
+}
+
+.app-timer-digits[data-running="true"] {
+  color: var(--app-brand-primary);
+  text-shadow: 0 0 24px rgba(0, 159, 227, 0.3);
+}
+
+.app-timer-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e;
+  animation: app-timer-pulse 1.8s ease-in-out infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+@keyframes app-timer-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+}
+
+.app-timer-form-pod {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+

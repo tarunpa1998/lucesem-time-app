@@ -7,6 +7,9 @@ export interface ActiveTimer {
   projectId: string;
   startTimeUtc: number;
   workNotes: string;
+  taskId?: string | null;
+  taskTitle?: string | null;
+  taskNumber?: number | null;
 }
 export interface LocalEntry {
   id: string;
