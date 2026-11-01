@@ -961,9 +961,9 @@ textarea:focus,
   display: inline-flex !important;
   align-items: center !important;
   gap: 4px !important;
-  padding: 0 0 2px 0 !important;
+  padding: 0 !important;
   margin: 0 !important;
-  border-bottom: 1px solid var(--app-border-subtle) !important;
+  border-bottom: none !important;
   overflow-x: auto !important;
   scrollbar-width: none !important;
   width: 100%;
@@ -978,7 +978,7 @@ textarea:focus,
   align-items: center !important;
   justify-content: center !important;
   gap: 6px !important;
-  padding: 8px 16px !important;
+  padding: 8px 18px 13px 18px !important;
   border-radius: var(--app-radius-md) !important;
   font-size: 13px !important;
   font-weight: 500 !important;
@@ -1030,10 +1030,10 @@ textarea:focus,
 /* The Glowing Blue Pill Indicator - matching sidebar indicator */
 .app-tab-active-indicator {
   position: absolute !important;
-  bottom: -3px !important;
+  bottom: 2.5px !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
-  width: 24px !important;
+  width: 22px !important;
   height: 3px !important;
   border-radius: 3px !important;
   background-color: var(--app-brand-primary) !important;
@@ -1043,19 +1043,20 @@ textarea:focus,
 
 /* Compact variant for dashboards / headers / filter bars */
 .app-folder-tabs-list.is-compact {
-  gap: 2px !important;
-  padding: 0 0 2px 0 !important;
+  gap: 3px !important;
+  padding: 0 !important;
+  border-bottom: none !important;
 }
 .app-folder-tabs-list.is-compact .app-folder-tab,
 .app-folder-tab.is-compact {
-  padding: 5px 12px !important;
+  padding: 6px 14px 11px 14px !important;
   font-size: 12px !important;
   border-radius: var(--app-radius-sm) !important;
 }
 .app-folder-tabs-list.is-compact .app-tab-active-indicator {
   width: 18px !important;
   height: 2.5px !important;
-  bottom: -3px !important;
+  bottom: 2px !important;
 }
 
 /* Header row variant with full-width continuous baseline */
