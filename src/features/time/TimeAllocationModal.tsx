@@ -11,6 +11,7 @@ import {
   AppText,
   AppBadge,
   AppSegmented,
+  AppConfirmModal,
 } from "@/components/core";
 import { Trash } from "@phosphor-icons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -82,6 +83,7 @@ export function TimeAllocationModal({
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const dayEntries = date ? existing.filter((e) => e.entryDate === date) : [];
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
@@ -97,6 +99,7 @@ export function TimeAllocationModal({
     setErrors([]);
     setNotes("");
     setReason("");
+    setConfirmDelete(false);
     if (entry) {
       setSelectedEntryId(entry.id);
       setMode(entry.entryMode);
@@ -189,12 +192,17 @@ export function TimeAllocationModal({
     return t("whatWorking");
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!activeEntry?.id || !onDelete) return;
-    if (!window.confirm(t("deleteConfirm"))) return;
+    setConfirmDelete(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!activeEntry?.id || !onDelete) return;
     try {
       setDeleting(true);
       await onDelete(activeEntry.id);
+      setConfirmDelete(false);
       onClose();
     } finally {
       setDeleting(false);
@@ -374,6 +382,13 @@ export function TimeAllocationModal({
           </AppGroup>
         </AppStack>
       )}
+
+      <AppConfirmModal
+        opened={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={handleDeleteConfirm}
+        loading={deleting}
+      />
     </AppModal>
   );
 }

@@ -18,6 +18,7 @@ import {
   formatDuration,
   notify,
   AppPageHeader,
+  AppConfirmModal,
 } from "@/components/core";
 import { useI18n } from "@/lib/i18n";
 import { locksQuery, liveQuery, auditQuery, usersQuery } from "@/lib/session";
@@ -36,6 +37,7 @@ export function ControlPage() {
     toDate: "",
     note: "",
   });
+  const [lockToDelete, setLockToDelete] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const i = setInterval(() => setNow(Date.now()), 1000);
@@ -147,10 +149,7 @@ export function ControlPage() {
                         size="compact-xs"
                         color="red"
                         variant="light"
-                        onClick={async () => {
-                          await removeLock({ data: { id: r.id } });
-                          qc.invalidateQueries({ queryKey: ["locks"] });
-                        }}
+                        onClick={() => setLockToDelete(r.id)}
                       >
                         {t("remove")}
                       </AppButton>
@@ -160,6 +159,19 @@ export function ControlPage() {
               />
             </AppCard>
           </AppStack>
+
+          <AppConfirmModal
+            opened={!!lockToDelete}
+            onClose={() => setLockToDelete(null)}
+            onConfirm={async () => {
+              if (!lockToDelete) return;
+              await removeLock({ data: { id: lockToDelete } });
+              setLockToDelete(null);
+              qc.invalidateQueries({ queryKey: ["locks"] });
+            }}
+            title={t("periodLocks")}
+            message={t("deleteConfirm")}
+          />
         </AppTabs.Panel>
 
         <AppTabs.Panel value="audit">

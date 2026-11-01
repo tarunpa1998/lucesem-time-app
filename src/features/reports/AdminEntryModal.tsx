@@ -13,6 +13,7 @@ import {
   AppAlert,
   AppBadge,
   AppText,
+  AppConfirmModal,
   notify,
 } from "@/components/core";
 import { useI18n } from "@/lib/i18n";
@@ -35,9 +36,13 @@ export function AdminEntryModal({
   const { t } = useI18n();
   const [f, setF] = useState<ReportRow | null>(row);
   const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   useEffect(() => {
     setF(row);
     setError(null);
+    setConfirmDelete(false);
   }, [row]);
   if (!f) return null;
 
@@ -63,12 +68,18 @@ export function AdminEntryModal({
       setError(e instanceof Error ? e.message : t("error"));
     }
   };
-  const remove = async () => {
-    if (!window.confirm(t("deleteConfirm"))) return;
-    await adminDeleteEntry({ data: { id: f.id } });
-    notify.show({ color: "lucesem", message: "@entryDeleted" });
-    onSaved();
-    onClose();
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setDeleting(true);
+      await adminDeleteEntry({ data: { id: f.id } });
+      notify.show({ color: "lucesem", message: "@entryDeleted" });
+      setConfirmDelete(false);
+      onSaved();
+      onClose();
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -132,7 +143,7 @@ export function AdminEntryModal({
           onChange={(e) => setF({ ...f, work_notes: e.currentTarget.value })}
         />
         <AppGroup justify="space-between">
-          <AppButton color="red" variant="light" onClick={remove}>
+          <AppButton color="red" variant="light" onClick={() => setConfirmDelete(true)}>
             {t("remove")}
           </AppButton>
           <AppGroup gap="xs">
@@ -145,6 +156,13 @@ export function AdminEntryModal({
           </AppGroup>
         </AppGroup>
       </AppStack>
+
+      <AppConfirmModal
+        opened={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={handleDeleteConfirm}
+        loading={deleting}
+      />
     </AppModal>
   );
 }
