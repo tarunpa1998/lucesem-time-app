@@ -27,13 +27,15 @@ const parse = (s: string) => {
 export const daysBetween = (from: string, to: string) =>
   Math.round((parse(to).getTime() - parse(from).getTime()) / 86_400_000);
 
-/** Standard users may log Today .. Today-3. Admins and unlocked dates are unrestricted. */
+/** Standard users may log Today .. Today-3. Admins and unlocked dates are unrestricted.
+ * Absences (Vacation, Sick Leave, Comp Time) can also be booked for advance/future dates. */
 export function canEditDate(
   entryDate: string,
   today: string,
-  opts: { isAdmin?: boolean; unlocked?: boolean } = {},
+  opts: { isAdmin?: boolean; unlocked?: boolean; isAbsence?: boolean } = {},
 ) {
   if (opts.isAdmin || opts.unlocked) return true;
+  if (opts.isAbsence && entryDate >= today) return true;
   const diff = daysBetween(entryDate, today);
   return diff >= 0 && diff <= RETRO_WINDOW_DAYS;
 }
@@ -48,6 +50,7 @@ export interface Interval {
   entryDate: string;
   fromTime: string;
   toTime: string;
+  entryMode?: EntryMode | string;
 }
 export function overlaps(a: Interval, b: Interval) {
   if (a.entryDate !== b.entryDate) return false;
@@ -69,7 +72,16 @@ export interface EntryDraft extends Interval {
   activityId?: string | null;
 }
 export type ValidationError =
-  "date" | "time" | "toBeforeFrom" | "project" | "notes" | "overlap" | "retro" | "future";
+  | "date"
+  | "time"
+  | "toBeforeFrom"
+  | "project"
+  | "notes"
+  | "overlap"
+  | "retro"
+  | "future"
+  | "dayHasAbsence"
+  | "dayHasWork";
 
 export function validateEntry(
   e: EntryDraft,
@@ -92,12 +104,34 @@ export function validateEntry(
     existing.some((x) => !(e.id && x.id === e.id) && overlaps(e, x))
   )
     errs.push("overlap");
-  if (!canEditDate(e.entryDate, today, opts)) errs.push("retro");
+
+  // Conflict check: Days booked as absence cannot have other entries
+  const dayEntries = existing.filter(
+    (x) => !(e.id && x.id === e.id) && x.entryDate === e.entryDate,
+  );
+  if (isAbsenceMode(e.entryMode)) {
+    if (dayEntries.length > 0) {
+      errs.push("dayHasWork");
+    }
+  } else {
+    const hasAbsence = dayEntries.some(
+      (x) => x.entryMode && isAbsenceMode(x.entryMode as EntryMode),
+    );
+    if (hasAbsence) {
+      errs.push("dayHasAbsence");
+    }
+  }
+
+  if (!canEditDate(e.entryDate, today, { ...opts, isAbsence: isAbsenceMode(e.entryMode) })) {
+    errs.push("retro");
+  }
   if (
-    isFutureSlot(e.entryDate, e.fromTime, today, opts.nowTime) ||
-    isFutureSlot(e.entryDate, e.toTime, today, opts.nowTime)
-  )
+    !isAbsenceMode(e.entryMode) &&
+    (isFutureSlot(e.entryDate, e.fromTime, today, opts.nowTime) ||
+      isFutureSlot(e.entryDate, e.toTime, today, opts.nowTime))
+  ) {
     errs.push("future");
+  }
   return errs;
 }
 

@@ -25,6 +25,7 @@ export function entryWriteVerdict(o: {
   unlockedDates: string[];
   locks: PeriodLock[];
   exported: boolean;
+  isAbsence?: boolean;
 }): "ok" | "locked" | "exported" | "retro" {
   if (o.isAdmin) return "ok";
   if (o.exported) return "exported";
@@ -33,6 +34,7 @@ export function entryWriteVerdict(o: {
     !canEditDate(o.date, o.today, {
       isAdmin: o.isAdmin,
       unlocked: o.unlockedDates.includes(o.date),
+      isAbsence: o.isAbsence,
     })
   )
     return "retro";

@@ -86,6 +86,11 @@ export const syncEntries = createServerFn({ method: "POST" })
         rejected.push({ id: e.id, reason: "forbidden" });
         continue;
       }
+      const isAbsence = [
+        "Vacation_Urlaub",
+        "SickLeave_Krankenstand",
+        "Compensatory_Zeitausgleich",
+      ].includes(e.entryMode);
       const verdict = entryWriteVerdict({
         date: e.entryDate,
         today,
@@ -94,16 +99,12 @@ export const syncEntries = createServerFn({ method: "POST" })
         unlockedDates,
         locks,
         exported: !!prev?.exported_at,
+        isAbsence,
       });
       if (verdict !== "ok") {
         rejected.push({ id: e.id, reason: verdict });
         continue;
       }
-      const isAbsence = [
-        "Vacation_Urlaub",
-        "SickLeave_Krankenstand",
-        "Compensatory_Zeitausgleich",
-      ].includes(e.entryMode);
 
       let p: { approval_state: string } | undefined = undefined;
       if (e.projectId) {
@@ -202,10 +203,11 @@ export const deleteMyEntry = createServerFn({ method: "POST" })
         id: string;
         user_id: string;
         entry_date: string;
+        entry_mode: string;
         exported_at: Date | null;
         project_id: string | null;
       }[]
-    >`select id, user_id, to_char(entry_date, 'YYYY-MM-DD') as entry_date, exported_at, project_id
+    >`select id, user_id, to_char(entry_date, 'YYYY-MM-DD') as entry_date, entry_mode, exported_at, project_id
       from time_entries where id = ${data.id}`;
 
     if (!entry) {
@@ -217,6 +219,11 @@ export const deleteMyEntry = createServerFn({ method: "POST" })
 
     const today = viennaToday();
     const [locks, unlockedDates] = await Promise.all([locksFor(u.id), unlockedDatesFor(u.id)]);
+    const isAbsence = [
+      "Vacation_Urlaub",
+      "SickLeave_Krankenstand",
+      "Compensatory_Zeitausgleich",
+    ].includes(entry.entry_mode);
 
     const verdict = entryWriteVerdict({
       date: entry.entry_date,
@@ -226,6 +233,7 @@ export const deleteMyEntry = createServerFn({ method: "POST" })
       unlockedDates,
       locks,
       exported: !!entry.exported_at,
+      isAbsence,
     });
 
     if (verdict !== "ok") {

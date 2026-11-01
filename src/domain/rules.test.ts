@@ -10,6 +10,8 @@ describe("3-day retroactive window", () => {
     expect(canEditDate("2026-10-25", "2026-10-29")).toBe(false));
   it("admins bypass", () =>
     expect(canEditDate("2026-01-01", "2026-10-29", { isAdmin: true })).toBe(true));
+  it("allows future dates for absences", () =>
+    expect(canEditDate("2026-11-05", "2026-10-29", { isAbsence: true })).toBe(true));
 });
 
 describe("entry validation", () => {
@@ -61,6 +63,56 @@ describe("entry validation", () => {
         "2026-10-29",
       ),
     ).not.toContain("project"));
+  it("rejects regular work when day already has absence entry", () =>
+    expect(
+      validateEntry(
+        base,
+        [
+          {
+            entryDate: "2026-10-29",
+            fromTime: "08:00",
+            toTime: "16:00",
+            entryMode: "Vacation_Urlaub",
+          },
+        ],
+        "2026-10-29",
+      ),
+    ).toContain("dayHasAbsence"));
+  it("rejects absence when day already has work entries", () =>
+    expect(
+      validateEntry(
+        {
+          entryDate: "2026-10-29",
+          fromTime: "08:00",
+          toTime: "16:00",
+          workNotes: "Urlaub",
+          entryMode: "Vacation_Urlaub",
+        },
+        [
+          {
+            entryDate: "2026-10-29",
+            fromTime: "08:00",
+            toTime: "12:00",
+            entryMode: "RegularWork",
+          },
+        ],
+        "2026-10-29",
+      ),
+    ).toContain("dayHasWork"));
+  it("allows advance vacation in future without future error", () =>
+    expect(
+      validateEntry(
+        {
+          entryDate: "2026-11-15",
+          fromTime: "08:00",
+          toTime: "16:00",
+          workNotes: "Urlaub",
+          entryMode: "Vacation_Urlaub",
+        },
+        [],
+        "2026-10-29",
+      ),
+    ).toEqual([]));
 });
 
 describe("target distribution", () => {

@@ -188,6 +188,32 @@ export function useTimeData(ctx: TimeCtx) {
     await sync();
   };
 
+  const saveEntries = async (
+    items: Array<Omit<LocalEntry, "id" | "createdAt" | "status"> & { id?: string }>,
+  ) => {
+    if (items.length === 0) return;
+    const entries: LocalEntry[] = items.map((e) => ({
+      ...e,
+      id: e.id ?? uid(),
+      createdAt: Date.now(),
+      status: statusFor(e.projectId, e.entryMode),
+    }));
+    await db().entries.bulkPut(entries);
+    for (const entry of entries) {
+      await db().syncOutbox.add({
+        kind: "entry.upsert",
+        payload: entry,
+        userId: ctx.userId,
+        createdAt: Date.now(),
+      });
+    }
+    notify.show({
+      color: "lucesem",
+      message: entries.length > 1 ? `@${entries.length} entries saved` : "@entrySaved",
+    });
+    await sync();
+  };
+
   const deleteEntry = async (id: string) => {
     await db().entries.delete(id);
     await db().syncOutbox.add({
@@ -231,6 +257,7 @@ export function useTimeData(ctx: TimeCtx) {
     stopTimer,
     updateTimerNotes,
     saveEntry,
+    saveEntries,
     deleteEntry,
     now,
   };

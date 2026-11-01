@@ -25,7 +25,8 @@ export interface CalendarDayInfo {
   label?: string | undefined;
   muted?: boolean | undefined;
   disabled?: boolean | undefined;
-  tone?: "holiday" | "locked" | "pending" | undefined;
+  tone?: "holiday" | "locked" | "pending" | "vacation" | "sick" | "comp" | undefined;
+  absenceMode?: string | undefined;
 }
 
 interface Props {
@@ -42,6 +43,9 @@ const toneColor = {
   holiday: "var(--app-warning)",
   locked: "var(--app-locked)",
   pending: "var(--app-warning)",
+  vacation: "var(--app-brand-primary)",
+  sick: "var(--app-danger)",
+  comp: "var(--app-brand-secondary, #a855f7)",
 } as const;
 
 /**
@@ -84,14 +88,16 @@ export function AppCalendar({
     (_, i) => new Date(first.getFullYear(), first.getMonth(), i - offset + 1),
   );
 
-  // Month summary: total logged hours and whether any holiday marker shows.
+  // Month summary: total logged hours and whether any holiday / vacation marker shows.
   let monthTotal = 0;
   let hasHoliday = false;
+  let hasVacation = false;
   for (const d of cells) {
     if (d.getMonth() !== month.getMonth()) continue;
     const info = dayInfo(ymd(d));
     monthTotal += info.hours ?? 0;
-    if (info.tone) hasHoliday = true;
+    if (info.tone === "holiday") hasHoliday = true;
+    if (info.absenceMode === "Vacation_Urlaub") hasVacation = true;
   }
 
   const jumpToToday = () => {
@@ -266,7 +272,21 @@ export function AppCalendar({
             >
               <span className="app-cal-num">{dayNum}</span>
               <span className="app-cal-slot">
-                {info.hours ? (
+                {info.absenceMode ? (
+                  <span className="app-cal-absence" data-mode={info.absenceMode} title={info.label}>
+                    {info.absenceMode === "Vacation_Urlaub"
+                      ? lang === "de"
+                        ? "Urlaub"
+                        : "Vacation"
+                      : info.absenceMode === "SickLeave_Krankenstand"
+                        ? lang === "de"
+                          ? "Krank"
+                          : "Sick"
+                        : lang === "de"
+                          ? "ZA"
+                          : "Comp"}
+                  </span>
+                ) : info.hours ? (
                   <span className="app-cal-hours">
                     {info.tone && (
                       <span
@@ -289,7 +309,7 @@ export function AppCalendar({
         })}
       </SimpleGrid>
 
-      {/* Footer: month summary + holiday legend */}
+      {/* Footer: month summary + holiday / vacation legend */}
       <Box className="app-cal-footer">
         <Group gap={8} wrap="nowrap" align="center">
           <Clock size={15} weight="duotone" style={{ color: "var(--app-brand-primary)" }} />
@@ -314,14 +334,24 @@ export function AppCalendar({
             {fmtHours(monthTotal)}
           </Badge>
         </Group>
-        {hasHoliday && (
-          <Group gap={6} wrap="nowrap" align="center">
-            <Box className="app-cal-legend-dot" style={{ backgroundColor: toneColor.holiday }} />
-            <Text fz="xs" fw={500} c="var(--app-text-secondary)">
-              {t("holiday")}
-            </Text>
-          </Group>
-        )}
+        <Group gap={12} wrap="nowrap" align="center">
+          {hasHoliday && (
+            <Group gap={6} wrap="nowrap" align="center">
+              <Box className="app-cal-legend-dot" style={{ backgroundColor: toneColor.holiday }} />
+              <Text fz="xs" fw={500} c="var(--app-text-secondary)">
+                {t("holiday")}
+              </Text>
+            </Group>
+          )}
+          {hasVacation && (
+            <Group gap={6} wrap="nowrap" align="center">
+              <Box className="app-cal-legend-dot" style={{ backgroundColor: "#06b6d4" }} />
+              <Text fz="xs" fw={500} c="var(--app-text-secondary)">
+                {t("Vacation_Urlaub")}
+              </Text>
+            </Group>
+          )}
+        </Group>
       </Box>
     </Box>
   );

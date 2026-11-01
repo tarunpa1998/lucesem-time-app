@@ -26,7 +26,7 @@ import {
 } from "@/components/core";
 import { useI18n } from "@/lib/i18n";
 import { austrianHolidays, ymd } from "@/domain/holidays";
-import { canEditDate, periodRange, targetForRange } from "@/domain/rules";
+import { canEditDate, periodRange, targetForRange, isAbsenceMode } from "@/domain/rules";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { meQuery, myProjectsQuery } from "@/lib/session";
 import { useTimeData, entryHours } from "@/features/time/useTimeData";
@@ -330,11 +330,31 @@ export function Dashboard() {
                 today={today}
                 weekdayLabels={weekdayLabels}
                 dayInfo={(d) => {
-                  if (d > today) return { disabled: true, muted: true };
+                  const dayAbsence = data.entries.find(
+                    (e) =>
+                      e.entryDate === d && e.status !== "rejected" && isAbsenceMode(e.entryMode),
+                  );
+                  if (dayAbsence) {
+                    const m = dayAbsence.entryMode;
+                    const tone =
+                      m === "Vacation_Urlaub"
+                        ? "vacation"
+                        : m === "SickLeave_Krankenstand"
+                          ? "sick"
+                          : "comp";
+                    return {
+                      tone,
+                      label: t(m),
+                      absenceMode: m,
+                    };
+                  }
                   const h = hoursByDate.get(d);
                   if (h) return { hours: h };
                   if (holidays.has(d))
                     return { tone: "holiday", label: holidays.get(d), muted: true };
+                  if (d > today) {
+                    return {};
+                  }
                   if (!canEditDate(d, today, { isAdmin: !!me?.isAdmin }) && d < today)
                     return { muted: true };
                   return {};
@@ -427,6 +447,7 @@ export function Dashboard() {
             setEditing(null);
           }}
           onSave={data.saveEntry}
+          onSaveMultiple={data.saveEntries}
           onDelete={data.deleteEntry}
         />
       )}

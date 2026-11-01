@@ -17,6 +17,15 @@ describe("entry write rules", () => {
   it("users are blocked 4 days back", () => {
     expect(entryWriteVerdict({ ...base, date: "2026-10-25" })).toBe("retro");
   });
+  it("allows advance vacation requests for future dates", () => {
+    expect(
+      entryWriteVerdict({
+        ...base,
+        date: "2026-11-10",
+        isAbsence: true,
+      }),
+    ).toBe("ok");
+  });
   it("approved unlock opens an older date", () => {
     expect(entryWriteVerdict({ ...base, date: "2026-10-01", unlockedDates: ["2026-10-01"] })).toBe(
       "ok",
