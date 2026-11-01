@@ -63,7 +63,7 @@ export const listMyEntries = createServerFn({ method: "GET" }).handler(async () 
 
 /** Batch upsert from the offline outbox. Only the owner may write; project access is checked. */
 export const syncEntries = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ entries: z.array(entrySchema).max(200) }).parse(d))
+  .validator((d: unknown) => z.object({ entries: z.array(entrySchema).max(200) }).parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireUser } = await import("./auth.server");
@@ -162,7 +162,7 @@ export const syncEntries = createServerFn({ method: "POST" })
 
 /** Mirrors the running timer on the server so admins see the live board. */
 export const reportTimer = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         running: z.boolean(),
@@ -190,7 +190,7 @@ export const reportTimer = createServerFn({ method: "POST" })
 
 /** Deletes an unlocked, unexported entry belonging to the signed-in user (or admin). */
 export const deleteMyEntry = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireUser, audit } = await import("./auth.server");

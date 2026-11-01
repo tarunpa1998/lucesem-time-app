@@ -25,7 +25,7 @@ export const listActivities = createServerFn({ method: "GET" }).handler(async ()
 });
 
 export const saveActivity = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         id: z.string().uuid().optional(),
@@ -53,7 +53,7 @@ export const saveActivity = createServerFn({ method: "POST" })
 
 /** Change own password; requires the current one. Ends all other sessions. */
 export const changePassword = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z.object({ current: z.string().min(1).max(200), next: z.string().min(10).max(200) }).parse(d),
   )
   .handler(async ({ data }) => {
@@ -93,7 +93,7 @@ export interface AbsenceEntry {
 
 /** Yearly absence overview: own row for users, everyone for admins. */
 export const absenceOverview = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ year: z.number().int().min(2000).max(2100) }).parse(d))
+  .validator((d: unknown) => z.object({ year: z.number().int().min(2000).max(2100) }).parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireUser } = await import("./auth.server");
@@ -121,9 +121,7 @@ export const absenceOverview = createServerFn({ method: "POST" })
 
 /** Admin: approve/reject all entries of one absence day for a user. */
 export const decideAbsence = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
-    z.object({ id: z.string().uuid(), approve: z.boolean() }).parse(d),
-  )
+  .validator((d: unknown) => z.object({ id: z.string().uuid(), approve: z.boolean() }).parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireAdmin, audit } = await import("./auth.server");

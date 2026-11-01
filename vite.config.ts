@@ -9,6 +9,22 @@ export default defineConfig(async ({ mode, command }) => {
   Object.assign(process.env, env);
 
   const plugins = [
+    {
+      name: "fix-validate-server-fn-id",
+      enforce: "pre" as const,
+      resolveId(id: string) {
+        if (id.includes("virtual:tanstack-start-validate-server-fn-id")) {
+          return `\0${id.replace(/^\0/, "")}`;
+        }
+        return null;
+      },
+      load(id: string) {
+        if (id.includes("virtual:tanstack-start-validate-server-fn-id")) {
+          return "export {}";
+        }
+        return null;
+      },
+    },
     tailwindcss(),
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tanstackStart({
@@ -61,6 +77,9 @@ export default defineConfig(async ({ mode, command }) => {
     server: {
       host: true,
       port: 8080,
+      watch: {
+        ignored: ["**/.output/**", "**/dist/**"],
+      },
     },
   };
 });

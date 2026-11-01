@@ -6,7 +6,7 @@ const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 /* ---------------- Late-entry unlock ---------------- */
 
 export const requestUnlock = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z.object({ date: ymd, reason: z.string().trim().min(5).max(500) }).parse(d),
   )
   .handler(async ({ data }) => {
@@ -78,7 +78,7 @@ export const approvalQueue = createServerFn({ method: "GET" }).handler(async () 
 });
 
 export const decideEntries = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z.object({ ids: z.array(z.string().uuid()).min(1).max(500), approve: z.boolean() }).parse(d),
   )
   .handler(async ({ data }) => {
@@ -99,9 +99,7 @@ export const decideEntries = createServerFn({ method: "POST" })
   });
 
 export const decideUnlock = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
-    z.object({ id: z.string().uuid(), approve: z.boolean() }).parse(d),
-  )
+  .validator((d: unknown) => z.object({ id: z.string().uuid(), approve: z.boolean() }).parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireAdmin, audit } = await import("./auth.server");
@@ -143,7 +141,7 @@ export const listLocks = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const addLock = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         userId: z.string().uuid().nullable(),
@@ -166,7 +164,7 @@ export const addLock = createServerFn({ method: "POST" })
   });
 
 export const removeLock = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireAdmin, audit } = await import("./auth.server");
@@ -250,7 +248,7 @@ const reportFilter = z.object({
 
 /** Users see only their own rows; admins can filter by anyone. */
 export const reportData = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => reportFilter.parse(d))
+  .validator((d: unknown) => reportFilter.parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireUser } = await import("./auth.server");
@@ -290,7 +288,7 @@ export const reportData = createServerFn({ method: "POST" })
 
 /** Locks exported entries so they can no longer be edited (admin). */
 export const markExported = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z.object({ ids: z.array(z.string().uuid()).min(1).max(5000) }).parse(d),
   )
   .handler(async ({ data }) => {
@@ -324,7 +322,7 @@ export const listPortals = createServerFn({ method: "GET" }).handler(async () =>
 });
 
 export const savePortal = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         customerId: z.string().uuid(),
@@ -373,7 +371,7 @@ export interface PortalView {
  * Re-verifies the password on every call; returns only approved entries.
  */
 export const portalData = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         token: z.string().min(10).max(64),
@@ -412,7 +410,7 @@ export const portalData = createServerFn({ method: "POST" })
 
 /** Admins may change or delete any entry, including locked or exported ones. Audited. */
 export const adminSaveEntry = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         id: z.string().uuid(),
@@ -449,7 +447,7 @@ export const adminSaveEntry = createServerFn({ method: "POST" })
   });
 
 export const adminDeleteEntry = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireAdmin, audit } = await import("./auth.server");

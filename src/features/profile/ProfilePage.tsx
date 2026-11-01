@@ -413,7 +413,6 @@ export function ProfilePage() {
                     leftSection={<EnvelopeSimple size={16} />}
                     value={me.email}
                     disabled
-                    description="Konto-ID / Account ID"
                   />
 
                   <AppSelect

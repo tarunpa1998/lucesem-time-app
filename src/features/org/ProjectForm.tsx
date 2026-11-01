@@ -63,10 +63,19 @@ export function ProjectForm({ opened, onClose, project, isAdmin }: Props) {
       teamIds: [],
       userIds: [],
     });
-    if (project && isAdmin)
-      getProjectAssignments({ data: { id: project.id } }).then((a) =>
-        setF((s) => ({ ...s, ...a })),
-      );
+    let active = true;
+    if (project && isAdmin) {
+      getProjectAssignments({ data: { id: project.id } })
+        .then((a) => {
+          if (active) setF((s) => ({ ...s, ...a }));
+        })
+        .catch((err) => {
+          if (active) console.error("Failed to load project assignments:", err);
+        });
+    }
+    return () => {
+      active = false;
+    };
   }, [opened, project, isAdmin]);
 
   const n = (v: number | string) => (v === "" ? null : Number(v));

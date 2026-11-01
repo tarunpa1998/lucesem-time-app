@@ -37,7 +37,7 @@ export const needsSetup = createServerFn({ method: "GET" }).handler(async () => 
 
 /** Creates the first admin. Only works while the user table is empty. */
 export const setupFirstAdmin = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => setupSchema.parse(d))
+  .validator((d: unknown) => setupSchema.parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { hashPassword, createSession } = await import("./auth.server");
@@ -57,7 +57,7 @@ export const setupFirstAdmin = createServerFn({ method: "POST" })
   });
 
 export const login = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => loginSchema.parse(d))
+  .validator((d: unknown) => loginSchema.parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { verifyPassword, createSession } = await import("./auth.server");
@@ -78,7 +78,7 @@ export const logout = createServerFn({ method: "POST" }).handler(async () => {
 
 /** Saves the signed-in user's preferred UI language. */
 export const setMyLanguage = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ language: z.enum(["de", "en"]) }).parse(d))
+  .validator((d: unknown) => z.object({ language: z.enum(["de", "en"]) }).parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireUser } = await import("./auth.server");
@@ -113,7 +113,7 @@ const profileSchema = z.object({
 
 /** Updates the signed-in user's profile info (avatar, display name, job title, phone). */
 export const updateMyProfile = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => profileSchema.parse(d))
+  .validator((d: unknown) => profileSchema.parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireUser, audit } = await import("./auth.server");

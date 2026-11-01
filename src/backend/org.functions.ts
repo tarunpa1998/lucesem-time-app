@@ -50,7 +50,7 @@ const projectSchema = z.object({
 
 /** Admins create/update anything; users may create projects that go to Pending_Admin_Review. */
 export const saveProject = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => projectSchema.parse(d))
+  .validator((d: unknown) => projectSchema.parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireUser, audit } = await import("./auth.server");
@@ -89,9 +89,7 @@ export const saveProject = createServerFn({ method: "POST" })
   });
 
 export const reviewProject = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
-    z.object({ id: z.string().uuid(), approve: z.boolean() }).parse(d),
-  )
+  .validator((d: unknown) => z.object({ id: z.string().uuid(), approve: z.boolean() }).parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireAdmin, audit } = await import("./auth.server");
@@ -107,7 +105,7 @@ export const reviewProject = createServerFn({ method: "POST" })
   });
 
 export const getProjectAssignments = createServerFn({ method: "GET" })
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireAdmin } = await import("./auth.server");
@@ -168,7 +166,7 @@ const customerSchema = z.object({
 });
 
 export const saveCustomer = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => customerSchema.parse(d))
+  .validator((d: unknown) => customerSchema.parse(d))
   .handler(async ({ data: d }) => {
     const { sql } = await import("./db.server");
     const { requireAdmin, audit } = await import("./auth.server");
@@ -220,7 +218,7 @@ export const listTeams = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const saveTeam = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         id: z.string().uuid().optional(),
@@ -282,7 +280,7 @@ const userSchema = z.object({
 });
 
 export const saveUser = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => userSchema.parse(d))
+  .validator((d: unknown) => userSchema.parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireAdmin, hashPassword, audit } = await import("./auth.server");
@@ -324,9 +322,7 @@ export const saveUser = createServerFn({ method: "POST" })
 
 /** Bulk-assign annual vacation allowance to every user. */
 export const bulkSetVacation = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
-    z.object({ days: z.coerce.number().int().min(0).max(60) }).parse(d),
-  )
+  .validator((d: unknown) => z.object({ days: z.coerce.number().int().min(0).max(60) }).parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
     const { requireAdmin, audit } = await import("./auth.server");
@@ -357,7 +353,7 @@ export const markNotificationsRead = createServerFn({ method: "POST" }).handler(
 
 /** Stores a pop-up message the user just saw, so it also shows under the bell. Read-on-arrival. */
 export const addMyNotification = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z.object({ kind: z.enum(["success", "error"]), message: z.string().min(1).max(500) }).parse(d),
   )
   .handler(async ({ data }) => {
