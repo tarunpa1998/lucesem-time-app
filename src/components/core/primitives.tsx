@@ -185,7 +185,6 @@ export const AppTextarea = ({ minRows = 3, maxRows = 4, styles, ...p }: Textarea
       ...inputStyles.input,
       overflowY: "auto" as const,
       resize: "none" as const,
-      maxHeight: "120px",
       scrollbarWidth: "none" as const,
       msOverflowStyle: "none" as const,
     },
