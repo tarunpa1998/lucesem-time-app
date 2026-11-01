@@ -4,8 +4,6 @@ import {
   Group,
   Box,
   Text,
-  Badge,
-  UnstyledButton,
   Indicator,
   ActionIcon,
   Popover,
@@ -13,15 +11,16 @@ import {
   ScrollArea,
   Button,
 } from "@mantine/core";
-import { useDisclosure, useNetwork, useMediaQuery, useMounted } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery, useMounted } from "@mantine/hooks";
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { WifiHigh, WifiSlash, Bell } from "@phosphor-icons/react";
+import { Bell } from "@phosphor-icons/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { NOTIFIED_EVENT } from "./notify";
 import { ShellSkeleton } from "./PageSkeleton";
 import { FloatingDock } from "./FloatingDock";
 import { AppSidebar } from "./AppSidebar";
+import { AppFolderTabs } from "./primitives";
 import { useI18n } from "@/lib/i18n";
 import { meQuery, notificationsQuery } from "@/lib/session";
 import { logout } from "@/backend/auth.functions";
@@ -137,7 +136,6 @@ export function AppShellLayout({
   const [pwOpen, setPwOpen] = useState(false);
   const [opened, { toggle, close }] = useDisclosure();
   const { t, lang, setLang } = useI18n();
-  const net = useNetwork();
   const mobile = useMediaQuery("(max-width: 61.99em)");
   // Session-dependent UI renders after mount so server HTML and first client render match.
   const mounted = useMounted();
@@ -205,30 +203,17 @@ export function AppShellLayout({
             <Box visibleFrom="sm">
               <AppLiveClock />
             </Box>
-            <Badge
-              variant="light"
-              color={net.online ? "green" : "orange"}
-              leftSection={net.online ? <WifiHigh size={12} /> : <WifiSlash size={12} />}
-              tt="none"
-            >
-              <Box component="span" visibleFrom="sm">
-                {net.online ? t("online") : t("offline")}
-              </Box>
-            </Badge>
             {me && <NotificationBell />}
-            <UnstyledButton
-              onClick={() => setLang(lang === "de" ? "en" : "de")}
-              style={{
-                color: "var(--app-text-on-header)",
-                fontWeight: 700,
-                fontSize: 13,
-                padding: "4px 8px",
-                border: "1px solid var(--app-brand-primary)",
-                borderRadius: "var(--app-radius-sm)",
-              }}
-            >
-              {lang === "de" ? "EN" : "DE"}
-            </UnstyledButton>
+            <AppFolderTabs
+              compact
+              value={lang}
+              onChange={(v) => setLang(v as "de" | "en")}
+              style={{ marginTop: 4 }}
+              items={[
+                { value: "de", label: "DE" },
+                { value: "en", label: "EN" },
+              ]}
+            />
           </Group>
         </Group>
       </AppShell.Header>

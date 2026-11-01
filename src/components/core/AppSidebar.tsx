@@ -1,15 +1,7 @@
-import {
-  ActionIcon,
-  Box,
-  Menu,
-  SegmentedControl,
-  Stack,
-  Text,
-  Tooltip,
-  UnstyledButton,
-} from "@mantine/core";
+import { ActionIcon, Box, Menu, Stack, Text, Tooltip, UnstyledButton } from "@mantine/core";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { AppFolderTabs } from "./primitives";
 import {
   Buildings,
   ChartBar,
@@ -67,12 +59,12 @@ export function ThemeToggle({ expanded }: { expanded: boolean }) {
   const { mode, setMode } = useThemeMode();
   if (expanded)
     return (
-      <SegmentedControl
+      <AppFolderTabs
+        compact
         fullWidth
-        size="xs"
         value={mode}
         onChange={(v) => setMode(v as ThemeMode)}
-        data={THEME_ORDER.map((m) => ({ value: m, label: t(m) }))}
+        items={THEME_ORDER.map((m) => ({ value: m, label: t(m) }))}
       />
     );
   const nextIndex = (THEME_ORDER.indexOf(mode) + 1) % THEME_ORDER.length;

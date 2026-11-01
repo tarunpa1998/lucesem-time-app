@@ -407,6 +407,7 @@ export function AppFolderTabs({
   onChange,
   items,
   compact = false,
+  fullWidth = false,
   className,
   style,
 }: {
@@ -414,12 +415,13 @@ export function AppFolderTabs({
   onChange: (val: string) => void;
   items: AppFolderTabItem[];
   compact?: boolean;
+  fullWidth?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }) {
   return (
     <div
-      className={`app-folder-tabs-list ${compact ? "is-compact" : ""} ${className ?? ""}`}
+      className={`app-folder-tabs-list ${compact ? "is-compact" : ""} ${fullWidth ? "is-fullwidth" : ""} ${className ?? ""}`}
       style={style}
       role="tablist"
     >

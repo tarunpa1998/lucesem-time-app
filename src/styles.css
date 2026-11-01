@@ -983,10 +983,29 @@ textarea:focus,
   border-bottom: none !important;
   overflow-x: auto !important;
   scrollbar-width: none !important;
-  width: 100%;
+  width: auto !important;
+  max-width: 100% !important;
 }
 .app-folder-tabs-list::-webkit-scrollbar {
   display: none !important;
+}
+
+/* Full-width distribution variant (e.g. sidebar theme switcher) */
+.app-folder-tabs-list.is-fullwidth {
+  display: flex !important;
+  width: 100% !important;
+}
+.app-folder-tabs-list.is-fullwidth .app-folder-tab {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding-left: 6px !important;
+  padding-right: 6px !important;
+}
+.app-folder-tabs-list.is-fullwidth.is-compact .app-folder-tab {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
 }
 
 .app-folder-tab {
