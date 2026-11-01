@@ -86,3 +86,51 @@ export const setMyLanguage = createServerFn({ method: "POST" })
     await sql()`update app_users set language = ${data.language} where id = ${u.id}`;
     return { ok: true };
   });
+
+const profileSchema = z.object({
+  displayName: z.string().trim().min(2).max(100),
+  phone: z
+    .string()
+    .trim()
+    .max(50)
+    .nullable()
+    .optional()
+    .transform((v) => (v ? v : null)),
+  jobTitle: z
+    .string()
+    .trim()
+    .max(100)
+    .nullable()
+    .optional()
+    .transform((v) => (v ? v : null)),
+  avatarUrl: z
+    .string()
+    .max(3_000_000)
+    .nullable()
+    .optional()
+    .transform((v) => (v ? v : null)),
+});
+
+/** Updates the signed-in user's profile info (avatar, display name, job title, phone). */
+export const updateMyProfile = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => profileSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { sql } = await import("./db.server");
+    const { requireUser, audit } = await import("./auth.server");
+    const u = await requireUser();
+    await sql()`
+      update app_users
+      set display_name = ${data.displayName},
+          phone = ${data.phone},
+          job_title = ${data.jobTitle},
+          avatar_url = ${data.avatarUrl}
+      where id = ${u.id}
+    `;
+    await audit(u.id, "update_profile", "user", u.id, {
+      displayName: data.displayName,
+      phone: data.phone,
+      jobTitle: data.jobTitle,
+      hasAvatar: Boolean(data.avatarUrl),
+    });
+    return { ok: true };
+  });

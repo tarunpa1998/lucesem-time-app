@@ -10,3 +10,4 @@ export { AppPageHeader } from "./AppPageHeader";
 export { FloatingDock, LOG_TIME_EVENT, LOG_TIME_FLAG } from "./FloatingDock";
 export { AppConfirmModal, type AppConfirmModalProps } from "./AppConfirmModal";
 export { openAppConfirmModal } from "./confirm";
+export { ChangePasswordModal } from "./ChangePasswordModal";

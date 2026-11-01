@@ -61,6 +61,9 @@ export interface UserRow {
   include_carinthia: boolean;
   requires_timesheet_approval: boolean;
   is_active: boolean;
+  avatar_url?: string | null;
+  job_title?: string | null;
+  phone?: string | null;
   roles: RoleName[];
 }
 

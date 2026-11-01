@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedAbsencesRouteImport } from './routes/_authenticated/absences'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as PortalTokenRouteImport } from './routes/portal.$token'
@@ -48,6 +49,11 @@ const AuthenticatedAbsencesRoute = AuthenticatedAbsencesRouteImport.update({
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/absences': typeof AuthenticatedAbsencesRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/profile': typeof AuthenticatedProfileRoute
   '/projects': typeof AuthenticatedProjectsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/portal/$token': typeof PortalTokenRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/absences': typeof AuthenticatedAbsencesRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/profile': typeof AuthenticatedProfileRoute
   '/projects': typeof AuthenticatedProjectsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/portal/$token': typeof PortalTokenRoute
@@ -153,6 +161,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/absences': typeof AuthenticatedAbsencesRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/projects': typeof AuthenticatedProjectsRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/portal/$token': typeof PortalTokenRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/absences'
     | '/admin'
+    | '/profile'
     | '/projects'
     | '/reports'
     | '/portal/$token'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/absences'
     | '/admin'
+    | '/profile'
     | '/projects'
     | '/reports'
     | '/portal/$token'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/absences'
     | '/_authenticated/admin'
+    | '/_authenticated/profile'
     | '/_authenticated/projects'
     | '/_authenticated/reports'
     | '/portal/$token'
@@ -262,6 +274,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/projects': {
@@ -372,6 +391,7 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAbsencesRoute: typeof AuthenticatedAbsencesRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
 }
@@ -379,6 +399,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAbsencesRoute: AuthenticatedAbsencesRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
 }

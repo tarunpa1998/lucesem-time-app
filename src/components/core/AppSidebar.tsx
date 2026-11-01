@@ -1,5 +1,5 @@
-import { ActionIcon, Box, Menu, Stack, Text, Tooltip, UnstyledButton } from "@mantine/core";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { ActionIcon, Avatar, Box, Menu, Stack, Text, Tooltip, UnstyledButton } from "@mantine/core";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AppFolderTabs } from "./primitives";
 import {
@@ -18,6 +18,7 @@ import {
   SquaresFour,
   Sun,
   Tag,
+  UserCircle,
   Users,
   UsersThree,
   type Icon,
@@ -87,7 +88,7 @@ export function ThemeToggle({ expanded }: { expanded: boolean }) {
   );
 }
 
-/** Avatar / name button with the change-password and sign-out menu. */
+/** Avatar / name button with the profile, change-password and sign-out menu. */
 function UserMenu({
   expanded,
   onLogout,
@@ -98,6 +99,7 @@ function UserMenu({
   onChangePassword: () => void;
 }) {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const { data: me } = useQuery(meQuery);
   if (!me) return null;
   const initials = me.displayName
@@ -106,8 +108,9 @@ function UserMenu({
     .slice(0, 2)
     .map((w) => w.charAt(0).toUpperCase())
     .join("");
+
   return (
-    <Menu position={expanded ? "top-start" : "right-end"} width={220} withArrow>
+    <Menu position={expanded ? "top-start" : "right-end"} width={230} withArrow>
       {expanded ? (
         <Menu.Target>
           <UnstyledButton
@@ -116,14 +119,42 @@ function UserMenu({
             style={{
               borderRadius: "var(--app-radius-md)",
               width: "100%",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              transition: "background var(--app-transition-fast)",
             }}
           >
-            <Text fz="sm" fw={600} c="var(--app-text-primary)" truncate>
-              {me.displayName}
-            </Text>
-            <Text fz="xs" c="var(--app-text-secondary)" truncate>
-              {me.email}
-            </Text>
+            {me.avatarUrl ? (
+              <Avatar src={me.avatarUrl} size={36} radius="xl" alt={me.displayName} />
+            ) : (
+              <Box
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "color-mix(in srgb, var(--app-brand-primary) 14%, transparent)",
+                  border: "1px solid color-mix(in srgb, var(--app-brand-primary) 25%, transparent)",
+                  color: "var(--app-brand-primary)",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  flexShrink: 0,
+                }}
+              >
+                {initials}
+              </Box>
+            )}
+            <Box style={{ minWidth: 0, flex: 1, textAlign: "left" }}>
+              <Text fz="sm" fw={600} c="var(--app-text-primary)" truncate>
+                {me.displayName}
+              </Text>
+              <Text fz="xs" c="var(--app-text-secondary)" truncate>
+                {me.jobTitle || me.email}
+              </Text>
+            </Box>
           </UnstyledButton>
         </Menu.Target>
       ) : (
@@ -138,23 +169,36 @@ function UserMenu({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "color-mix(in srgb, var(--app-brand-primary) 14%, transparent)",
+                background: me.avatarUrl
+                  ? "transparent"
+                  : "color-mix(in srgb, var(--app-brand-primary) 14%, transparent)",
                 border: "1px solid color-mix(in srgb, var(--app-brand-primary) 25%, transparent)",
                 color: "var(--app-brand-primary)",
                 fontWeight: 700,
                 fontSize: 13,
+                overflow: "hidden",
               }}
             >
-              {initials}
+              {me.avatarUrl ? (
+                <Avatar src={me.avatarUrl} size={40} radius="xl" alt={me.displayName} />
+              ) : (
+                initials
+              )}
             </UnstyledButton>
           </Menu.Target>
         </Tooltip>
       )}
       <Menu.Dropdown>
-        <Menu.Item leftSection={<Key size={14} />} onClick={onChangePassword}>
+        <Menu.Item
+          leftSection={<UserCircle size={16} />}
+          onClick={() => void navigate({ to: "/profile" })}
+        >
+          {t("profile")}
+        </Menu.Item>
+        <Menu.Item leftSection={<Key size={16} />} onClick={onChangePassword}>
           {t("changePassword")}
         </Menu.Item>
-        <Menu.Item leftSection={<SignOut size={14} />} onClick={onLogout}>
+        <Menu.Item leftSection={<SignOut size={16} />} onClick={onLogout}>
           {t("signOut")}
         </Menu.Item>
       </Menu.Dropdown>

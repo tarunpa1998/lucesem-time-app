@@ -262,6 +262,7 @@ export const listUsers = createServerFn({ method: "GET" }).handler(async () => {
     UserRow[]
   >`select u.id, u.email, u.display_name, u.weekly_target_hours, u.work_days, u.vacation_days_per_year,
       u.include_carinthia, u.requires_timesheet_approval, u.is_active,
+      u.avatar_url, u.job_title, u.phone,
       coalesce(array_agg(r.role) filter (where r.role is not null), '{}') as roles
     from app_users u left join user_roles r on r.user_id = u.id group by u.id order by u.display_name`;
 });

@@ -53,6 +53,9 @@ export interface SessionUser {
   includeCarinthia: boolean;
   requiresTimesheetApproval: boolean;
   language: "de" | "en";
+  avatarUrl?: string | null;
+  jobTitle?: string | null;
+  phone?: string | null;
 }
 
 export async function createSession(userId: string) {
@@ -92,11 +95,15 @@ export async function currentUser(): Promise<SessionUser | null> {
         include_carinthia: boolean;
         requires_timesheet_approval: boolean;
         language: "de" | "en";
+        avatar_url: string | null;
+        job_title: string | null;
+        phone: string | null;
         roles: Role[];
       }[]
     >`
       select u.id, u.email, u.display_name, u.weekly_target_hours, u.work_days, u.vacation_days_per_year,
              u.include_carinthia, u.requires_timesheet_approval, u.language,
+             u.avatar_url, u.job_title, u.phone,
              coalesce(array_agg(r.role) filter (where r.role is not null), '{}') as roles
       from sessions s join app_users u on u.id = s.user_id
       left join user_roles r on r.user_id = u.id
@@ -121,6 +128,9 @@ export async function currentUser(): Promise<SessionUser | null> {
     includeCarinthia: r.include_carinthia,
     requiresTimesheetApproval: r.requires_timesheet_approval,
     language: r.language === "en" ? "en" : "de",
+    avatarUrl: r.avatar_url ?? null,
+    jobTitle: r.job_title ?? null,
+    phone: r.phone ?? null,
   };
 }
 
