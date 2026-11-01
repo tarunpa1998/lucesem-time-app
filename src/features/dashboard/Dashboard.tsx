@@ -28,8 +28,9 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { austrianHolidays, ymd } from "@/domain/holidays";
 import { canEditDate, periodRange, targetForRange, isAbsenceMode } from "@/domain/rules";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { meQuery, myProjectsQuery } from "@/lib/session";
+import { viennaToday, isPeriodLocked } from "@/domain/locks";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { meQuery, myProjectsQuery, myAccessQuery } from "@/lib/session";
 import { useTimeData, entryHours } from "@/features/time/useTimeData";
 import { TimeAllocationModal } from "@/features/time/TimeAllocationModal";
 import type { LocalEntry } from "@/lib/offline-db";
@@ -40,6 +41,7 @@ export function Dashboard() {
   const { t, lang, fmtDate, fmtHours } = useI18n();
   const { data: me } = useSuspenseQuery(meQuery);
   const { data: projects } = useSuspenseQuery(myProjectsQuery);
+  const { data: access } = useQuery(myAccessQuery);
   const contract = {
     weeklyTargetHours: me?.weeklyTargetHours ?? 0,
     workDays: me?.workDays ?? [1, 2, 3, 4, 5],
@@ -85,7 +87,7 @@ export function Dashboard() {
   };
 
   useEffect(() => {
-    setToday(ymd(new Date()));
+    setToday(viennaToday());
     setOnline(navigator.onLine);
     const on = () => setOnline(true);
     const off = () => setOnline(false);
@@ -202,7 +204,10 @@ export function Dashboard() {
     if (me?.isAdmin) return true;
     if (r.exported) return false;
     if (isAbsenceMode(r.entryMode)) return true;
-    return !!today && canEditDate(r.entryDate, today, { isAdmin: false });
+    const isUnlocked = !!access?.unlocked?.includes(r.entryDate);
+    const isLocked = isPeriodLocked(r.entryDate, me?.id ?? "", access?.locks ?? []);
+    if (isLocked) return false;
+    return !!today && canEditDate(r.entryDate, today, { isAdmin: false, unlocked: isUnlocked });
   };
 
   if (!data.ready || !today)
@@ -342,11 +347,19 @@ export function Dashboard() {
                     if (!foundLeave) return;
                     setSelected(d);
                     setEditing(foundLeave);
+                    setReadOnlyEntry(false);
                     return;
                   }
                   setSelected(d);
                   const found = data.entries.find((e) => e.entryDate === d);
                   setEditing(found ?? null);
+                  const isDayEditable = found
+                    ? isRowEditable(found)
+                    : canEditDate(d, today, {
+                        isAdmin: !!me?.isAdmin,
+                        unlocked: !!access?.unlocked?.includes(d),
+                      }) && !isPeriodLocked(d, me?.id ?? "", access?.locks ?? []);
+                  setReadOnlyEntry(!isDayEditable);
                 }}
                 today={today}
                 weekdayLabels={weekdayLabels}

@@ -101,7 +101,7 @@ export function TimeAllocationModal({
   const [reason, setReason] = useState("");
   const { data: activities = [] } = useQuery(activitiesQuery);
   const [activityId, setActivityId] = useState<string | null>(null);
-  const { t, fmtDate } = useI18n();
+  const { t, fmtDate, lang } = useI18n();
   const [mode, setMode] = useState<EntryMode>("CustomHours");
   const [from, setFrom] = useState("08:00");
   const [to, setTo] = useState("12:00");
@@ -111,6 +111,7 @@ export function TimeAllocationModal({
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [requestingUnlock, setRequestingUnlock] = useState(false);
 
   const [startDate, setStartDate] = useState(date ?? today);
   const [endDate, setEndDate] = useState(date ?? today);
@@ -184,10 +185,20 @@ export function TimeAllocationModal({
   const editable = !periodLocked && canEdit;
 
   const sendUnlock = async () => {
-    await requestUnlock({ data: { date, reason } });
-    notify.show({ color: "lucesem", message: t("requestSent") });
-    qc.invalidateQueries({ queryKey: ["my-access"] });
-    onClose();
+    try {
+      setRequestingUnlock(true);
+      await requestUnlock({ data: { date, reason } });
+      notify.show({ color: "lucesem", message: t("requestSent") });
+      qc.invalidateQueries({ queryKey: ["my-access"] });
+      onClose();
+    } catch {
+      notify.show({
+        color: "red",
+        message: lang === "de" ? "Fehler beim Senden" : "Failed to send request",
+      });
+    } finally {
+      setRequestingUnlock(false);
+    }
   };
   const pending =
     projectId &&
@@ -362,7 +373,7 @@ export function TimeAllocationModal({
   const err = (k: ValidationError) => (errors.includes(k) ? t(`err.${k}` as const) : undefined);
 
   const isReadOnly = Boolean(
-    readOnly || (!isAdmin && !editable) || (activeEntry && !isAdmin && activeEntry.exported),
+    !isAdmin && (activeEntry?.exported || periodLocked || !canEdit || (readOnly && !canEdit)),
   );
 
   const matchedProject = projects.find((p) => p.id === projectId);
@@ -381,23 +392,44 @@ export function TimeAllocationModal({
       }
     >
       {!editable && !activeEntry ? (
-        <AppStack>
-          <AppText c="var(--app-text-secondary)">
-            {periodLocked ? t("periodLocked") : isFuture ? t("futureLocked") : t("retroLocked")}
-          </AppText>
-          {!periodLocked && !isFuture && (
-            <>
-              <AppTextarea
-                label={t("reason")}
-                placeholder={t("reasonPlaceholder")}
-                value={reason}
-                onChange={(e) => setReason(e.currentTarget.value)}
-              />
-              <AppButton variant="light" disabled={reason.trim().length < 5} onClick={sendUnlock}>
-                {t("requestUnlock")}
-              </AppButton>
-            </>
-          )}
+        <AppStack gap="md">
+          <AppStack
+            gap="xs"
+            p="sm"
+            style={{
+              background: "color-mix(in srgb, var(--app-brand-primary) 8%, var(--app-bg-surface))",
+              borderRadius: "var(--app-radius-md)",
+              border: "1px solid color-mix(in srgb, var(--app-brand-primary) 18%, transparent)",
+            }}
+          >
+            <AppText c="var(--app-text-secondary)" fz="sm">
+              {periodLocked ? t("periodLocked") : isFuture ? t("futureLocked") : t("retroLocked")}
+            </AppText>
+            {!periodLocked && !isFuture && (
+              <>
+                <AppTextarea
+                  label={t("reason")}
+                  placeholder={t("reasonPlaceholder")}
+                  value={reason}
+                  onChange={(e) => setReason(e.currentTarget.value)}
+                  minRows={2}
+                />
+                <AppButton
+                  variant="light"
+                  disabled={reason.trim().length < 5 || requestingUnlock}
+                  loading={requestingUnlock}
+                  onClick={sendUnlock}
+                >
+                  {t("requestUnlock")}
+                </AppButton>
+              </>
+            )}
+          </AppStack>
+          <AppGroup justify="flex-end">
+            <AppButton variant="default" onClick={onClose}>
+              {t("close")}
+            </AppButton>
+          </AppGroup>
         </AppStack>
       ) : isReadOnly && activeEntry ? (
         <AppStack gap="md">
@@ -465,21 +497,39 @@ export function TimeAllocationModal({
 
           {/* Unlock Request option for locked entries / 3 days old entries */}
           {!isAdmin && !unlocked && (
-            <AppStack gap="xs" mt="sm">
+            <AppStack
+              gap="xs"
+              mt="sm"
+              p="sm"
+              style={{
+                background:
+                  "color-mix(in srgb, var(--app-brand-primary) 8%, var(--app-bg-surface))",
+                borderRadius: "var(--app-radius-md)",
+                border: "1px solid color-mix(in srgb, var(--app-brand-primary) 18%, transparent)",
+              }}
+            >
               <AppText c="var(--app-text-secondary)" fz="sm">
-                {periodLocked ? t("periodLocked") : isFuture ? t("futureLocked") : t("retroLocked")}
+                {activeEntry.exported
+                  ? t("exportedLocked")
+                  : periodLocked
+                    ? t("periodLocked")
+                    : isFuture
+                      ? t("futureLocked")
+                      : t("retroLocked")}
               </AppText>
-              {!periodLocked && !isFuture && (
+              {!activeEntry.exported && !periodLocked && !isFuture && (
                 <>
                   <AppTextarea
                     label={t("reason")}
                     placeholder={t("reasonPlaceholder")}
                     value={reason}
                     onChange={(e) => setReason(e.currentTarget.value)}
+                    minRows={2}
                   />
                   <AppButton
                     variant="light"
-                    disabled={reason.trim().length < 5}
+                    disabled={reason.trim().length < 5 || requestingUnlock}
+                    loading={requestingUnlock}
                     onClick={sendUnlock}
                   >
                     {t("requestUnlock")}

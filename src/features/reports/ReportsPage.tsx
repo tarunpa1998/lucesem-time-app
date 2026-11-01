@@ -43,23 +43,22 @@ import {
   AppPageHeader,
 } from "@/components/core";
 import { useI18n } from "@/lib/i18n";
-import { meQuery, customersQuery, usersQuery, myProjectsQuery } from "@/lib/session";
+import { meQuery, customersQuery, usersQuery, myProjectsQuery, myAccessQuery } from "@/lib/session";
 import { reportData, markExported, type ReportRow } from "@/backend/workflow.functions";
 import { AdminEntryModal } from "./AdminEntryModal";
 import { TimeAllocationModal } from "@/features/time/TimeAllocationModal";
 import { useTimeData } from "@/features/time/useTimeData";
 import { canEditDate, isAbsenceMode, type EntryMode } from "@/domain/rules";
+import { viennaToday, isPeriodLocked } from "@/domain/locks";
 import type { LocalEntry } from "@/lib/offline-db";
 import { exportCsv, exportHtml, exportPdf, exportXlsx, type ExportTable } from "@/lib/exporters";
-
-const todayStr = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Vienna" }).format();
 
 const getRange = (type: "thisMonth" | "lastMonth" | "thisWeek" | "today" | "allYear") => {
   const now = new Date();
   const pad = (n: number) => String(n).padStart(2, "0");
   const y = now.getFullYear();
   const m = now.getMonth();
-  const t = todayStr();
+  const t = viennaToday(now);
 
   if (type === "today") {
     return { from: t, to: t };
@@ -129,6 +128,7 @@ export function ReportsPage() {
   const { data: users = [] } = useQuery({ ...usersQuery, enabled: isAdmin });
   const { data: customers = [] } = useQuery({ ...customersQuery, enabled: isAdmin });
   const { data: projects = [] } = useQuery(myProjectsQuery);
+  const { data: access } = useQuery(myAccessQuery);
 
   const timeData = useTimeData({
     userId: me?.id ?? "anon",
@@ -137,14 +137,22 @@ export function ReportsPage() {
       projects.find((p) => p.id === id)?.approval_state === "Pending_Admin_Review",
   });
 
-  const today = todayStr();
-  const canUserEdit = (r: ReportRow) =>
-    !r.exported &&
-    r.user_id === me?.id &&
-    canEditDate(r.entry_date, today, {
+  const today = viennaToday();
+  const canUserEdit = (r: ReportRow) => {
+    if (isAdmin) return true;
+    if (r.exported) return false;
+    if (r.user_id !== me?.id) return false;
+    const isAbsence = isAbsenceMode(r.entry_mode as EntryMode);
+    if (isAbsence) return true;
+    const isUnlocked = !!access?.unlocked?.includes(r.entry_date);
+    const isLocked = isPeriodLocked(r.entry_date, me?.id ?? "", access?.locks ?? []);
+    if (isLocked) return false;
+    return canEditDate(r.entry_date, today, {
       isAdmin: false,
-      isAbsence: isAbsenceMode(r.entry_mode as EntryMode),
+      unlocked: isUnlocked,
+      isAbsence,
     });
+  };
 
   const toLocal = (r: ReportRow): LocalEntry => ({
     id: r.id,
