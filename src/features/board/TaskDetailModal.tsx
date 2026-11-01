@@ -37,6 +37,7 @@ import {
   updateBoardTaskStatus,
   updateBoardTask,
   deleteBoardTask,
+  listTaskTimeEntries,
 } from "@/backend/board.functions";
 import type {
   BoardTaskRow,
@@ -44,6 +45,7 @@ import type {
   BoardTaskPriority,
   BoardTaskAssignee,
   ProjectRow,
+  TaskTimeEntryRow,
 } from "@/backend/types";
 
 interface TaskDetailModalProps {
@@ -69,7 +71,7 @@ export function TaskDetailModal({
   onTaskUpdated,
   onTaskDeleted,
 }: TaskDetailModalProps) {
-  const { t, fmtDate } = useI18n();
+  const { t, fmtDate, fmtHours } = useI18n();
   const [commentText, setCommentText] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
   const [updatingMeta, setUpdatingMeta] = useState(false);
@@ -84,6 +86,15 @@ export function TaskDetailModal({
     enabled: Boolean(task?.id && opened),
     refetchInterval: 8_000,
   });
+
+  const { data: timeEntries = [], isLoading: timeEntriesLoading } = useQuery<TaskTimeEntryRow[]>({
+    queryKey: ["task-time-entries", task?.id],
+    queryFn: () =>
+      task ? listTaskTimeEntries({ data: { taskId: task.id } }) : Promise.resolve([]),
+    enabled: Boolean(task?.id && opened),
+  });
+
+  const totalLoggedHours = timeEntries.reduce((sum, e) => sum + (Number(e.hours) || 0), 0);
 
   if (!task) return null;
 
@@ -560,6 +571,78 @@ export function TaskDetailModal({
                     </AppText>
                   )}
                 </AppStack>
+              </AppStack>
+            </AppCard>
+
+            {/* Logged Time Breakdown Card */}
+            <AppCard
+              p="sm"
+              radius="md"
+              style={{
+                background: "var(--app-bg-surface)",
+                border: "1px solid var(--app-border-subtle)",
+              }}
+            >
+              <AppStack gap={8}>
+                <AppGroup justify="space-between" align="center">
+                  <AppGroup gap={6} align="center">
+                    <Clock size={16} weight="duotone" color="var(--app-brand-primary)" />
+                    <AppText fz="xs" fw={700} c="var(--app-text-secondary)">
+                      {t("loggedTime")}
+                    </AppText>
+                  </AppGroup>
+                  <AppBadge color="blue" variant="light" size="sm">
+                    <AppMono size="xs" fw={700}>
+                      {fmtHours(totalLoggedHours)}
+                    </AppMono>
+                  </AppBadge>
+                </AppGroup>
+
+                {timeEntriesLoading ? (
+                  <AppText fz="xs" c="var(--app-text-secondary)">
+                    ...
+                  </AppText>
+                ) : timeEntries.length === 0 ? (
+                  <AppText fz="xs" c="var(--app-text-secondary)" style={{ fontStyle: "italic" }}>
+                    {t("noTimeLogged")}
+                  </AppText>
+                ) : (
+                  <AppStack gap={6} pt={4} style={{ maxHeight: 180, overflowY: "auto" }}>
+                    {timeEntries.map((te) => (
+                      <AppGroup
+                        key={te.id}
+                        justify="space-between"
+                        align="flex-start"
+                        wrap="nowrap"
+                        p={6}
+                        style={{
+                          background: "var(--app-bg-canvas)",
+                          borderRadius: "var(--app-radius-sm)",
+                          border: "1px solid var(--app-border-subtle)",
+                        }}
+                      >
+                        <AppStack gap={2} style={{ minWidth: 0, flex: 1 }}>
+                          <AppGroup gap={6} align="center">
+                            <AppText fz="xs" fw={600} truncate c="var(--app-text-primary)">
+                              {te.user_name}
+                            </AppText>
+                            <AppText fz={10} c="var(--app-text-secondary)">
+                              {fmtDate(te.entry_date)}
+                            </AppText>
+                          </AppGroup>
+                          {te.work_notes && (
+                            <AppText fz={11} c="var(--app-text-secondary)" truncate>
+                              {te.work_notes}
+                            </AppText>
+                          )}
+                        </AppStack>
+                        <AppMono size="xs" fw={700} c="var(--app-brand-primary)">
+                          {fmtHours(te.hours)}
+                        </AppMono>
+                      </AppGroup>
+                    ))}
+                  </AppStack>
+                )}
               </AppStack>
             </AppCard>
 

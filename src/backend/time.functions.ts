@@ -10,6 +10,7 @@ const entrySchema = z.object({
   workNotes: z.string().max(2000).default(""),
   entryMode: z.string().max(40).default("CustomHours"),
   activityId: z.string().uuid().nullable().optional(),
+  taskId: z.string().uuid().nullable().optional(),
 });
 
 export interface ServerEntry {
@@ -23,6 +24,9 @@ export interface ServerEntry {
   status: "pending" | "approved";
   createdAt: number;
   activityId: string | null;
+  taskId: string | null;
+  taskTitle: string | null;
+  taskNumber: number | null;
 }
 
 /** The signed-in user's own time entries (last 400 days). */
@@ -42,11 +46,17 @@ export const listMyEntries = createServerFn({ method: "GET" }).handler(async () 
       status: string;
       created_at: Date;
       activity_id: string | null;
+      task_id: string | null;
+      task_title: string | null;
+      task_number: number | null;
     }[]
-  >`select id, to_char(entry_date,'YYYY-MM-DD') d, to_char(from_time,'HH24:MI') f, to_char(to_time,'HH24:MI') t,
-       project_id, work_notes, entry_mode, status, created_at, activity_id
-     from time_entries where user_id = ${u.id} and entry_date > current_date - 400
-     order by entry_date desc, from_time desc`;
+  >`select te.id, to_char(te.entry_date,'YYYY-MM-DD') d, to_char(te.from_time,'HH24:MI') f, to_char(te.to_time,'HH24:MI') t,
+       te.project_id, te.work_notes, te.entry_mode, te.status, te.created_at, te.activity_id,
+       te.task_id, bt.title as task_title, bt.task_number as task_number
+     from time_entries te
+     left join board_tasks bt on bt.id = te.task_id
+     where te.user_id = ${u.id} and te.entry_date > current_date - 400
+     order by te.entry_date desc, te.from_time desc`;
   return rows.map((r): ServerEntry => ({
     id: r.id,
     entryDate: r.d,
@@ -58,6 +68,9 @@ export const listMyEntries = createServerFn({ method: "GET" }).handler(async () 
     status: r.status === "approved" ? "approved" : "pending",
     createdAt: new Date(r.created_at).getTime(),
     activityId: r.activity_id,
+    taskId: r.task_id,
+    taskTitle: r.task_title,
+    taskNumber: r.task_number ? Number(r.task_number) : null,
   }));
 });
 
@@ -151,6 +164,7 @@ export const syncEntries = createServerFn({ method: "POST" })
             work_notes = ${e.workNotes},
             entry_mode = ${e.entryMode},
             activity_id = ${e.activityId ?? null},
+            task_id = ${e.taskId ?? null},
             updated_at = now()
           where id = ${existingSlot.id}
         `;
@@ -159,11 +173,12 @@ export const syncEntries = createServerFn({ method: "POST" })
       }
 
       const r = await sql()`
-        insert into time_entries (id, user_id, project_id, entry_date, from_time, to_time, work_notes, entry_mode, status, activity_id)
-        values (${e.id}, ${u.id}, ${e.projectId ?? null}, ${e.entryDate}, ${e.fromTime}, ${e.toTime}, ${e.workNotes}, ${e.entryMode}, ${status}, ${e.activityId ?? null})
+        insert into time_entries (id, user_id, project_id, entry_date, from_time, to_time, work_notes, entry_mode, status, activity_id, task_id)
+        values (${e.id}, ${u.id}, ${e.projectId ?? null}, ${e.entryDate}, ${e.fromTime}, ${e.toTime}, ${e.workNotes}, ${e.entryMode}, ${status}, ${e.activityId ?? null}, ${e.taskId ?? null})
         on conflict (id) do update set project_id = excluded.project_id, entry_date = excluded.entry_date,
           from_time = excluded.from_time, to_time = excluded.to_time, work_notes = excluded.work_notes,
-          entry_mode = excluded.entry_mode, status = excluded.status, activity_id = excluded.activity_id, updated_at = now()
+          entry_mode = excluded.entry_mode, status = excluded.status, activity_id = excluded.activity_id,
+          task_id = excluded.task_id, updated_at = now()
         where time_entries.user_id = ${u.id}`;
       if (r.count) {
         saved.push(e.id);

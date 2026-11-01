@@ -72,6 +72,7 @@ export function useTimeData(ctx: TimeCtx) {
             workNotes: e.workNotes ?? "",
             entryMode: e.entryMode,
             activityId: e.activityId ?? null,
+            taskId: e.taskId ?? null,
           };
         });
         const res = await syncEntries({ data: { entries: payload } });

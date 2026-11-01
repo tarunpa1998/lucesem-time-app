@@ -21,6 +21,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useI18n } from "@/lib/i18n";
 import { myAccessQuery, activitiesQuery } from "@/lib/session";
 import { requestUnlock } from "@/backend/workflow.functions";
+import { listOpenTasksForProject } from "@/backend/board.functions";
 import { isPeriodLocked } from "@/domain/locks";
 import { notify } from "@/components/core";
 import { ymd } from "@/domain/holidays";
@@ -35,6 +36,7 @@ import {
 } from "@/domain/rules";
 import type { ProjectRow } from "@/lib/session";
 import type { LocalEntry } from "@/lib/offline-db";
+import type { OpenTaskRow } from "@/backend/types";
 
 const nowHHMM = () => {
   const d = new Date();
@@ -106,6 +108,7 @@ export function TimeAllocationModal({
   const [from, setFrom] = useState("08:00");
   const [to, setTo] = useState("12:00");
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [taskId, setTaskId] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [deleting, setDeleting] = useState(false);
@@ -138,6 +141,13 @@ export function TimeAllocationModal({
 
   const isAbsence = isAbsenceMode(mode);
 
+  const { data: openTasks = [] } = useQuery<OpenTaskRow[]>({
+    queryKey: ["open-tasks", projectId],
+    queryFn: () =>
+      projectId ? listOpenTasksForProject({ data: { projectId } }) : Promise.resolve([]),
+    enabled: !!projectId && !isAbsence,
+  });
+
   const activeEntry =
     selectedEntryId && selectedEntryId !== "new"
       ? (dayEntries.find((e) => e.id === selectedEntryId) ?? entry ?? null)
@@ -165,6 +175,7 @@ export function TimeAllocationModal({
       setFrom(entry.fromTime);
       setTo(entry.toTime);
       setProjectId(entry.projectId ?? null);
+      setTaskId(entry.taskId ?? null);
       setNotes(entry.workNotes);
       setActivityId(entry.activityId ?? null);
       return;
@@ -176,6 +187,7 @@ export function TimeAllocationModal({
       setFrom(dayAbsence.fromTime);
       setTo(dayAbsence.toTime);
       setProjectId(dayAbsence.projectId ?? null);
+      setTaskId(dayAbsence.taskId ?? null);
       setNotes(dayAbsence.workNotes);
       setActivityId(dayAbsence.activityId ?? null);
       return;
@@ -188,6 +200,7 @@ export function TimeAllocationModal({
     setFrom(defaultFrom);
     setTo("");
     setProjectId(null);
+    setTaskId(null);
     setActivityId(null);
     setNotes("");
   }, [date, entry, dayAbsence, today]);
@@ -232,6 +245,7 @@ export function TimeAllocationModal({
       setFrom(nowHHMM());
       setTo("");
       setProjectId(null);
+      setTaskId(null);
       setActivityId(null);
       setNotes("");
       const initialDate = date ?? today;
@@ -244,6 +258,7 @@ export function TimeAllocationModal({
         setFrom(target.fromTime);
         setTo(target.toTime);
         setProjectId(target.projectId ?? null);
+        setTaskId(target.taskId ?? null);
         setNotes(target.workNotes);
         setActivityId(target.activityId ?? null);
         setStartDate(target.entryDate);
@@ -259,6 +274,7 @@ export function TimeAllocationModal({
       setFrom("08:00");
       setTo("16:00");
       setProjectId(null);
+      setTaskId(null);
       setActivityId(null);
       if (!notes || notes.trim() === "") {
         setNotes(t(m));
@@ -320,6 +336,7 @@ export function TimeAllocationModal({
             workNotes: notes.trim() || t(mode),
             entryMode: mode,
             activityId: null,
+            taskId: null,
           };
           const errs = validateEntry(draft, existing, today, {
             isAdmin: true,
@@ -343,6 +360,7 @@ export function TimeAllocationModal({
             workNotes: notes.trim() || t(mode),
             entryMode: mode,
             activityId: null,
+            taskId: null,
           }));
           for (const draft of drafts) {
             const errs = validateEntry(draft, existing, today, {
@@ -380,6 +398,7 @@ export function TimeAllocationModal({
         workNotes: notes.trim() || (isAbsence ? t(mode) : ""),
         entryMode: mode,
         activityId: isAbsence ? null : activityId,
+        taskId: isAbsence ? null : taskId,
       };
       const errs = validateEntry(draft, existing, today, { isAdmin, unlocked, nowTime: nowHHMM() });
       setErrors(errs);
@@ -500,13 +519,19 @@ export function TimeAllocationModal({
                   }
                   disabled
                 />
-                {activityId && (
+                {activeEntry.taskNumber != null || activeEntry.taskTitle ? (
+                  <AppTextInput
+                    label={t("taskIssue")}
+                    value={`#${activeEntry.taskNumber ?? ""} · ${activeEntry.taskTitle ?? ""}`.trim()}
+                    disabled
+                  />
+                ) : activityId ? (
                   <AppTextInput
                     label={t("activity")}
                     value={matchedActivity?.name ?? "—"}
                     disabled
                   />
-                )}
+                ) : null}
               </AppGrid>
             </>
           )}
@@ -658,8 +683,12 @@ export function TimeAllocationModal({
                 label={t("project")}
                 placeholder={t("selectProject")}
                 required
+                searchable
                 value={projectId}
-                onChange={setProjectId}
+                onChange={(val) => {
+                  setProjectId(val);
+                  setTaskId(null);
+                }}
                 error={err("project")}
                 data={projects.map((p) => ({
                   value: p.id,
@@ -667,14 +696,30 @@ export function TimeAllocationModal({
                 }))}
               />
               <AppSelect
-                label={t("activity")}
-                placeholder={t("selectActivity")}
+                label={t("taskIssue")}
+                placeholder={
+                  !projectId
+                    ? t("selectProject")
+                    : openTasks.length === 0
+                      ? t("noOpenTasks")
+                      : t("selectTask")
+                }
                 clearable
-                value={activityId}
-                onChange={setActivityId}
-                data={activities
-                  .filter((a) => a.is_active && (!a.project_id || a.project_id === projectId))
-                  .map((a) => ({ value: a.id, label: a.name }))}
+                searchable
+                value={taskId}
+                onChange={(v) => {
+                  setTaskId(v);
+                  if (v) {
+                    const selectedTask = openTasks.find((tsk) => tsk.id === v);
+                    if (selectedTask && (!notes || notes.trim() === "")) {
+                      setNotes(`[#${selectedTask.task_number}] ${selectedTask.title}`);
+                    }
+                  }
+                }}
+                data={openTasks.map((tsk) => ({
+                  value: tsk.id,
+                  label: `#${tsk.task_number} · ${tsk.title} (${tsk.status === "in_progress" ? t("inProgress") : t("pending")})`,
+                }))}
               />
               {pending && <AppBadge color="orange">{t("pendingApproval")}</AppBadge>}
             </>

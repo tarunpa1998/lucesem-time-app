@@ -9,7 +9,7 @@ import {
   AppAvatar,
   AppTooltip,
 } from "@/components/core";
-import { ChatCircle, Sparkle } from "@phosphor-icons/react";
+import { ChatCircle, Clock } from "@phosphor-icons/react";
 import type { BoardTaskRow, BoardTaskPriority } from "@/backend/types";
 import { useI18n } from "@/lib/i18n";
 
@@ -175,15 +175,38 @@ export function TaskCard({ task, onClick, onDragStart }: TaskCardProps) {
               )}
             </AppGroup>
 
-            {/* Comment count indicator */}
-            {task.comment_count > 0 && (
-              <AppGroup gap={4} wrap="nowrap" align="center">
-                <ChatCircle size={14} weight="fill" color="var(--app-text-secondary)" />
-                <AppMono size="xs" c="var(--app-text-secondary)" fw={600}>
-                  {task.comment_count}
-                </AppMono>
-              </AppGroup>
-            )}
+            {/* Meta indicators: Logged Hours & Comment count */}
+            <AppGroup gap={8} wrap="nowrap" align="center">
+              {task.logged_hours > 0 && (
+                <AppTooltip label={`${t("loggedTime")}: ${task.logged_hours}h`} withArrow>
+                  <AppGroup
+                    gap={3}
+                    wrap="nowrap"
+                    align="center"
+                    style={{
+                      background:
+                        "color-mix(in srgb, var(--app-brand-primary) 10%, var(--app-bg-surface))",
+                      padding: "2px 6px",
+                      borderRadius: "var(--app-radius-sm)",
+                    }}
+                  >
+                    <Clock size={13} weight="bold" color="var(--app-brand-primary)" />
+                    <AppMono size="xs" c="var(--app-brand-primary)" fw={700}>
+                      {task.logged_hours}h
+                    </AppMono>
+                  </AppGroup>
+                </AppTooltip>
+              )}
+
+              {task.comment_count > 0 && (
+                <AppGroup gap={4} wrap="nowrap" align="center">
+                  <ChatCircle size={14} weight="fill" color="var(--app-text-secondary)" />
+                  <AppMono size="xs" c="var(--app-text-secondary)" fw={600}>
+                    {task.comment_count}
+                  </AppMono>
+                </AppGroup>
+              )}
+            </AppGroup>
           </AppGroup>
         </AppStack>
       </AppCard>

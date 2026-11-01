@@ -74,6 +74,7 @@ export interface EntryDraft extends Interval {
   workNotes: string;
   entryMode: EntryMode;
   activityId?: string | null;
+  taskId?: string | null;
 }
 export type ValidationError =
   | "date"

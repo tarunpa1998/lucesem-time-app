@@ -6,6 +6,8 @@ import type {
   BoardTaskAssignee,
   BoardTaskStatus,
   BoardTaskPriority,
+  OpenTaskRow,
+  TaskTimeEntryRow,
 } from "./types";
 
 const opt = (s: z.ZodString) =>
@@ -63,6 +65,7 @@ interface DbBoardTaskRow {
   assignee_ids: string[] | null;
   assignees: unknown;
   comment_count: number | null;
+  logged_hours: number | null;
   github_issue_number: number | null;
   github_url: string | null;
   created_at: Date | string;
@@ -115,6 +118,17 @@ export const listBoardTasks = createServerFn({ method: "GET" })
           (select count(*)::int from board_task_comments cmt where cmt.task_id = t.id),
           0
         ) as comment_count,
+        coalesce(
+          (
+            select round(sum(
+              extract(epoch from (te.to_time::time - te.from_time::time)) / 3600.0
+            )::numeric, 2)
+            from time_entries te
+            where te.task_id = t.id
+              and te.status <> 'rejected'
+          ),
+          0.00
+        )::float as logged_hours,
         t.github_issue_number,
         t.github_url,
         t.created_at,
@@ -161,6 +175,7 @@ export const listBoardTasks = createServerFn({ method: "GET" })
         ? JSON.parse(r.assignees)
         : r.assignees) as BoardTaskAssignee[],
       comment_count: Number(r.comment_count || 0),
+      logged_hours: Number(r.logged_hours || 0),
       github_issue_number: r.github_issue_number ? Number(r.github_issue_number) : null,
       github_url: r.github_url ?? null,
       created_at: r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
@@ -514,4 +529,86 @@ export const addBoardTaskComment = createServerFn({ method: "POST" })
           ? comment.created_at.toISOString()
           : String(comment.created_at),
     } as BoardTaskCommentRow;
+  });
+
+/* ---------------- Open Tasks for Time Allocation Modal ---------------- */
+
+export const listOpenTasksForProject = createServerFn({ method: "GET" })
+  .validator((d: unknown) => z.object({ projectId: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { sql } = await import("./db.server");
+    const { requireUser } = await import("./auth.server");
+    await requireUser();
+
+    const db = sql();
+    const rows = await db<
+      {
+        id: string;
+        task_number: number;
+        title: string;
+        status: string;
+        priority: string;
+      }[]
+    >`
+      select id, task_number, title, status, priority
+      from board_tasks
+      where project_id = ${data.projectId}
+        and status in ('pending', 'in_progress')
+      order by priority = 'urgent' desc, priority = 'high' desc, created_at desc
+      limit 100
+    `;
+    return rows.map((r) => ({
+      id: r.id,
+      task_number: r.task_number,
+      title: r.title,
+      status: r.status,
+      priority: r.priority,
+    })) as OpenTaskRow[];
+  });
+
+/* ---------------- Task Time Entries (Logged Work Breakdown) ---------------- */
+
+export const listTaskTimeEntries = createServerFn({ method: "GET" })
+  .validator((d: unknown) => z.object({ taskId: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { sql } = await import("./db.server");
+    const { requireUser } = await import("./auth.server");
+    await requireUser();
+
+    const db = sql();
+    const rows = await db<
+      {
+        id: string;
+        user_name: string;
+        entry_date: string;
+        from_time: string;
+        to_time: string;
+        hours: number;
+        work_notes: string;
+      }[]
+    >`
+      select 
+        te.id,
+        u.display_name as user_name,
+        to_char(te.entry_date, 'YYYY-MM-DD') as entry_date,
+        to_char(te.from_time, 'HH24:MI') as from_time,
+        to_char(te.to_time, 'HH24:MI') as to_time,
+        round(extract(epoch from (te.to_time::time - te.from_time::time)) / 3600.0, 2)::float as hours,
+        te.work_notes
+      from time_entries te
+      join app_users u on u.id = te.user_id
+      where te.task_id = ${data.taskId}
+        and te.status <> 'rejected'
+      order by te.entry_date desc, te.from_time desc
+      limit 50
+    `;
+    return rows.map((r) => ({
+      id: r.id,
+      user_name: r.user_name,
+      entry_date: r.entry_date,
+      from_time: r.from_time,
+      to_time: r.to_time,
+      hours: Number(r.hours) || 0,
+      work_notes: r.work_notes ?? "",
+    })) as TaskTimeEntryRow[];
   });

@@ -19,6 +19,9 @@ export interface LocalEntry {
   status: "pending" | "approved" | "rejected";
   createdAt: number;
   activityId?: string | null;
+  taskId?: string | null;
+  taskTitle?: string | null;
+  taskNumber?: number | null;
   exported?: boolean;
 }
 export interface OutboxItem {

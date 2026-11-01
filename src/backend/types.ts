@@ -102,6 +102,7 @@ export interface BoardTaskRow {
   assignee_ids: string[];
   assignees: BoardTaskAssignee[];
   comment_count: number;
+  logged_hours: number;
   github_issue_number: number | null;
   github_url: string | null;
   created_at: string;
@@ -117,4 +118,22 @@ export interface BoardTaskCommentRow {
   job_title: string | null;
   comment: string;
   created_at: string;
+}
+
+export interface OpenTaskRow {
+  id: string;
+  task_number: number;
+  title: string;
+  status: string;
+  priority: string;
+}
+
+export interface TaskTimeEntryRow {
+  id: string;
+  user_name: string;
+  entry_date: string;
+  from_time: string;
+  to_time: string;
+  hours: number;
+  work_notes: string;
 }
