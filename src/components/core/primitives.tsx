@@ -332,6 +332,7 @@ export const AppDateInput = ({
       }}
       styles={{
         input: inputStyles.input,
+        label: inputStyles.label,
         calendarHeaderControl: {
           color: "var(--app-text-primary)",
         },

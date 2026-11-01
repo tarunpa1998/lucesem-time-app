@@ -12,6 +12,9 @@ import {
   LockSimple,
   CalendarBlank,
   CaretDown,
+  Folder,
+  User as UserIcon,
+  Buildings,
 } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
@@ -400,41 +403,41 @@ export function ReportsPage() {
         }
       />
 
+      {/* Quick Date Range Filters - Outside of Card, centered on desktop, cleanly wrapped on mobile */}
+      <div className="reports-quick-ranges-bar">
+        <AppFolderTabs
+          compact
+          value={activeRange ?? ""}
+          onChange={(v) =>
+            handleQuickRange(v as "thisMonth" | "lastMonth" | "thisWeek" | "today" | "allYear")
+          }
+          items={[
+            { value: "thisMonth", label: t("thisMonth") },
+            { value: "lastMonth", label: t("lastMonth") },
+            { value: "thisWeek", label: t("thisWeek") },
+            { value: "today", label: t("today") },
+            { value: "allYear", label: t("allYear") },
+          ]}
+        />
+        {hasActiveFilters && (
+          <AppButton
+            size="compact-xs"
+            variant="subtle"
+            color="red"
+            leftSection={<X size={12} />}
+            className="reports-clear-filters-btn"
+            onClick={resetFilters}
+          >
+            {t("clearFilters")}
+          </AppButton>
+        )}
+      </div>
+
       {/* Top Filter Section */}
       <AppCard>
         <AppStack gap="sm">
-          {/* Quick Date Range Filters - Centered on desktop, cleanly wrapped on mobile */}
-          <div className="reports-quick-ranges-bar">
-            <AppFolderTabs
-              compact
-              value={activeRange ?? ""}
-              onChange={(v) =>
-                handleQuickRange(v as "thisMonth" | "lastMonth" | "thisWeek" | "today" | "allYear")
-              }
-              items={[
-                { value: "thisMonth", label: t("thisMonth") },
-                { value: "lastMonth", label: t("lastMonth") },
-                { value: "thisWeek", label: t("thisWeek") },
-                { value: "today", label: t("today") },
-                { value: "allYear", label: t("allYear") },
-              ]}
-            />
-            {hasActiveFilters && (
-              <AppButton
-                size="compact-xs"
-                variant="subtle"
-                color="red"
-                leftSection={<X size={12} />}
-                className="reports-clear-filters-btn"
-                onClick={resetFilters}
-              >
-                {t("clearFilters")}
-              </AppButton>
-            )}
-          </div>
-
-          {/* Primary Filter Inputs - 2 columns on mobile for Date range */}
-          <AppGrid cols={{ base: 2, sm: 2, lg: isAdmin ? 5 : 3 }}>
+          {/* Primary Filter Inputs - 2 columns on mobile, 3 columns on tablet/laptop, 5 on wide admin */}
+          <AppGrid cols={{ base: 2, sm: 2, md: isAdmin ? 3 : 3, lg: isAdmin ? 5 : 3 }}>
             <AppDateInput
               label={t("fromDate")}
               placeholder="DD.MM.YYYY"
@@ -462,6 +465,7 @@ export function ReportsPage() {
                 label={t("user")}
                 placeholder={t("allUsers")}
                 clearable
+                leftSection={<UserIcon size={16} />}
                 value={userId}
                 onChange={setUserId}
                 data={users.map((u) => ({ value: u.id, label: u.display_name }))}
@@ -472,6 +476,7 @@ export function ReportsPage() {
                 label={t("customer")}
                 placeholder={t("allCustomers")}
                 clearable
+                leftSection={<Buildings size={16} />}
                 value={customerId}
                 onChange={(c) => {
                   setCustomerId(c);
@@ -484,6 +489,7 @@ export function ReportsPage() {
               label={t("project")}
               placeholder={t("allProjects")}
               clearable
+              leftSection={<Folder size={16} />}
               value={projectId}
               onChange={setProjectId}
               data={projects

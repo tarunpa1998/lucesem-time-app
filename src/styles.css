@@ -598,8 +598,11 @@ textarea:focus,
     box-shadow 150ms ease;
 }
 .app-cal-header-pill:hover {
-  background-color: var(--app-hover-surface);
-  border-color: color-mix(in srgb, var(--app-brand-primary) 35%, var(--app-border-subtle));
+  background-color: transparent !important;
+  border-color: var(--app-brand-primary) !important;
+}
+.app-cal-header-pill:hover * {
+  color: var(--app-brand-primary) !important;
 }
 .app-cal-header-pill:focus-visible {
   outline: 2px solid var(--app-brand-primary);
@@ -1041,9 +1044,27 @@ textarea:focus,
   transition: color 150ms cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Hover on non-active tabs - matching sidebar */
+/* Blue line indicator (rendered via ::after on active AND hover) */
+.app-folder-tab::after {
+  content: "" !important;
+  position: absolute !important;
+  bottom: -8px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 22px !important;
+  height: 2.5px !important;
+  border-radius: 2px !important;
+  background-color: var(--app-brand-primary) !important;
+  box-shadow: none !important;
+  opacity: 0 !important;
+  transition: opacity 150ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+}
+
+/* Hover on non-active tabs - transparent background, blue text, blue line below */
 .app-folder-tab:hover:not([data-active="true"]):not(.is-active):not(:disabled) {
-  background-color: var(--app-hover-surface) !important;
+  background-color: transparent !important;
   color: var(--app-brand-primary) !important;
 }
 
@@ -1074,18 +1095,21 @@ textarea:focus,
   color: var(--app-brand-primary) !important;
 }
 
-/* Solid Blue Pill Indicator (clean line without glow/color around it) */
+/* Show blue line when active OR hovered */
+.app-folder-tab[data-active="true"]::after,
+.app-folder-tab.is-active::after,
+.app-folder-tab:hover:not(:disabled)::after {
+  opacity: 1 !important;
+}
+
+/* Hide blue line on add tab */
+.app-folder-tab.is-add::after {
+  display: none !important;
+}
+
+/* Hide duplicate span indicator if present */
 .app-tab-active-indicator {
-  position: absolute !important;
-  bottom: -8px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  width: 22px !important;
-  height: 2.5px !important;
-  border-radius: 2px !important;
-  background-color: var(--app-brand-primary) !important;
-  box-shadow: none !important;
-  z-index: 2 !important;
+  display: none !important;
 }
 
 /* Compact variant for dashboards / headers / filter bars */
@@ -1100,11 +1124,11 @@ textarea:focus,
   font-size: 12px !important;
   border-radius: var(--app-radius-sm) !important;
 }
-.app-folder-tabs-list.is-compact .app-tab-active-indicator {
+.app-folder-tabs-list.is-compact .app-folder-tab::after,
+.app-folder-tab.is-compact::after {
   width: 18px !important;
   height: 2.5px !important;
   bottom: -8px !important;
-  box-shadow: none !important;
 }
 
 /* Section heading with matching blue accent indicator */
@@ -1146,13 +1170,15 @@ textarea:focus,
   }
 }
 
-/* Reports Quick Ranges Filter Bar */
+/* Reports Quick Ranges Filter Bar (outside of filter card) */
 .reports-quick-ranges-bar {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
+  padding: 4px 0;
+  margin-bottom: 16px;
 }
 
 .reports-quick-ranges-bar .app-folder-tabs-list {
