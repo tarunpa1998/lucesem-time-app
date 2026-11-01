@@ -140,7 +140,6 @@ export function ReportsPage() {
   const today = todayStr();
   const canUserEdit = (r: ReportRow) =>
     !r.exported &&
-    r.status !== "approved" &&
     r.user_id === me?.id &&
     canEditDate(r.entry_date, today, {
       isAdmin: false,

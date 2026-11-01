@@ -362,9 +362,7 @@ export function TimeAllocationModal({
   const err = (k: ValidationError) => (errors.includes(k) ? t(`err.${k}` as const) : undefined);
 
   const isReadOnly = Boolean(
-    readOnly ||
-    (!isAdmin && !editable) ||
-    (activeEntry && !isAdmin && (activeEntry.status === "approved" || activeEntry.exported)),
+    readOnly || (!isAdmin && !editable) || (activeEntry && !isAdmin && activeEntry.exported),
   );
 
   const matchedProject = projects.find((p) => p.id === projectId);
@@ -420,55 +418,6 @@ export function TimeAllocationModal({
             />
           )}
 
-          {/* Status & Lock Banner */}
-          <AppGroup
-            justify="space-between"
-            align="center"
-            p="xs"
-            style={{
-              background: "var(--app-bg-elevated)",
-              borderRadius: "var(--app-radius-md)",
-              border: "1px solid var(--app-border-subtle)",
-            }}
-          >
-            <AppGroup gap="xs">
-              <AppBadge
-                color={
-                  activeEntry.status === "approved"
-                    ? "green"
-                    : activeEntry.status === "rejected"
-                      ? "red"
-                      : "orange"
-                }
-                variant="light"
-              >
-                {activeEntry.status === "approved"
-                  ? t("approved")
-                  : activeEntry.status === "rejected"
-                    ? t("reject")
-                    : t("pendingApproval")}
-              </AppBadge>
-              {activeEntry.exported && (
-                <AppBadge color="gray" variant="light">
-                  🔒 {t("exportedLocked")}
-                </AppBadge>
-              )}
-              {periodLocked && (
-                <AppBadge color="red" variant="light">
-                  🔒 {t("periodLocked")}
-                </AppBadge>
-              )}
-              {!periodLocked && !canEditDate(date, today, { isAdmin, unlocked }) && (
-                <AppBadge color="yellow" variant="light">
-                  🔒 {t("retroLocked")}
-                </AppBadge>
-              )}
-            </AppGroup>
-            <AppBadge color="blue" variant="light">
-              {t(mode)}
-            </AppBadge>
-          </AppGroup>
-
           {/* Details in Read-only view */}
           {isAbsence ? (
             <AppGrid cols={{ base: 1, sm: 2 }}>
@@ -514,41 +463,31 @@ export function TimeAllocationModal({
             minRows={2}
           />
 
-          {/* Unlock Request option if retroLocked/periodLocked */}
-          {!isAdmin &&
-            !periodLocked &&
-            activeEntry.status !== "approved" &&
-            !activeEntry.exported &&
-            !canEditDate(date, today, { isAdmin, unlocked }) && (
-              <AppStack
-                gap="xs"
-                p="xs"
-                style={{
-                  background:
-                    "color-mix(in srgb, var(--app-brand-primary) 8%, var(--app-bg-surface))",
-                  borderRadius: "var(--app-radius-md)",
-                  border: "1px solid var(--app-border-subtle)",
-                }}
-              >
-                <AppText fz="xs" c="var(--app-text-secondary)">
-                  {t("retroLocked")}
-                </AppText>
-                <AppTextarea
-                  label={t("reason")}
-                  placeholder={t("reasonPlaceholder")}
-                  value={reason}
-                  onChange={(e) => setReason(e.currentTarget.value)}
-                />
-                <AppButton
-                  size="xs"
-                  variant="light"
-                  disabled={reason.trim().length < 5}
-                  onClick={sendUnlock}
-                >
-                  {t("requestUnlock")}
-                </AppButton>
-              </AppStack>
-            )}
+          {/* Unlock Request option for locked entries / 3 days old entries */}
+          {!isAdmin && !unlocked && (
+            <AppStack gap="xs" mt="sm">
+              <AppText c="var(--app-text-secondary)" fz="sm">
+                {periodLocked ? t("periodLocked") : isFuture ? t("futureLocked") : t("retroLocked")}
+              </AppText>
+              {!periodLocked && !isFuture && (
+                <>
+                  <AppTextarea
+                    label={t("reason")}
+                    placeholder={t("reasonPlaceholder")}
+                    value={reason}
+                    onChange={(e) => setReason(e.currentTarget.value)}
+                  />
+                  <AppButton
+                    variant="light"
+                    disabled={reason.trim().length < 5}
+                    onClick={sendUnlock}
+                  >
+                    {t("requestUnlock")}
+                  </AppButton>
+                </>
+              )}
+            </AppStack>
+          )}
 
           <AppGroup justify="flex-end" mt="xs">
             <AppButton variant="default" onClick={onClose}>

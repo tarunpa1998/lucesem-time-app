@@ -200,7 +200,7 @@ export function Dashboard() {
 
   const isRowEditable = (r: LocalEntry) => {
     if (me?.isAdmin) return true;
-    if (r.status === "approved" || r.exported) return false;
+    if (r.exported) return false;
     if (isAbsenceMode(r.entryMode)) return true;
     return !!today && canEditDate(r.entryDate, today, { isAdmin: false });
   };
