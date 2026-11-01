@@ -995,19 +995,43 @@ button[data-picker-control]:hover:not([data-disabled]):not([data-selected]),
 /* ===== Navigation Tabs (Sidebar-matched Blue Indicator & Hover) ===== */
 .app-folder-tabs-list {
   position: relative !important;
-  display: inline-flex !important;
+  display: flex !important;
   align-items: center !important;
   gap: 4px !important;
-  padding: 2px 4px !important;
+  padding: 4px 4px 12px 4px !important;
   margin: 0 !important;
   border-bottom: none !important;
-  overflow: visible !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  flex-wrap: nowrap !important;
   scrollbar-width: none !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-x !important;
+  overscroll-behavior-x: contain !important;
+  scroll-behavior: smooth !important;
+  min-width: 0 !important;
   width: auto !important;
   max-width: 100% !important;
 }
+.app-folder-tabs-list:active {
+  cursor: grabbing !important;
+}
 .app-folder-tabs-list::-webkit-scrollbar {
   display: none !important;
+}
+
+.time-modal-tabs-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: var(--app-radius-md);
+  margin-bottom: 2px;
+}
+.time-modal-tabs-wrapper .app-folder-tabs-list {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 4px 2px 14px 2px !important;
 }
 
 /* Full-width distribution variant (e.g. sidebar theme switcher) */
@@ -1033,6 +1057,7 @@ button[data-picker-control]:hover:not([data-disabled]):not([data-selected]),
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  flex-shrink: 0 !important;
   gap: 6px !important;
   padding: 8px 16px !important;
   border-radius: var(--app-radius-md) !important;

@@ -169,24 +169,28 @@ export function TimeAllocationModal({
       setActivityId(entry.activityId ?? null);
       return;
     }
-    const first = dayEntries[0];
-    if (first) {
-      setSelectedEntryId(first.id);
-      setMode(first.entryMode);
-      setFrom(first.fromTime);
-      setTo(first.toTime);
-      setProjectId(first.projectId ?? null);
-      setNotes(first.workNotes);
-      setActivityId(first.activityId ?? null);
+
+    if (dayAbsence) {
+      setSelectedEntryId(dayAbsence.id);
+      setMode(dayAbsence.entryMode);
+      setFrom(dayAbsence.fromTime);
+      setTo(dayAbsence.toTime);
+      setProjectId(dayAbsence.projectId ?? null);
+      setNotes(dayAbsence.workNotes);
+      setActivityId(dayAbsence.activityId ?? null);
       return;
     }
-    setSelectedEntryId(null);
+
+    // Default to the fresh "new" entry state when opening without a specific entry
+    setSelectedEntryId("new");
     setMode("CustomHours");
-    setFrom(nowHHMM());
+    const defaultFrom = initialDate === today ? nowHHMM() : "08:00";
+    setFrom(defaultFrom);
     setTo("");
     setProjectId(null);
     setActivityId(null);
-  }, [date, entry, dayEntries, today]);
+    setNotes("");
+  }, [date, entry, dayAbsence, today]);
 
   if (!date) return null;
   const isFuture = date > today;
@@ -451,20 +455,22 @@ export function TimeAllocationModal({
       ) : isReadOnly && activeEntry ? (
         <AppStack gap="md">
           {dayEntries.length > 1 && (
-            <AppFolderTabs
-              value={selectedEntryId ?? activeEntry.id}
-              onChange={handleSelectEntry}
-              style={{ marginBottom: 0 }}
-              items={dayEntries.map((e) => ({
-                value: e.id,
-                label: isAbsenceMode(e.entryMode) ? t(e.entryMode) : `${e.fromTime}–${e.toTime}`,
-                icon: isAbsenceMode(e.entryMode) ? (
-                  <CalendarBlank size={14} weight="duotone" />
-                ) : (
-                  <Clock size={14} weight="duotone" />
-                ),
-              }))}
-            />
+            <div className="time-modal-tabs-wrapper">
+              <AppFolderTabs
+                value={selectedEntryId ?? activeEntry.id}
+                onChange={handleSelectEntry}
+                style={{ marginBottom: 0 }}
+                items={dayEntries.map((e) => ({
+                  value: e.id,
+                  label: isAbsenceMode(e.entryMode) ? t(e.entryMode) : `${e.fromTime}–${e.toTime}`,
+                  icon: isAbsenceMode(e.entryMode) ? (
+                    <CalendarBlank size={14} weight="duotone" />
+                  ) : (
+                    <Clock size={14} weight="duotone" />
+                  ),
+                }))}
+              />
+            </div>
           )}
 
           {/* Details in Read-only view */}
@@ -565,32 +571,36 @@ export function TimeAllocationModal({
       ) : (
         <AppStack gap="md">
           {dayEntries.length > 0 && (
-            <AppFolderTabs
-              value={selectedEntryId ?? "new"}
-              onChange={handleSelectEntry}
-              style={{ marginBottom: 0 }}
-              items={[
-                ...dayEntries.map((e) => ({
-                  value: e.id,
-                  label: isAbsenceMode(e.entryMode) ? t(e.entryMode) : `${e.fromTime}–${e.toTime}`,
-                  icon: isAbsenceMode(e.entryMode) ? (
-                    <CalendarBlank size={14} weight="duotone" />
-                  ) : (
-                    <Clock size={14} weight="duotone" />
-                  ),
-                })),
-                ...(!dayAbsence
-                  ? [
-                      {
-                        value: "new",
-                        label: t("newItem"),
-                        icon: <Plus size={14} weight="bold" />,
-                        isAdd: true,
-                      },
-                    ]
-                  : []),
-              ]}
-            />
+            <div className="time-modal-tabs-wrapper">
+              <AppFolderTabs
+                value={selectedEntryId ?? "new"}
+                onChange={handleSelectEntry}
+                style={{ marginBottom: 0 }}
+                items={[
+                  ...dayEntries.map((e) => ({
+                    value: e.id,
+                    label: isAbsenceMode(e.entryMode)
+                      ? t(e.entryMode)
+                      : `${e.fromTime}–${e.toTime}`,
+                    icon: isAbsenceMode(e.entryMode) ? (
+                      <CalendarBlank size={14} weight="duotone" />
+                    ) : (
+                      <Clock size={14} weight="duotone" />
+                    ),
+                  })),
+                  ...(!dayAbsence && editable
+                    ? [
+                        {
+                          value: "new",
+                          label: t("newItem"),
+                          icon: <Plus size={14} weight="bold" />,
+                          isAdd: true,
+                        },
+                      ]
+                    : []),
+                ]}
+              />
+            </div>
           )}
 
           {isConflictBlocked && (

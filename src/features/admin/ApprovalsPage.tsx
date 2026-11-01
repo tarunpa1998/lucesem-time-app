@@ -36,10 +36,12 @@ export function ApprovalsPage() {
     <AppStack gap="var(--app-grid-gap)" maw={1280} mx="auto">
       <AppPageHeader icon={Checks} title={t("approvals")} subtitle={t("sub_approvals")} />
       <AppCard>
-        <AppGroup justify="space-between" mb="sm">
-          <AppText fw={700}>
-            {t("pendingEntries")} ({data.entries.length})
-          </AppText>
+        <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+          <div className="app-section-heading">
+            <AppHeading order={4}>
+              {t("pendingEntries")} ({data.entries.length})
+            </AppHeading>
+          </div>
           {data.entries.length > 0 && (
             <AppButton
               size="xs"
@@ -56,7 +58,7 @@ export function ApprovalsPage() {
               {t("approveAll")}
             </AppButton>
           )}
-        </AppGroup>
+        </div>
         <AppDataTable
           rows={data.entries}
           rowKey={(r) => r.id}
@@ -101,9 +103,13 @@ export function ApprovalsPage() {
         />
       </AppCard>
       <AppCard>
-        <AppText fw={700} mb="sm">
-          {t("unlockRequests")} ({data.unlocks.length})
-        </AppText>
+        <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+          <div className="app-section-heading">
+            <AppHeading order={4}>
+              {t("unlockRequests")} ({data.unlocks.length})
+            </AppHeading>
+          </div>
+        </div>
         <AppDataTable
           rows={data.unlocks}
           rowKey={(r) => r.id}

@@ -18,6 +18,8 @@ export function AppModal({ title, children, ...rest }: ModalProps) {
           borderTop: "4px solid var(--app-brand-primary)",
           scrollbarWidth: "none",
           msOverflowStyle: "none",
+          overflow: "hidden",
+          maxWidth: "100%",
         },
         header: {
           background: "var(--app-bg-surface)",
@@ -33,6 +35,8 @@ export function AppModal({ title, children, ...rest }: ModalProps) {
           paddingTop: 16,
           scrollbarWidth: "none",
           msOverflowStyle: "none",
+          overflowX: "hidden",
+          maxWidth: "100%",
         },
       }}
       {...rest}

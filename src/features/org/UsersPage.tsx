@@ -109,6 +109,11 @@ export function UsersPage() {
         }
       />
       <AppCard>
+        <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+          <div className="app-section-heading">
+            <AppHeading order={4}>{t("bulkVacation")}</AppHeading>
+          </div>
+        </div>
         <AppGroup align="flex-end">
           <AppNumberInput
             label={t("vacationDays")}
@@ -131,6 +136,13 @@ export function UsersPage() {
         </AppGroup>
       </AppCard>
       <AppCard>
+        <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+          <div className="app-section-heading">
+            <AppHeading order={4}>
+              {t("users")} ({users.length})
+            </AppHeading>
+          </div>
+        </div>
         <AppDataTable<UserRow>
           rows={users}
           rowKey={(r) => r.id}

@@ -105,6 +105,13 @@ export function ProjectsPage({ admin = false }: { admin?: boolean }) {
         }
       />
       <AppCard>
+        <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+          <div className="app-section-heading">
+            <AppHeading order={4}>
+              {admin ? t("projects") : t("myProjects")} ({rows.length})
+            </AppHeading>
+          </div>
+        </div>
         <AppDataTable<ProjectRow>
           rows={rows}
           rowKey={(r) => r.id}

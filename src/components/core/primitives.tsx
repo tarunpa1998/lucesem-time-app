@@ -51,7 +51,14 @@ import {
   type TabsProps,
 } from "@mantine/core";
 import { DateInput, TimePicker, type DateInputProps } from "@mantine/dates";
-import { useState, useMemo, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import {
+  useState,
+  useMemo,
+  useRef,
+  useEffect,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
 import { ymd } from "@/domain/holidays";
 
 const inputStyles = {
@@ -451,6 +458,7 @@ export function AppFolderTabs({
   items,
   compact = false,
   fullWidth = false,
+  swipeable = true,
   className,
   style,
 }: {
@@ -459,14 +467,74 @@ export function AppFolderTabs({
   items: AppFolderTabItem[];
   compact?: boolean;
   fullWidth?: boolean;
+  swipeable?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDown = useRef(false);
+  const startX = useRef(0);
+  const scrollLeftStart = useRef(0);
+  const didDrag = useRef(false);
+
+  // Auto-scroll the active tab into view smoothly when selected
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const activeTab = containerRef.current.querySelector<HTMLElement>('[data-active="true"]');
+    if (activeTab) {
+      activeTab.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
+    }
+  }, [value]);
+
+  const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!swipeable || fullWidth || !containerRef.current) return;
+    isDown.current = true;
+    didDrag.current = false;
+    startX.current = e.pageX - containerRef.current.offsetLeft;
+    scrollLeftStart.current = containerRef.current.scrollLeft;
+  };
+
+  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDown.current || !containerRef.current) return;
+    const x = e.pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1.5;
+    if (Math.abs(walk) > 4) {
+      didDrag.current = true;
+    }
+    containerRef.current.scrollLeft = scrollLeftStart.current - walk;
+  };
+
+  const onMouseUp = () => {
+    isDown.current = false;
+  };
+
+  const onMouseLeave = () => {
+    isDown.current = false;
+  };
+
+  const onWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (!swipeable || fullWidth || !containerRef.current) return;
+    if (Math.abs(e.deltaX) === 0 && Math.abs(e.deltaY) > 0) {
+      if (containerRef.current.scrollWidth > containerRef.current.clientWidth) {
+        containerRef.current.scrollLeft += e.deltaY;
+      }
+    }
+  };
+
   return (
     <div
+      ref={containerRef}
       className={`app-folder-tabs-list ${compact ? "is-compact" : ""} ${fullWidth ? "is-fullwidth" : ""} ${className ?? ""}`}
-      style={style}
+      style={{
+        cursor: swipeable && !fullWidth ? "grab" : undefined,
+        ...style,
+      }}
       role="tablist"
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseLeave}
+      onWheel={onWheel}
     >
       {items.map((item) => {
         const active = item.value === value;
@@ -478,7 +546,10 @@ export function AppFolderTabs({
             aria-selected={active}
             data-active={active}
             className={`app-folder-tab ${compact ? "is-compact" : ""} ${item.isAdd ? "is-add" : ""} ${active ? "is-active" : ""}`}
-            onClick={() => onChange(item.value)}
+            onClick={() => {
+              if (didDrag.current) return;
+              onChange(item.value);
+            }}
           >
             {item.icon}
             <span>{item.label}</span>

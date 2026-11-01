@@ -115,6 +115,13 @@ export function CustomersPage() {
         }
       />
       <AppCard>
+        <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+          <div className="app-section-heading">
+            <AppHeading order={4}>
+              {t("customers")} ({customers.length})
+            </AppHeading>
+          </div>
+        </div>
         <AppDataTable<CustomerRow>
           rows={customers}
           rowKey={(r) => r.id}

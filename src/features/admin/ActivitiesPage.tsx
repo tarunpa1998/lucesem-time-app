@@ -59,6 +59,13 @@ export function ActivitiesPage() {
         }
       />
       <AppCard>
+        <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+          <div className="app-section-heading">
+            <AppHeading order={4}>
+              {t("activities")} ({data.length})
+            </AppHeading>
+          </div>
+        </div>
         <AppDataTable<ActivityRow>
           rows={data}
           rowKey={(r) => r.id}

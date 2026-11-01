@@ -95,6 +95,13 @@ export function ControlPage() {
 
       {activeTab === "live" && (
         <AppCard>
+          <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+            <div className="app-section-heading">
+              <AppHeading order={4}>
+                {t("liveBoard")} ({live.length})
+              </AppHeading>
+            </div>
+          </div>
           <AppDataTable
             rows={live}
             rowKey={(r) => r.user_id}
@@ -122,9 +129,11 @@ export function ControlPage() {
       {activeTab === "locks" && (
         <AppStack>
           <AppCard>
-            <AppText fw={700} mb="sm">
-              {t("addLock")}
-            </AppText>
+            <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+              <div className="app-section-heading">
+                <AppHeading order={4}>{t("addLock")}</AppHeading>
+              </div>
+            </div>
             <AppGrid cols={{ base: 1, sm: 2, lg: 5 }}>
               <AppSelect
                 label={t("user")}
@@ -158,6 +167,13 @@ export function ControlPage() {
             </AppGrid>
           </AppCard>
           <AppCard>
+            <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+              <div className="app-section-heading">
+                <AppHeading order={4}>
+                  {t("periodLocks")} ({locks.length})
+                </AppHeading>
+              </div>
+            </div>
             <AppDataTable
               rows={locks}
               rowKey={(r) => r.id}
@@ -203,6 +219,13 @@ export function ControlPage() {
 
       {activeTab === "audit" && (
         <AppCard>
+          <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+            <div className="app-section-heading">
+              <AppHeading order={4}>
+                {t("auditLog")} ({audit.length})
+              </AppHeading>
+            </div>
+          </div>
           <AppDataTable
             rows={audit}
             rowKey={(r) => r.id}

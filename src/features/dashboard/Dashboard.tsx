@@ -196,8 +196,14 @@ export function Dashboard() {
     if (sessionStorage.getItem(LOG_TIME_FLAG)) {
       sessionStorage.removeItem(LOG_TIME_FLAG);
       setSelected(today);
+      setEditing(null);
+      setReadOnlyEntry(false);
     }
-    const h = () => setSelected(today);
+    const h = () => {
+      setSelected(today);
+      setEditing(null);
+      setReadOnlyEntry(false);
+    };
     window.addEventListener(LOG_TIME_EVENT, h);
     return () => window.removeEventListener(LOG_TIME_EVENT, h);
   }, [data.ready, today]);
@@ -245,9 +251,19 @@ export function Dashboard() {
               tabIndex={0}
               aria-label={t("allocate")}
               style={{ cursor: "pointer" }}
-              onClick={() => today && setSelected(today)}
+              onClick={() => {
+                if (today) {
+                  setSelected(today);
+                  setEditing(null);
+                  setReadOnlyEntry(false);
+                }
+              }}
               onKeyDown={(e) => {
-                if ((e.key === "Enter" || e.key === " ") && today) setSelected(today);
+                if ((e.key === "Enter" || e.key === " ") && today) {
+                  setSelected(today);
+                  setEditing(null);
+                  setReadOnlyEntry(false);
+                }
               }}
             >
               <AppText fz="xs" fw={600} c="var(--app-text-secondary)" tt="uppercase">
@@ -353,14 +369,12 @@ export function Dashboard() {
                     return;
                   }
                   setSelected(d);
-                  const found = data.entries.find((e) => e.entryDate === d);
-                  setEditing(found ?? null);
-                  const isDayEditable = found
-                    ? isRowEditable(found)
-                    : canEditDate(d, today, {
-                        isAdmin: !!me?.isAdmin,
-                        unlocked: !!access?.unlocked?.includes(d),
-                      }) && !isPeriodLocked(d, me?.id ?? "", access?.locks ?? []);
+                  setEditing(null);
+                  const isDayEditable =
+                    canEditDate(d, today, {
+                      isAdmin: !!me?.isAdmin,
+                      unlocked: !!access?.unlocked?.includes(d),
+                    }) && !isPeriodLocked(d, me?.id ?? "", access?.locks ?? []);
                   setReadOnlyEntry(!isDayEditable);
                 }}
                 today={today}

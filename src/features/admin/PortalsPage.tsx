@@ -47,6 +47,13 @@ export function PortalsPage() {
     <AppStack gap="var(--app-grid-gap)" maw={1280} mx="auto">
       <AppPageHeader icon={Globe} title={t("portal")} subtitle={t("sub_portal")} />
       <AppCard>
+        <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+          <div className="app-section-heading">
+            <AppHeading order={4}>
+              {t("portal")} ({data.length})
+            </AppHeading>
+          </div>
+        </div>
         <AppDataTable
           rows={data}
           rowKey={(r) => r.customer_id}

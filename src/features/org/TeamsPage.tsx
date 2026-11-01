@@ -72,10 +72,10 @@ export function TeamsPage() {
       <AppGrid cols={{ base: 1, sm: 2, lg: 3 }}>
         {teams.map((team) => (
           <AppCard key={team.id}>
-            <AppGroup justify="space-between" mb="xs">
-              <AppText fw={700} ff="var(--app-font-heading)">
-                {team.name}
-              </AppText>
+            <div className="app-folder-tabs-row" style={{ marginBottom: 16 }}>
+              <div className="app-section-heading">
+                <AppHeading order={4}>{team.name}</AppHeading>
+              </div>
               <AppButton
                 size="compact-xs"
                 variant="default"
@@ -91,7 +91,7 @@ export function TeamsPage() {
               >
                 {t("edit")}
               </AppButton>
-            </AppGroup>
+            </div>
             <AppGroup gap={4}>
               {team.members.length === 0 && (
                 <AppText fz="sm" c="var(--app-text-secondary)">
