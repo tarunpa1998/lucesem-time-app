@@ -322,7 +322,11 @@ export function Dashboard() {
                 month={month}
                 onMonthChange={setMonth}
                 selectedDate={selected}
-                onSelect={setSelected}
+                onSelect={(d) => {
+                  setSelected(d);
+                  const found = data.entries.find((e) => e.entryDate === d);
+                  setEditing(found ?? null);
+                }}
                 today={today}
                 weekdayLabels={weekdayLabels}
                 dayInfo={(d) => {
@@ -423,6 +427,7 @@ export function Dashboard() {
             setEditing(null);
           }}
           onSave={data.saveEntry}
+          onDelete={data.deleteEntry}
         />
       )}
     </AppShellLayout>

@@ -22,7 +22,7 @@ export interface LocalEntry {
 }
 export interface OutboxItem {
   id?: number;
-  kind: "timer.start" | "timer.stop" | "entry.upsert";
+  kind: "timer.start" | "timer.stop" | "entry.upsert" | "entry.delete";
   payload: unknown;
   userId?: string;
   createdAt: number;

@@ -3,7 +3,7 @@ import { notify } from "@/components/core";
 import { db, uid, type ActiveTimer, type LocalEntry } from "@/lib/offline-db";
 import { ymd } from "@/domain/holidays";
 import { elapsedSeconds, isAbsenceMode, type EntryMode } from "@/domain/rules";
-import { listMyEntries, syncEntries, reportTimer } from "@/backend/time.functions";
+import { listMyEntries, syncEntries, reportTimer, deleteMyEntry } from "@/backend/time.functions";
 
 const hhmm = (d: Date) =>
   d.toLocaleTimeString("de-AT", {
@@ -47,7 +47,18 @@ export function useTimeData(ctx: TimeCtx) {
     const d = db();
     try {
       const items = await d.syncOutbox.filter((i) => i.userId === ctx.userId).toArray();
-      const upserts = items.filter((i) => i.kind !== "timer.start");
+      const deletes = items.filter((i) => i.kind === "entry.delete");
+      const upserts = items.filter((i) => i.kind !== "timer.start" && i.kind !== "entry.delete");
+      if (deletes.length) {
+        for (const item of deletes) {
+          const p = item.payload as { id: string };
+          try {
+            await deleteMyEntry({ data: { id: p.id } });
+          } catch {
+            // Retried on next sync if server fails
+          }
+        }
+      }
       if (upserts.length) {
         const payload = upserts.map((i) => {
           const e = i.payload as LocalEntry;
@@ -177,6 +188,18 @@ export function useTimeData(ctx: TimeCtx) {
     await sync();
   };
 
+  const deleteEntry = async (id: string) => {
+    await db().entries.delete(id);
+    await db().syncOutbox.add({
+      kind: "entry.delete",
+      payload: { id },
+      userId: ctx.userId,
+      createdAt: Date.now(),
+    });
+    notify.show({ color: "lucesem", message: "@entryDeleted" });
+    await sync();
+  };
+
   const updateTimerNotes = useCallback(
     async (workNotes: string) => {
       const d = db();
@@ -208,6 +231,7 @@ export function useTimeData(ctx: TimeCtx) {
     stopTimer,
     updateTimerNotes,
     saveEntry,
+    deleteEntry,
     now,
   };
 }

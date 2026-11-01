@@ -10,7 +10,9 @@ import {
   AppGrid,
   AppText,
   AppBadge,
+  AppSegmented,
 } from "@/components/core";
+import { Trash } from "@phosphor-icons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useI18n } from "@/lib/i18n";
 import { myAccessQuery, activitiesQuery } from "@/lib/session";
@@ -52,6 +54,7 @@ interface Props {
   userId: string;
   onClose: () => void;
   onSave: (e: Omit<LocalEntry, "id" | "createdAt" | "status"> & { id?: string }) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
 }
 
 export function TimeAllocationModal({
@@ -64,6 +67,7 @@ export function TimeAllocationModal({
   userId,
   onClose,
   onSave,
+  onDelete,
 }: Props) {
   const qc = useQueryClient();
   const { data: access } = useQuery(myAccessQuery);
@@ -77,14 +81,24 @@ export function TimeAllocationModal({
   const [projectId, setProjectId] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<ValidationError[]>([]);
+  const [deleting, setDeleting] = useState(false);
+
+  const dayEntries = date ? existing.filter((e) => e.entryDate === date) : [];
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
 
   const isAbsence = isAbsenceMode(mode);
+
+  const activeEntry =
+    selectedEntryId && selectedEntryId !== "new"
+      ? (dayEntries.find((e) => e.id === selectedEntryId) ?? entry ?? null)
+      : null;
 
   useEffect(() => {
     setErrors([]);
     setNotes("");
     setReason("");
     if (entry) {
+      setSelectedEntryId(entry.id);
       setMode(entry.entryMode);
       setFrom(entry.fromTime);
       setTo(entry.toTime);
@@ -93,12 +107,25 @@ export function TimeAllocationModal({
       setActivityId(entry.activityId ?? null);
       return;
     }
+    const forDay = date ? existing.filter((e) => e.entryDate === date) : [];
+    const first = forDay[0];
+    if (first) {
+      setSelectedEntryId(first.id);
+      setMode(first.entryMode);
+      setFrom(first.fromTime);
+      setTo(first.toTime);
+      setProjectId(first.projectId ?? null);
+      setNotes(first.workNotes);
+      setActivityId(first.activityId ?? null);
+      return;
+    }
+    setSelectedEntryId(null);
     setMode("CustomHours");
     setFrom(nowHHMM());
     setTo("");
     setProjectId(null);
     setActivityId(null);
-  }, [date, entry]);
+  }, [date, entry, existing]);
 
   if (!date) return null;
   const maxTime = date === today ? nowHHMM() : undefined;
@@ -115,6 +142,29 @@ export function TimeAllocationModal({
   const pending =
     projectId &&
     projects.find((p) => p.id === projectId)?.approval_state === "Pending_Admin_Review";
+
+  const handleSelectEntry = (id: string) => {
+    setSelectedEntryId(id);
+    setErrors([]);
+    if (id === "new") {
+      setMode("CustomHours");
+      setFrom(nowHHMM());
+      setTo("");
+      setProjectId(null);
+      setActivityId(null);
+      setNotes("");
+    } else {
+      const target = dayEntries.find((e) => e.id === id);
+      if (target) {
+        setMode(target.entryMode);
+        setFrom(target.fromTime);
+        setTo(target.toTime);
+        setProjectId(target.projectId ?? null);
+        setNotes(target.workNotes);
+        setActivityId(target.activityId ?? null);
+      }
+    }
+  };
 
   const pickMode = (m: EntryMode) => {
     setMode(m);
@@ -139,9 +189,21 @@ export function TimeAllocationModal({
     return t("whatWorking");
   };
 
+  const handleDelete = async () => {
+    if (!activeEntry?.id || !onDelete) return;
+    if (!window.confirm(t("deleteConfirm"))) return;
+    try {
+      setDeleting(true);
+      await onDelete(activeEntry.id);
+      onClose();
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const submit = async () => {
     const draft = {
-      ...(entry ? { id: entry.id } : {}),
+      ...(activeEntry ? { id: activeEntry.id } : {}),
       entryDate: date,
       fromTime: from,
       toTime: to,
@@ -160,7 +222,11 @@ export function TimeAllocationModal({
   const err = (k: ValidationError) => (errors.includes(k) ? t(`err.${k}` as const) : undefined);
 
   return (
-    <AppModal opened={!!date} onClose={onClose} title={`${t("allocate")} · ${fmtDate(date)}`}>
+    <AppModal
+      opened={!!date}
+      onClose={onClose}
+      title={`${activeEntry ? t("edit") : t("allocate")} · ${fmtDate(date)}`}
+    >
       {!editable ? (
         <AppStack>
           <AppText c="var(--app-text-secondary)">
@@ -182,6 +248,21 @@ export function TimeAllocationModal({
         </AppStack>
       ) : (
         <AppStack gap="md">
+          {dayEntries.length > 0 && (
+            <AppSegmented
+              size="xs"
+              value={selectedEntryId ?? "new"}
+              onChange={handleSelectEntry}
+              data={[
+                ...dayEntries.map((e) => ({
+                  value: e.id,
+                  label: `${e.fromTime}–${e.toTime}`,
+                })),
+                { value: "new", label: `+ ${t("newItem")}` },
+              ]}
+            />
+          )}
+
           <AppSelect
             label={t("mode")}
             placeholder={t("selectMode")}
@@ -270,11 +351,26 @@ export function TimeAllocationModal({
             error={err("notes")}
           />
 
-          <AppGroup justify="flex-end" mt="xs">
-            <AppButton variant="default" onClick={onClose}>
-              {t("cancel")}
-            </AppButton>
-            <AppButton onClick={submit}>{t("save")}</AppButton>
+          <AppGroup justify="space-between" mt="xs">
+            {editable && activeEntry?.id && onDelete ? (
+              <AppButton
+                color="red"
+                variant="light"
+                leftSection={<Trash size={16} />}
+                onClick={handleDelete}
+                loading={deleting}
+              >
+                {t("delete")}
+              </AppButton>
+            ) : (
+              <div />
+            )}
+            <AppGroup gap="xs">
+              <AppButton variant="default" onClick={onClose}>
+                {t("cancel")}
+              </AppButton>
+              <AppButton onClick={submit}>{t("save")}</AppButton>
+            </AppGroup>
           </AppGroup>
         </AppStack>
       )}

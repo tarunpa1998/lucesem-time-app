@@ -186,3 +186,59 @@ export const reportTimer = createServerFn({ method: "POST" })
         started_at = excluded.started_at, work_notes = excluded.work_notes`;
     return { ok: true };
   });
+
+/** Deletes an unlocked, unexported entry belonging to the signed-in user (or admin). */
+export const deleteMyEntry = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { sql } = await import("./db.server");
+    const { requireUser, audit } = await import("./auth.server");
+    const { locksFor, unlockedDatesFor, checkBudgets } = await import("./workflow.server");
+    const { entryWriteVerdict, viennaToday } = await import("@/domain/locks");
+    const u = await requireUser();
+
+    const [entry] = await sql()<
+      {
+        id: string;
+        user_id: string;
+        entry_date: string;
+        exported_at: Date | null;
+        project_id: string | null;
+      }[]
+    >`select id, user_id, to_char(entry_date, 'YYYY-MM-DD') as entry_date, exported_at, project_id
+      from time_entries where id = ${data.id}`;
+
+    if (!entry) {
+      return { ok: false, error: "not_found" };
+    }
+    if (entry.user_id !== u.id && !u.isAdmin) {
+      return { ok: false, error: "forbidden" };
+    }
+
+    const today = viennaToday();
+    const [locks, unlockedDates] = await Promise.all([locksFor(u.id), unlockedDatesFor(u.id)]);
+
+    const verdict = entryWriteVerdict({
+      date: entry.entry_date,
+      today,
+      userId: u.id,
+      isAdmin: u.isAdmin,
+      unlockedDates,
+      locks,
+      exported: !!entry.exported_at,
+    });
+
+    if (verdict !== "ok") {
+      return { ok: false, error: verdict };
+    }
+
+    await sql()`delete from time_entries where id = ${data.id} and user_id = ${entry.user_id}`;
+
+    if (entry.project_id) {
+      await checkBudgets([entry.project_id]);
+    }
+
+    await audit(u.id, "entry.delete", "time_entries", data.id, { entryDate: entry.entry_date });
+
+    return { ok: true };
+  });

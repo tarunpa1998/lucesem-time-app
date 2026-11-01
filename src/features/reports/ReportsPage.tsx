@@ -899,6 +899,11 @@ export function ReportsPage() {
             setOwnEditing(null);
             report.refetch();
           }}
+          onDelete={async (id) => {
+            await timeData.deleteEntry(id);
+            setOwnEditing(null);
+            report.refetch();
+          }}
         />
       )}
       {isAdmin && (
