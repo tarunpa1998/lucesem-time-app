@@ -48,6 +48,7 @@ const PRESETS: Partial<Record<EntryMode, [string, string]>> = {
 
 function getWorkingDaysInRange(fromStr: string, toStr: string): string[] {
   if (!fromStr || !toStr || fromStr > toStr) return [];
+  if (fromStr === toStr) return [fromStr];
   const days: string[] = [];
   const [y1, m1, d1] = fromStr.split("-").map(Number);
   const [y2, m2, d2] = toStr.split("-").map(Number);
@@ -161,25 +162,23 @@ export function TimeAllocationModal({
       return;
     }
     setSelectedEntryId(null);
-    if (date && date > today) {
-      setMode("Vacation_Urlaub");
-      setFrom("08:00");
-      setTo("16:00");
-    } else {
-      setMode("CustomHours");
-      setFrom(nowHHMM());
-      setTo("");
-    }
+    setMode("CustomHours");
+    setFrom(nowHHMM());
+    setTo("");
     setProjectId(null);
     setActivityId(null);
   }, [date, entry, existing, today]);
 
   if (!date) return null;
+  const isFuture = date > today;
   const maxTime = date === today && !isAbsence ? nowHHMM() : undefined;
   const unlocked = !!access?.unlocked.includes(date);
   const periodLocked = !isAdmin && isPeriodLocked(date, userId, access?.locks ?? []);
+  // Existing leaves can always be edited or rescheduled regardless of approval state
   const canEdit =
-    canEditDate(date, today, { isAdmin, unlocked, isAbsence }) || (isAbsence && date >= today);
+    isEditingExistingAbsence ||
+    ((activeEntry ? true : !isFuture) &&
+      (canEditDate(date, today, { isAdmin, unlocked, isAbsence }) || (isAbsence && date >= today)));
   const editable = !periodLocked && canEdit;
 
   const sendUnlock = async () => {
@@ -196,15 +195,9 @@ export function TimeAllocationModal({
     setSelectedEntryId(id);
     setErrors([]);
     if (id === "new") {
-      if (date && date > today) {
-        setMode("Vacation_Urlaub");
-        setFrom("08:00");
-        setTo("16:00");
-      } else {
-        setMode("CustomHours");
-        setFrom(nowHHMM());
-        setTo("");
-      }
+      setMode("CustomHours");
+      setFrom(nowHHMM());
+      setTo("");
       setProjectId(null);
       setActivityId(null);
       setNotes("");
@@ -275,41 +268,67 @@ export function TimeAllocationModal({
       return;
     }
 
-    if (isAbsence && !activeEntry && startDate && endDate && startDate < endDate) {
+    if (isAbsence && startDate && endDate) {
       const workingDays = getWorkingDaysInRange(startDate, endDate);
       if (workingDays.length === 0) {
         setErrors(["date"]);
         return;
       }
-      const drafts = workingDays.map((d) => ({
-        entryDate: d,
-        fromTime: "08:00",
-        toTime: "16:00",
-        projectId: null,
-        workNotes: notes.trim() || t(mode),
-        entryMode: mode,
-        activityId: null,
-      }));
-      for (const draft of drafts) {
+      if (workingDays.length === 1) {
+        const draft = {
+          ...(activeEntry ? { id: activeEntry.id } : {}),
+          entryDate: workingDays[0]!,
+          fromTime: "08:00",
+          toTime: "16:00",
+          projectId: null,
+          workNotes: notes.trim() || t(mode),
+          entryMode: mode,
+          activityId: null,
+        };
         const errs = validateEntry(draft, existing, today, {
-          isAdmin,
-          unlocked,
+          isAdmin: true,
+          unlocked: true,
           nowTime: nowHHMM(),
         });
         if (errs.length) {
           setErrors(errs);
           return;
         }
-      }
-      if (onSaveMultiple) {
-        await onSaveMultiple(drafts);
+        await onSave(draft);
+        onClose();
+        return;
       } else {
+        const drafts = workingDays.map((d, idx) => ({
+          ...(activeEntry && idx === 0 ? { id: activeEntry.id } : {}),
+          entryDate: d,
+          fromTime: "08:00",
+          toTime: "16:00",
+          projectId: null,
+          workNotes: notes.trim() || t(mode),
+          entryMode: mode,
+          activityId: null,
+        }));
         for (const draft of drafts) {
-          await onSave(draft);
+          const errs = validateEntry(draft, existing, today, {
+            isAdmin: true,
+            unlocked: true,
+            nowTime: nowHHMM(),
+          });
+          if (errs.length) {
+            setErrors(errs);
+            return;
+          }
         }
+        if (onSaveMultiple) {
+          await onSaveMultiple(drafts);
+        } else {
+          for (const draft of drafts) {
+            await onSave(draft);
+          }
+        }
+        onClose();
+        return;
       }
-      onClose();
-      return;
     }
 
     const targetDate = isAbsence ? startDate : date;
@@ -344,9 +363,9 @@ export function TimeAllocationModal({
       {!editable ? (
         <AppStack>
           <AppText c="var(--app-text-secondary)">
-            {periodLocked ? t("periodLocked") : t("retroLocked")}
+            {periodLocked ? t("periodLocked") : isFuture ? t("futureLocked") : t("retroLocked")}
           </AppText>
-          {!periodLocked && (
+          {!periodLocked && !isFuture && (
             <>
               <AppTextarea
                 label={t("reason")}
@@ -403,7 +422,10 @@ export function TimeAllocationModal({
             placeholder={t("selectMode")}
             value={mode}
             onChange={(v) => v && pickMode(v as EntryMode)}
-            data={ENTRY_MODES.map((m) => ({ value: m, label: t(m) }))}
+            data={(isFuture ? ENTRY_MODES.filter(isAbsenceMode) : ENTRY_MODES).map((m) => ({
+              value: m,
+              label: t(m),
+            }))}
             allowDeselect={false}
           />
 
@@ -454,7 +476,7 @@ export function TimeAllocationModal({
           )}
 
           {isAbsence ? (
-            <AppStack gap="xs">
+            <>
               <AppGrid cols={{ base: 1, sm: 2 }}>
                 <AppDateInput
                   label={t("fromDate")}
@@ -467,11 +489,11 @@ export function TimeAllocationModal({
                   required
                 />
                 <AppDateInput
-                  label={t("untilDate")}
+                  label={t("toDate")}
                   placeholder={t("selectDate")}
                   value={endDate}
                   onChange={(v) => setEndDate(v)}
-                  minDate={startDate ? new Date(startDate) : undefined}
+                  minDate={startDate || undefined}
                   required
                 />
               </AppGrid>
@@ -479,28 +501,28 @@ export function TimeAllocationModal({
               <AppGroup
                 justify="space-between"
                 align="center"
-                px="xs"
-                py={6}
+                px="sm"
+                py={10}
                 style={{
                   background:
                     "color-mix(in srgb, var(--app-brand-primary) 8%, var(--app-bg-surface))",
-                  borderRadius: "var(--app-radius-sm)",
+                  borderRadius: "var(--app-radius-md)",
                   border: "1px solid color-mix(in srgb, var(--app-brand-primary) 18%, transparent)",
                 }}
               >
-                <AppGroup gap={6} align="center">
-                  <CalendarBlank size={14} weight="duotone" color="var(--app-brand-primary)" />
+                <AppGroup gap={8} align="center">
+                  <CalendarBlank size={16} weight="duotone" color="var(--app-brand-primary)" />
                   <AppText fz="xs" fw={600} c="var(--app-brand-primary)">
                     {rangeWorkDays.length <= 1
                       ? `1 ${t("workDayCount")} (08:00–16:00 · 8 ${t("hours")})`
                       : `${rangeWorkDays.length} ${t("workDaysCount")} (08:00–16:00 · ${rangeWorkDays.length * 8} ${t("hours")})`}
                   </AppText>
                 </AppGroup>
-                <AppBadge size="xs" color="blue" variant="light">
+                <AppBadge size="sm" color="blue" variant="light">
                   {t(mode)}
                 </AppBadge>
               </AppGroup>
-            </AppStack>
+            </>
           ) : (
             <AppGrid cols={{ base: 2 }}>
               <AppTimePicker

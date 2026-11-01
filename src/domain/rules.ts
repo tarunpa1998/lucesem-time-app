@@ -32,7 +32,11 @@ export const daysBetween = (from: string, to: string) =>
 export function canEditDate(
   entryDate: string,
   today: string,
-  opts: { isAdmin?: boolean; unlocked?: boolean; isAbsence?: boolean } = {},
+  opts: {
+    isAdmin?: boolean | undefined;
+    unlocked?: boolean | undefined;
+    isAbsence?: boolean | undefined;
+  } = {},
 ) {
   if (opts.isAdmin || opts.unlocked) return true;
   if (opts.isAbsence && entryDate >= today) return true;

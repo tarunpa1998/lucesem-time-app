@@ -323,6 +323,16 @@ export function Dashboard() {
                 onMonthChange={setMonth}
                 selectedDate={selected}
                 onSelect={(d) => {
+                  if (d > today) {
+                    const foundLeave = data.entries.find(
+                      (e) =>
+                        e.entryDate === d && e.status !== "rejected" && isAbsenceMode(e.entryMode),
+                    );
+                    if (!foundLeave) return;
+                    setSelected(d);
+                    setEditing(foundLeave);
+                    return;
+                  }
                   setSelected(d);
                   const found = data.entries.find((e) => e.entryDate === d);
                   setEditing(found ?? null);
@@ -348,13 +358,13 @@ export function Dashboard() {
                       absenceMode: m,
                     };
                   }
+                  if (d > today) {
+                    return { disabled: true, muted: true };
+                  }
                   const h = hoursByDate.get(d);
                   if (h) return { hours: h };
                   if (holidays.has(d))
                     return { tone: "holiday", label: holidays.get(d), muted: true };
-                  if (d > today) {
-                    return {};
-                  }
                   if (!canEditDate(d, today, { isAdmin: !!me?.isAdmin }) && d < today)
                     return { muted: true };
                   return {};
@@ -415,7 +425,9 @@ export function Dashboard() {
                     key: "e",
                     label: "",
                     render: (r) =>
-                      today && canEditDate(r.entryDate, today, { isAdmin: !!me?.isAdmin }) ? (
+                      today &&
+                      (isAbsenceMode(r.entryMode) ||
+                        canEditDate(r.entryDate, today, { isAdmin: !!me?.isAdmin })) ? (
                         <AppButton
                           size="compact-xs"
                           variant="subtle"

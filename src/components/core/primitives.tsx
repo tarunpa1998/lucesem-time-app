@@ -237,14 +237,21 @@ export function toDateObj(val: unknown): Date | null {
   return null;
 }
 
-export interface AppDateInputProps extends Omit<DateInputProps, "value" | "onChange"> {
+export interface AppDateInputProps extends Omit<
+  DateInputProps,
+  "value" | "onChange" | "minDate" | "maxDate"
+> {
   value?: string | Date | null | undefined;
   onChange?: ((val: string) => void) | undefined;
+  minDate?: string | Date | null | undefined;
+  maxDate?: string | Date | null | undefined;
 }
 
 export const AppDateInput = ({
   value,
   onChange,
+  minDate,
+  maxDate,
   styles,
   popoverProps,
   valueFormat = "DD.MM.YYYY",
@@ -301,6 +308,9 @@ export const AppDateInput = ({
     onChange(toYmdString(incoming));
   };
 
+  const minDateObj = toDateObj(minDate);
+  const maxDateObj = toDateObj(maxDate);
+
   return (
     <DateInput
       valueFormat={valueFormat}
@@ -309,6 +319,8 @@ export const AppDateInput = ({
       onChange={handleChange as (val: unknown) => void}
       clearable={clearable}
       dateParser={dateParser ?? defaultDateParser}
+      {...(minDateObj ? { minDate: minDateObj } : {})}
+      {...(maxDateObj ? { maxDate: maxDateObj } : {})}
       popoverProps={{
         shadow: "lg",
         withinPortal: true,
