@@ -58,6 +58,7 @@ export function Dashboard() {
   const [month, setMonth] = useState(() => new Date());
   const [selected, setSelected] = useState<string | null>(null);
   const [editing, setEditing] = useState<LocalEntry | null>(null);
+  const [readOnlyEntry, setReadOnlyEntry] = useState(false);
   const [projectId, setProjectId] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [period, setPeriod] = useState<Period>("week");
@@ -196,6 +197,13 @@ export function Dashboard() {
     window.addEventListener(LOG_TIME_EVENT, h);
     return () => window.removeEventListener(LOG_TIME_EVENT, h);
   }, [data.ready, today]);
+
+  const isRowEditable = (r: LocalEntry) => {
+    if (me?.isAdmin) return true;
+    if (r.status === "approved" || r.exported) return false;
+    if (isAbsenceMode(r.entryMode)) return true;
+    return !!today && canEditDate(r.entryDate, today, { isAdmin: false });
+  };
 
   if (!data.ready || !today)
     return (
@@ -384,11 +392,19 @@ export function Dashboard() {
                 {lang === "de" ? "Alle meine Zeiten →" : "All my hours →"}
               </Link>
             </div>
-            <AppStack mt="sm" style={{ maxHeight: 420, overflowY: "auto" }}>
+            <AppStack mt="sm">
               <AppDataTable<LocalEntry>
                 rows={weekEntries}
                 rowKey={(r) => r.id}
                 empty={t("noEntries")}
+                scrollable
+                maxHeight={420}
+                stickyHeader
+                onRowClick={(r) => {
+                  const editable = isRowEditable(r);
+                  setReadOnlyEntry(!editable);
+                  setEditing(r);
+                }}
                 columns={[
                   { key: "d", label: t("date"), render: (r) => fmtDate(r.entryDate) },
                   {
@@ -430,18 +446,33 @@ export function Dashboard() {
                     key: "e",
                     label: "",
                     render: (r) =>
-                      today &&
-                      (isAbsenceMode(r.entryMode) ||
-                        canEditDate(r.entryDate, today, { isAdmin: !!me?.isAdmin })) ? (
+                      isRowEditable(r) ? (
                         <AppButton
                           size="compact-xs"
                           variant="subtle"
                           leftSection={<PencilSimple weight="duotone" size={12} />}
-                          onClick={() => setEditing(r)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReadOnlyEntry(false);
+                            setEditing(r);
+                          }}
                         >
                           {lang === "de" ? "Bearbeiten" : "Edit"}
                         </AppButton>
-                      ) : null,
+                      ) : (
+                        <AppButton
+                          size="compact-xs"
+                          variant="subtle"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReadOnlyEntry(true);
+                            setEditing(r);
+                          }}
+                          aria-label={t("entryDetails")}
+                        >
+                          🔒
+                        </AppButton>
+                      ),
                   },
                 ]}
               />
@@ -459,9 +490,11 @@ export function Dashboard() {
           projects={projects}
           isAdmin={!!me?.isAdmin}
           userId={me?.id ?? ""}
+          readOnly={readOnlyEntry}
           onClose={() => {
             setSelected(null);
             setEditing(null);
+            setReadOnlyEntry(false);
           }}
           onSave={data.saveEntry}
           onSaveMultiple={data.saveEntries}

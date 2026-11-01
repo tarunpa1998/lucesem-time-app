@@ -11,6 +11,7 @@ import {
   AppGrid,
   AppText,
   AppBadge,
+  AppTextInput,
   AppTabs,
   AppFolderTabs,
   AppConfirmModal,
@@ -28,6 +29,7 @@ import {
   isAbsenceMode,
   validateEntry,
   canEditDate,
+  toMinutes,
   type EntryMode,
   type ValidationError,
 } from "@/domain/rules";
@@ -71,6 +73,7 @@ interface Props {
   projects: ProjectRow[];
   isAdmin: boolean;
   userId: string;
+  readOnly?: boolean;
   onClose: () => void;
   onSave: (e: Omit<LocalEntry, "id" | "createdAt" | "status"> & { id?: string }) => Promise<void>;
   onSaveMultiple?: (
@@ -87,6 +90,7 @@ export function TimeAllocationModal({
   projects,
   isAdmin,
   userId,
+  readOnly = false,
   onClose,
   onSave,
   onSaveMultiple,
@@ -357,13 +361,28 @@ export function TimeAllocationModal({
 
   const err = (k: ValidationError) => (errors.includes(k) ? t(`err.${k}` as const) : undefined);
 
+  const isReadOnly = Boolean(
+    readOnly ||
+    (!isAdmin && !editable) ||
+    (activeEntry && !isAdmin && (activeEntry.status === "approved" || activeEntry.exported)),
+  );
+
+  const matchedProject = projects.find((p) => p.id === projectId);
+  const matchedActivity = activities.find((a) => a.id === activityId);
+  const entryHours =
+    from && to ? (Math.max(0, toMinutes(to) - toMinutes(from)) / 60).toFixed(2) : "0.00";
+
   return (
     <AppModal
       opened={!!date}
       onClose={onClose}
-      title={`${activeEntry ? t("edit") : t("allocate")} · ${fmtDate(date)}`}
+      title={
+        isReadOnly && activeEntry
+          ? `${t("entryDetails")} · ${fmtDate(date)}`
+          : `${activeEntry ? t("edit") : t("allocate")} · ${fmtDate(date)}`
+      }
     >
-      {!editable ? (
+      {!editable && !activeEntry ? (
         <AppStack>
           <AppText c="var(--app-text-secondary)">
             {periodLocked ? t("periodLocked") : isFuture ? t("futureLocked") : t("retroLocked")}
@@ -381,6 +400,161 @@ export function TimeAllocationModal({
               </AppButton>
             </>
           )}
+        </AppStack>
+      ) : isReadOnly && activeEntry ? (
+        <AppStack gap="md">
+          {dayEntries.length > 1 && (
+            <AppFolderTabs
+              value={selectedEntryId ?? activeEntry.id}
+              onChange={handleSelectEntry}
+              style={{ marginBottom: 0 }}
+              items={dayEntries.map((e) => ({
+                value: e.id,
+                label: isAbsenceMode(e.entryMode) ? t(e.entryMode) : `${e.fromTime}–${e.toTime}`,
+                icon: isAbsenceMode(e.entryMode) ? (
+                  <CalendarBlank size={14} weight="duotone" />
+                ) : (
+                  <Clock size={14} weight="duotone" />
+                ),
+              }))}
+            />
+          )}
+
+          {/* Status & Lock Banner */}
+          <AppGroup
+            justify="space-between"
+            align="center"
+            p="xs"
+            style={{
+              background: "var(--app-bg-elevated)",
+              borderRadius: "var(--app-radius-md)",
+              border: "1px solid var(--app-border-subtle)",
+            }}
+          >
+            <AppGroup gap="xs">
+              <AppBadge
+                color={
+                  activeEntry.status === "approved"
+                    ? "green"
+                    : activeEntry.status === "rejected"
+                      ? "red"
+                      : "orange"
+                }
+                variant="light"
+              >
+                {activeEntry.status === "approved"
+                  ? t("approved")
+                  : activeEntry.status === "rejected"
+                    ? t("reject")
+                    : t("pendingApproval")}
+              </AppBadge>
+              {activeEntry.exported && (
+                <AppBadge color="gray" variant="light">
+                  🔒 {t("exportedLocked")}
+                </AppBadge>
+              )}
+              {periodLocked && (
+                <AppBadge color="red" variant="light">
+                  🔒 {t("periodLocked")}
+                </AppBadge>
+              )}
+              {!periodLocked && !canEditDate(date, today, { isAdmin, unlocked }) && (
+                <AppBadge color="yellow" variant="light">
+                  🔒 {t("retroLocked")}
+                </AppBadge>
+              )}
+            </AppGroup>
+            <AppBadge color="blue" variant="light">
+              {t(mode)}
+            </AppBadge>
+          </AppGroup>
+
+          {/* Details in Read-only view */}
+          {isAbsence ? (
+            <AppGrid cols={{ base: 1, sm: 2 }}>
+              <AppDateInput label={t("fromDate")} value={startDate} disabled />
+              <AppDateInput label={t("toDate")} value={endDate} disabled />
+            </AppGrid>
+          ) : (
+            <>
+              <AppGrid cols={{ base: 1, sm: 2 }}>
+                <AppDateInput label={t("date")} value={date} disabled />
+                <AppTextInput
+                  label={t("time")}
+                  value={`${from}–${to} (${entryHours} ${t("hours")})`}
+                  disabled
+                />
+              </AppGrid>
+
+              <AppGrid cols={{ base: 1, sm: 2 }}>
+                <AppTextInput
+                  label={t("project")}
+                  value={
+                    matchedProject
+                      ? `${matchedProject.name} — ${matchedProject.customer_name}`
+                      : "—"
+                  }
+                  disabled
+                />
+                {activityId && (
+                  <AppTextInput
+                    label={t("activity")}
+                    value={matchedActivity?.name ?? "—"}
+                    disabled
+                  />
+                )}
+              </AppGrid>
+            </>
+          )}
+
+          <AppTextarea
+            label={isAbsence ? t("absenceReason") : t("notes")}
+            value={notes || "—"}
+            disabled
+            minRows={2}
+          />
+
+          {/* Unlock Request option if retroLocked/periodLocked */}
+          {!isAdmin &&
+            !periodLocked &&
+            activeEntry.status !== "approved" &&
+            !activeEntry.exported &&
+            !canEditDate(date, today, { isAdmin, unlocked }) && (
+              <AppStack
+                gap="xs"
+                p="xs"
+                style={{
+                  background:
+                    "color-mix(in srgb, var(--app-brand-primary) 8%, var(--app-bg-surface))",
+                  borderRadius: "var(--app-radius-md)",
+                  border: "1px solid var(--app-border-subtle)",
+                }}
+              >
+                <AppText fz="xs" c="var(--app-text-secondary)">
+                  {t("retroLocked")}
+                </AppText>
+                <AppTextarea
+                  label={t("reason")}
+                  placeholder={t("reasonPlaceholder")}
+                  value={reason}
+                  onChange={(e) => setReason(e.currentTarget.value)}
+                />
+                <AppButton
+                  size="xs"
+                  variant="light"
+                  disabled={reason.trim().length < 5}
+                  onClick={sendUnlock}
+                >
+                  {t("requestUnlock")}
+                </AppButton>
+              </AppStack>
+            )}
+
+          <AppGroup justify="flex-end" mt="xs">
+            <AppButton variant="default" onClick={onClose}>
+              {t("close")}
+            </AppButton>
+          </AppGroup>
         </AppStack>
       ) : (
         <AppStack gap="md">

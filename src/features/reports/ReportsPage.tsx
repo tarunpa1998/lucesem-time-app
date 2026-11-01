@@ -48,7 +48,7 @@ import { reportData, markExported, type ReportRow } from "@/backend/workflow.fun
 import { AdminEntryModal } from "./AdminEntryModal";
 import { TimeAllocationModal } from "@/features/time/TimeAllocationModal";
 import { useTimeData } from "@/features/time/useTimeData";
-import { canEditDate } from "@/domain/rules";
+import { canEditDate, isAbsenceMode, type EntryMode } from "@/domain/rules";
 import type { LocalEntry } from "@/lib/offline-db";
 import { exportCsv, exportHtml, exportPdf, exportXlsx, type ExportTable } from "@/lib/exporters";
 
@@ -124,6 +124,7 @@ export function ReportsPage() {
   const [lockAfter, setLockAfter] = useState(false);
   const [editing, setEditing] = useState<ReportRow | null>(null);
   const [ownEditing, setOwnEditing] = useState<LocalEntry | null>(null);
+  const [ownReadOnly, setOwnReadOnly] = useState(false);
 
   const { data: users = [] } = useQuery({ ...usersQuery, enabled: isAdmin });
   const { data: customers = [] } = useQuery({ ...customersQuery, enabled: isAdmin });
@@ -138,7 +139,13 @@ export function ReportsPage() {
 
   const today = todayStr();
   const canUserEdit = (r: ReportRow) =>
-    !r.exported && r.user_id === me?.id && canEditDate(r.entry_date, today, { isAdmin: false });
+    !r.exported &&
+    r.status !== "approved" &&
+    r.user_id === me?.id &&
+    canEditDate(r.entry_date, today, {
+      isAdmin: false,
+      isAbsence: isAbsenceMode(r.entry_mode as EntryMode),
+    });
 
   const toLocal = (r: ReportRow): LocalEntry => ({
     id: r.id,
@@ -151,6 +158,7 @@ export function ReportsPage() {
     status: r.status as LocalEntry["status"],
     createdAt: Date.now(),
     activityId: timeData.entries.find((e) => e.id === r.id)?.activityId ?? null,
+    exported: r.exported,
   });
 
   const filter = { from, to, userId, customerId, projectId };
@@ -743,6 +751,17 @@ export function ReportsPage() {
           minWidth={780}
           maxHeight={520}
           stickyHeader
+          onRowClick={(r) => {
+            if (isAdmin) {
+              setEditing(r);
+            } else if (canUserEdit(r)) {
+              setOwnEditing(toLocal(r));
+              setOwnReadOnly(false);
+            } else {
+              setOwnEditing(toLocal(r));
+              setOwnReadOnly(true);
+            }
+          }}
           columns={[
             {
               key: "date",
@@ -795,7 +814,7 @@ export function ReportsPage() {
             },
             {
               key: "hours",
-              label: "h",
+              label: t("hoursColumn"),
               sortable: true,
               render: (r) => (
                 <AppMono size="13px" fw={700}>
@@ -837,7 +856,14 @@ export function ReportsPage() {
                     key: "actions",
                     label: "",
                     render: (r: ReportRow) => (
-                      <AppButton size="compact-xs" variant="default" onClick={() => setEditing(r)}>
+                      <AppButton
+                        size="compact-xs"
+                        variant="default"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditing(r);
+                        }}
+                      >
                         {t("edit")}
                       </AppButton>
                     ),
@@ -852,14 +878,27 @@ export function ReportsPage() {
                         <AppButton
                           size="compact-xs"
                           variant="default"
-                          onClick={() => setOwnEditing(toLocal(r))}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOwnEditing(toLocal(r));
+                            setOwnReadOnly(false);
+                          }}
                         >
                           {t("edit")}
                         </AppButton>
                       ) : (
-                        <AppText size="xs" c="dimmed" title={t("locked")}>
+                        <AppButton
+                          size="compact-xs"
+                          variant="subtle"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOwnEditing(toLocal(r));
+                            setOwnReadOnly(true);
+                          }}
+                          aria-label={t("entryDetails")}
+                        >
                           🔒
-                        </AppText>
+                        </AppButton>
                       ),
                   },
                 ]),
@@ -876,6 +915,7 @@ export function ReportsPage() {
           projects={projects}
           isAdmin={false}
           userId={me?.id ?? ""}
+          readOnly={ownReadOnly}
           onClose={() => setOwnEditing(null)}
           onSave={async (e) => {
             await timeData.saveEntry(e);

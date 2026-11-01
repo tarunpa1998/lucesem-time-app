@@ -30,6 +30,7 @@ export function AppDataTable<T>({
   maxHeight,
   scrollable = false,
   stickyHeader = false,
+  onRowClick,
 }: {
   rows: T[];
   columns: Column<T>[];
@@ -41,6 +42,7 @@ export function AppDataTable<T>({
   maxHeight?: number | string;
   scrollable?: boolean;
   stickyHeader?: boolean;
+  onRowClick?: (row: T) => void;
 }) {
   const mobile = useMediaQuery(`(max-width: ${CENTRAL_DESIGN_TOKENS.breakpointMobile}px)`);
 
@@ -59,11 +61,13 @@ export function AppDataTable<T>({
           <Paper
             key={rowKey(r)}
             p="sm"
+            onClick={() => onRowClick?.(r)}
             style={{
               background: "var(--app-bg-elevated)",
               border: "1px solid var(--app-border-subtle)",
               borderRadius: "var(--app-radius-md)",
               boxShadow: "var(--app-shadow-card)",
+              cursor: onRowClick ? "pointer" : undefined,
             }}
           >
             {columns.map((c) => (
@@ -106,15 +110,23 @@ export function AppDataTable<T>({
         stickyHeader={isSticky}
         stickyHeaderOffset={0}
         verticalSpacing="sm"
+        style={{
+          borderCollapse: "separate",
+          borderSpacing: 0,
+        }}
         styles={{
           th: {
             color: "var(--app-text-secondary)",
             fontWeight: 600,
             fontSize: 13,
-            background: "var(--app-bg-surface)",
+            background: "transparent",
+            backdropFilter: isSticky ? "blur(12px)" : undefined,
+            WebkitBackdropFilter: isSticky ? "blur(12px)" : undefined,
             borderBottom: "1px solid var(--app-border-subtle)",
             whiteSpace: "nowrap",
-            zIndex: 1,
+            zIndex: 5,
+            position: isSticky ? "sticky" : undefined,
+            top: isSticky ? 0 : undefined,
           },
           td: {
             color: "var(--app-text-primary)",
@@ -123,7 +135,18 @@ export function AppDataTable<T>({
           },
         }}
       >
-        <Table.Thead>
+        <Table.Thead
+          style={
+            isSticky
+              ? {
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 5,
+                  background: "transparent",
+                }
+              : undefined
+          }
+        >
           <Table.Tr>
             {columns.map((c) => {
               const isSorted = sortState?.key === c.key;
@@ -135,6 +158,10 @@ export function AppDataTable<T>({
                   style={{
                     width: c.width,
                     textAlign: c.align ?? "left",
+                    background: "transparent",
+                    position: isSticky ? "sticky" : undefined,
+                    top: isSticky ? 0 : undefined,
+                    zIndex: isSticky ? 5 : undefined,
                   }}
                 >
                   {isSortable ? (
@@ -175,7 +202,13 @@ export function AppDataTable<T>({
         </Table.Thead>
         <Table.Tbody>
           {rows.map((r) => (
-            <Table.Tr key={rowKey(r)}>
+            <Table.Tr
+              key={rowKey(r)}
+              onClick={() => onRowClick?.(r)}
+              style={{
+                cursor: onRowClick ? "pointer" : undefined,
+              }}
+            >
               {columns.map((c) => (
                 <Table.Td
                   key={c.key}
