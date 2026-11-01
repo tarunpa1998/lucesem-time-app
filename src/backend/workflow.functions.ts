@@ -57,11 +57,17 @@ export const approvalQueue = createServerFn({ method: "GET" }).handler(async () 
   const { requireAdmin } = await import("./auth.server");
   await requireAdmin();
   const entries = await sql()<PendingEntry[]>`
-    select e.id, u.display_name user_name, p.name project_name, c.name customer_name,
+    select e.id, u.display_name user_name,
+      coalesce(p.name, case 
+        when e.entry_mode = 'Vacation_Urlaub' then 'Urlaub'
+        when e.entry_mode = 'SickLeave_Krankenstand' then 'Krankenstand'
+        when e.entry_mode = 'Compensatory_Zeitausgleich' then 'Zeitausgleich'
+        else e.entry_mode end) project_name,
+      coalesce(c.name, '—') customer_name,
       to_char(e.entry_date,'YYYY-MM-DD') entry_date, to_char(e.from_time,'HH24:MI') from_time,
       to_char(e.to_time,'HH24:MI') to_time, e.work_notes
     from time_entries e join app_users u on u.id = e.user_id
-    join projects p on p.id = e.project_id join customers c on c.id = p.customer_id
+    left join projects p on p.id = e.project_id left join customers c on c.id = p.customer_id
     where e.status = 'pending' order by e.entry_date, u.display_name limit 500`;
   const unlocks = await sql()<UnlockRow[]>`
     select r.id, u.display_name user_name, to_char(r.entry_date,'YYYY-MM-DD') entry_date, r.reason,
@@ -219,9 +225,9 @@ export interface ReportRow {
   id: string;
   user_id: string;
   user_name: string;
-  customer_id: string;
+  customer_id: string | null;
   customer_name: string;
-  project_id: string;
+  project_id: string | null;
   project_name: string;
   hourly_rate: number | null;
   entry_date: string;
@@ -256,14 +262,20 @@ export const reportData = createServerFn({ method: "POST" })
         hourly_rate: string | null;
       })[]
     >`
-      select e.id, e.user_id, us.display_name user_name, c.id customer_id, c.name customer_name,
-        p.id project_id, p.name project_name, p.hourly_rate,
+      select e.id, e.user_id, us.display_name user_name, c.id customer_id, coalesce(c.name, '—') customer_name,
+        p.id project_id,
+        coalesce(p.name, case 
+          when e.entry_mode = 'Vacation_Urlaub' then 'Urlaub'
+          when e.entry_mode = 'SickLeave_Krankenstand' then 'Krankenstand'
+          when e.entry_mode = 'Compensatory_Zeitausgleich' then 'Zeitausgleich'
+          else e.entry_mode end) project_name,
+        p.hourly_rate,
         to_char(e.entry_date,'YYYY-MM-DD') entry_date, to_char(e.from_time,'HH24:MI') from_time,
         to_char(e.to_time,'HH24:MI') to_time,
         round(extract(epoch from (e.to_time - e.from_time)) / 3600.0, 2) hours,
         e.entry_mode, e.work_notes, e.status, e.exported_at is not null exported
       from time_entries e join app_users us on us.id = e.user_id
-      join projects p on p.id = e.project_id join customers c on c.id = p.customer_id
+      left join projects p on p.id = e.project_id left join customers c on c.id = p.customer_id
       where e.entry_date between ${data.from} and ${data.to}
         and (${userId}::uuid is null or e.user_id = ${userId})
         and (${data.customerId ?? null}::uuid is null or c.id = ${data.customerId ?? null})
@@ -407,7 +419,7 @@ export const adminSaveEntry = createServerFn({ method: "POST" })
         entryDate: ymd,
         fromTime: z.string().regex(/^\d{2}:\d{2}$/),
         toTime: z.string().regex(/^\d{2}:\d{2}$/),
-        projectId: z.string().uuid(),
+        projectId: z.string().uuid().nullable().optional(),
         workNotes: z.string().max(2000),
         status: z.enum(["pending", "approved", "rejected"]),
       })
@@ -421,7 +433,7 @@ export const adminSaveEntry = createServerFn({ method: "POST" })
     const a = await requireAdmin();
     const [r] = await sql()<{ user_id: string }[]>`
       update time_entries set entry_date = ${data.entryDate}, from_time = ${data.fromTime},
-        to_time = ${data.toTime}, project_id = ${data.projectId}, work_notes = ${data.workNotes},
+        to_time = ${data.toTime}, project_id = ${data.projectId ?? null}, work_notes = ${data.workNotes},
         status = ${data.status}, decided_by = ${a.id}, updated_at = now()
       where id = ${data.id} returning user_id`;
     if (!r) throw new Error("NOT_FOUND");

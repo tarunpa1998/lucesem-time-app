@@ -11,9 +11,12 @@ import {
   AppTimePicker,
   AppGrid,
   AppAlert,
+  AppBadge,
+  AppText,
   notify,
 } from "@/components/core";
 import { useI18n } from "@/lib/i18n";
+import { isAbsenceMode, type EntryMode } from "@/domain/rules";
 import type { ProjectRow } from "@/lib/session";
 import { adminSaveEntry, adminDeleteEntry, type ReportRow } from "@/backend/workflow.functions";
 
@@ -38,6 +41,8 @@ export function AdminEntryModal({
   }, [row]);
   if (!f) return null;
 
+  const isAbsence = isAbsenceMode(f.entry_mode as EntryMode);
+
   const save = async () => {
     try {
       await adminSaveEntry({
@@ -46,7 +51,7 @@ export function AdminEntryModal({
           entryDate: f.entry_date,
           fromTime: f.from_time,
           toTime: f.to_time,
-          projectId: f.project_id,
+          projectId: isAbsence ? null : f.project_id,
           workNotes: f.work_notes,
           status: f.status as "pending" | "approved" | "rejected",
         },
@@ -76,14 +81,25 @@ export function AdminEntryModal({
           value={f.entry_date}
           onChange={(val) => setF({ ...f, entry_date: val })}
         />
-        <AppSelect
-          label={t("project")}
-          placeholder={t("selectProject")}
-          value={f.project_id}
-          allowDeselect={false}
-          onChange={(v) => v && setF({ ...f, project_id: v })}
-          data={projects.map((p) => ({ value: p.id, label: `${p.name} — ${p.customer_name}` }))}
-        />
+        {isAbsence ? (
+          <AppStack gap={4}>
+            <AppText fz="xs" fw={500} c="var(--app-text-secondary)">
+              {t("mode")}
+            </AppText>
+            <AppBadge color="blue" size="md">
+              {t(f.entry_mode as EntryMode)}
+            </AppBadge>
+          </AppStack>
+        ) : (
+          <AppSelect
+            label={t("project")}
+            placeholder={t("selectProject")}
+            value={f.project_id}
+            allowDeselect={false}
+            onChange={(v) => v && setF({ ...f, project_id: v })}
+            data={projects.map((p) => ({ value: p.id, label: `${p.name} — ${p.customer_name}` }))}
+          />
+        )}
         <AppGrid cols={{ base: 2 }}>
           <AppTimePicker
             label={t("from")}

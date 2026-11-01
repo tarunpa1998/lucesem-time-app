@@ -13,7 +13,7 @@ export interface LocalEntry {
   entryDate: string;
   fromTime: string;
   toTime: string;
-  projectId: string;
+  projectId: string | null;
   workNotes: string;
   entryMode: EntryMode;
   status: "pending" | "approved" | "rejected";

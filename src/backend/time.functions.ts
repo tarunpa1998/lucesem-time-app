@@ -6,7 +6,7 @@ const entrySchema = z.object({
   entryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   fromTime: z.string().regex(/^\d{2}:\d{2}$/),
   toTime: z.string().regex(/^\d{2}:\d{2}$/),
-  projectId: z.string().uuid(),
+  projectId: z.string().uuid().nullable().optional(),
   workNotes: z.string().max(2000).default(""),
   entryMode: z.string().max(40).default("CustomHours"),
   activityId: z.string().uuid().nullable().optional(),
@@ -17,7 +17,7 @@ export interface ServerEntry {
   entryDate: string;
   fromTime: string;
   toTime: string;
-  projectId: string;
+  projectId: string | null;
   workNotes: string;
   entryMode: string;
   status: "pending" | "approved";
@@ -99,32 +99,43 @@ export const syncEntries = createServerFn({ method: "POST" })
         rejected.push({ id: e.id, reason: verdict });
         continue;
       }
-      const [p] = await sql()<{ approval_state: string }[]>`
-        select p.approval_state from projects p join customers c on c.id = p.customer_id
-        where p.id = ${e.projectId} and (${u.isAdmin} or (p.approval_state <> 'Rejected' and (
-          p.created_by = ${u.id}
-          or exists (select 1 from project_users pu where pu.project_id = p.id and pu.user_id = ${u.id})
-          or exists (select 1 from project_teams pt join team_members tm on tm.team_id = pt.team_id
-                     where pt.project_id = p.id and tm.user_id = ${u.id})
-          or exists (select 1 from customer_teams ct join team_members tm on tm.team_id = ct.team_id
-                     where ct.customer_id = c.id and tm.user_id = ${u.id}))))`;
-      if (!p) {
-        rejected.push({ id: e.id, reason: "project" });
-        continue;
-      }
-      // Vacation and sick leave always need admin approval (admins approve their own).
       const isAbsence = [
         "Vacation_Urlaub",
         "SickLeave_Krankenstand",
         "Compensatory_Zeitausgleich",
       ].includes(e.entryMode);
+
+      let p: { approval_state: string } | undefined = undefined;
+      if (e.projectId) {
+        const [found] = await sql()<{ approval_state: string }[]>`
+          select p.approval_state from projects p join customers c on c.id = p.customer_id
+          where p.id = ${e.projectId} and (${u.isAdmin} or (p.approval_state <> 'Rejected' and (
+            p.created_by = ${u.id}
+            or exists (select 1 from project_users pu where pu.project_id = p.id and pu.user_id = ${u.id})
+            or exists (select 1 from project_teams pt join team_members tm on tm.team_id = pt.team_id
+                       where pt.project_id = p.id and tm.user_id = ${u.id})
+            or exists (select 1 from customer_teams ct join team_members tm on tm.team_id = ct.team_id
+                       where ct.customer_id = c.id and tm.user_id = ${u.id}))))`;
+        p = found;
+        if (!p) {
+          rejected.push({ id: e.id, reason: "project" });
+          continue;
+        }
+      } else if (!isAbsence) {
+        rejected.push({ id: e.id, reason: "project" });
+        continue;
+      }
+
+      // Vacation, sick leave, and comp time always need admin approval (admins approve their own).
       const status =
-        (!u.isAdmin && isAbsence) || u.requiresTimesheetApproval || p.approval_state !== "Approved"
+        (!u.isAdmin && isAbsence) ||
+        u.requiresTimesheetApproval ||
+        (p && p.approval_state !== "Approved")
           ? "pending"
           : "approved";
       const r = await sql()`
         insert into time_entries (id, user_id, project_id, entry_date, from_time, to_time, work_notes, entry_mode, status, activity_id)
-        values (${e.id}, ${u.id}, ${e.projectId}, ${e.entryDate}, ${e.fromTime}, ${e.toTime}, ${e.workNotes}, ${e.entryMode}, ${status}, ${e.activityId ?? null})
+        values (${e.id}, ${u.id}, ${e.projectId ?? null}, ${e.entryDate}, ${e.fromTime}, ${e.toTime}, ${e.workNotes}, ${e.entryMode}, ${status}, ${e.activityId ?? null})
         on conflict (id) do update set project_id = excluded.project_id, entry_date = excluded.entry_date,
           from_time = excluded.from_time, to_time = excluded.to_time, work_notes = excluded.work_notes,
           entry_mode = excluded.entry_mode, status = excluded.status, activity_id = excluded.activity_id, updated_at = now()
@@ -135,7 +146,10 @@ export const syncEntries = createServerFn({ method: "POST" })
       } else rejected.push({ id: e.id, reason: "forbidden" });
     }
     const { checkBudgets } = await import("./workflow.server");
-    await checkBudgets(data.entries.filter((e) => saved.includes(e.id)).map((e) => e.projectId));
+    const projectIdsWithEntries = data.entries
+      .filter((e) => e.projectId && saved.includes(e.id))
+      .map((e) => e.projectId as string);
+    await checkBudgets(projectIdsWithEntries);
     if (pendingCount)
       await notifyAdmins(
         "entry.pending",

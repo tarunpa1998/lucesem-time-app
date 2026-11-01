@@ -4,6 +4,14 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+if (!process.env.DATABASE_URL && typeof process.loadEnvFile === "function") {
+  try {
+    process.loadEnvFile();
+  } catch {
+    // Ignore if .env not present
+  }
+}
+
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL missing");
 const sql = postgres(url, { ssl: "require", max: 1, onnotice: () => {} });

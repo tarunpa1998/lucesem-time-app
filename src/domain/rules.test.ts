@@ -31,10 +31,36 @@ describe("entry validation", () => {
     ).toContain("overlap"));
   it("rejects notes under 5 chars", () =>
     expect(validateEntry({ ...base, workNotes: "abc" }, [], "2026-10-29")).toContain("notes"));
-  it("rejects to before from", () =>
-    expect(validateEntry({ ...base, toTime: "07:00" }, [], "2026-10-29")).toContain(
-      "toBeforeFrom",
-    ));
+  it("rejects missing projectId for regular work", () =>
+    expect(validateEntry({ ...base, projectId: "" }, [], "2026-10-29")).toContain("project"));
+  it("allows vacation without projectId", () =>
+    expect(
+      validateEntry(
+        {
+          entryDate: "2026-10-29",
+          fromTime: "08:00",
+          toTime: "16:00",
+          workNotes: "Urlaub",
+          entryMode: "Vacation_Urlaub",
+        },
+        [],
+        "2026-10-29",
+      ),
+    ).not.toContain("project"));
+  it("allows sick leave without projectId", () =>
+    expect(
+      validateEntry(
+        {
+          entryDate: "2026-10-29",
+          fromTime: "08:00",
+          toTime: "16:00",
+          workNotes: "Krankenstand",
+          entryMode: "SickLeave_Krankenstand",
+        },
+        [],
+        "2026-10-29",
+      ),
+    ).not.toContain("project"));
 });
 
 describe("target distribution", () => {

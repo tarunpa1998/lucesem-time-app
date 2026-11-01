@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { notify } from "@/components/core";
 import { db, uid, type ActiveTimer, type LocalEntry } from "@/lib/offline-db";
 import { ymd } from "@/domain/holidays";
-import { elapsedSeconds } from "@/domain/rules";
+import { elapsedSeconds, isAbsenceMode, type EntryMode } from "@/domain/rules";
 import { listMyEntries, syncEntries, reportTimer } from "@/backend/time.functions";
 
 const hhmm = (d: Date) =>
@@ -17,6 +17,7 @@ export interface TimeCtx {
   userId: string;
   isPendingProject: (id: string) => boolean;
   requiresApproval: boolean;
+  isAdmin?: boolean;
 }
 
 export function useTimeData(ctx: TimeCtx) {
@@ -98,8 +99,13 @@ export function useTimeData(ctx: TimeCtx) {
     };
   }, [reload, sync]);
 
-  const statusFor = (projectId: string): LocalEntry["status"] =>
-    ctx.requiresApproval || ctx.isPendingProject(projectId) ? "pending" : "approved";
+  const statusFor = (projectId?: string | null, entryMode?: EntryMode): LocalEntry["status"] => {
+    if (entryMode && isAbsenceMode(entryMode)) {
+      return ctx.isAdmin ? "approved" : "pending";
+    }
+    if (!projectId) return "approved";
+    return ctx.requiresApproval || ctx.isPendingProject(projectId) ? "pending" : "approved";
+  };
 
   const startTimer = async (projectId: string, workNotes: string) => {
     const t: ActiveTimer = {
@@ -134,7 +140,7 @@ export function useTimeData(ctx: TimeCtx) {
       projectId: timer.projectId,
       workNotes: workNotes || timer.workNotes,
       entryMode: "CustomHours",
-      status: statusFor(timer.projectId),
+      status: statusFor(timer.projectId, "CustomHours"),
       createdAt: Date.now(),
     };
     await db().entries.put(entry);
@@ -157,7 +163,7 @@ export function useTimeData(ctx: TimeCtx) {
       ...e,
       id: e.id ?? uid(),
       createdAt: Date.now(),
-      status: statusFor(e.projectId),
+      status: statusFor(e.projectId, e.entryMode),
     };
     await db().entries.put(entry);
     await db().syncOutbox.add({

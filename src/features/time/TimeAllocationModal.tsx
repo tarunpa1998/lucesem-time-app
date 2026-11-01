@@ -19,6 +19,7 @@ import { isPeriodLocked } from "@/domain/locks";
 import { notify } from "@/components/core";
 import {
   ENTRY_MODES,
+  isAbsenceMode,
   validateEntry,
   canEditDate,
   type EntryMode,
@@ -77,6 +78,8 @@ export function TimeAllocationModal({
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<ValidationError[]>([]);
 
+  const isAbsence = isAbsenceMode(mode);
+
   useEffect(() => {
     setErrors([]);
     setNotes("");
@@ -85,7 +88,7 @@ export function TimeAllocationModal({
       setMode(entry.entryMode);
       setFrom(entry.fromTime);
       setTo(entry.toTime);
-      setProjectId(entry.projectId);
+      setProjectId(entry.projectId ?? null);
       setNotes(entry.workNotes);
       setActivityId(entry.activityId ?? null);
       return;
@@ -93,6 +96,8 @@ export function TimeAllocationModal({
     setMode("CustomHours");
     setFrom(nowHHMM());
     setTo("");
+    setProjectId(null);
+    setActivityId(null);
   }, [date, entry]);
 
   if (!date) return null;
@@ -108,6 +113,7 @@ export function TimeAllocationModal({
     onClose();
   };
   const pending =
+    projectId &&
     projects.find((p) => p.id === projectId)?.approval_state === "Pending_Admin_Review";
 
   const pickMode = (m: EntryMode) => {
@@ -117,6 +123,20 @@ export function TimeAllocationModal({
       setFrom(p[0]);
       setTo(p[1]);
     }
+    if (isAbsenceMode(m)) {
+      setProjectId(null);
+      setActivityId(null);
+      if (!notes || notes.trim() === "") {
+        setNotes(t(m));
+      }
+    }
+  };
+
+  const getNotesPlaceholder = () => {
+    if (mode === "Vacation_Urlaub") return t("vacationPlaceholder");
+    if (mode === "SickLeave_Krankenstand") return t("sickPlaceholder");
+    if (mode === "Compensatory_Zeitausgleich") return t("compPlaceholder");
+    return t("whatWorking");
   };
 
   const submit = async () => {
@@ -125,10 +145,10 @@ export function TimeAllocationModal({
       entryDate: date,
       fromTime: from,
       toTime: to,
-      projectId: projectId ?? "",
-      workNotes: notes,
+      projectId: isAbsence ? null : (projectId ?? ""),
+      workNotes: notes.trim() || (isAbsence ? t(mode) : ""),
       entryMode: mode,
-      activityId,
+      activityId: isAbsence ? null : activityId,
     };
     const errs = validateEntry(draft, existing, today, { isAdmin, unlocked, nowTime: nowHHMM() });
     setErrors(errs);
@@ -161,7 +181,7 @@ export function TimeAllocationModal({
           )}
         </AppStack>
       ) : (
-        <AppStack>
+        <AppStack gap="md">
           <AppSelect
             label={t("mode")}
             placeholder={t("selectMode")}
@@ -170,25 +190,53 @@ export function TimeAllocationModal({
             data={ENTRY_MODES.map((m) => ({ value: m, label: t(m) }))}
             allowDeselect={false}
           />
-          <AppSelect
-            label={t("project")}
-            placeholder={t("selectProject")}
-            value={projectId}
-            onChange={setProjectId}
-            error={err("project")}
-            data={projects.map((p) => ({ value: p.id, label: `${p.name} — ${p.customer_name}` }))}
-          />
-          <AppSelect
-            label={t("activity")}
-            placeholder={t("selectActivity")}
-            clearable
-            value={activityId}
-            onChange={setActivityId}
-            data={activities
-              .filter((a) => a.is_active && (!a.project_id || a.project_id === projectId))
-              .map((a) => ({ value: a.id, label: a.name }))}
-          />
-          {pending && <AppBadge color="orange">{t("pendingApproval")}</AppBadge>}
+
+          {isAbsence ? (
+            <AppGroup
+              gap="xs"
+              p="xs"
+              style={{
+                background:
+                  "color-mix(in srgb, var(--app-brand-primary) 8%, var(--app-bg-surface))",
+                borderRadius: "var(--app-radius-md)",
+                border: "1px solid color-mix(in srgb, var(--app-brand-primary) 20%, transparent)",
+              }}
+            >
+              <AppBadge color="blue" size="sm">
+                {t(mode)}
+              </AppBadge>
+              <AppText fz="xs" c="var(--app-text-secondary)" style={{ flex: 1 }}>
+                {t("absenceNotice")}
+              </AppText>
+            </AppGroup>
+          ) : (
+            <>
+              <AppSelect
+                label={t("project")}
+                placeholder={t("selectProject")}
+                required
+                value={projectId}
+                onChange={setProjectId}
+                error={err("project")}
+                data={projects.map((p) => ({
+                  value: p.id,
+                  label: `${p.name} — ${p.customer_name}`,
+                }))}
+              />
+              <AppSelect
+                label={t("activity")}
+                placeholder={t("selectActivity")}
+                clearable
+                value={activityId}
+                onChange={setActivityId}
+                data={activities
+                  .filter((a) => a.is_active && (!a.project_id || a.project_id === projectId))
+                  .map((a) => ({ value: a.id, label: a.name }))}
+              />
+              {pending && <AppBadge color="orange">{t("pendingApproval")}</AppBadge>}
+            </>
+          )}
+
           <AppGrid cols={{ base: 2 }}>
             <AppTimePicker
               label={t("from")}
@@ -212,15 +260,17 @@ export function TimeAllocationModal({
               }
             />
           </AppGrid>
+
           <AppTextarea
-            label={t("notes")}
-            placeholder={t("whatWorking")}
+            label={isAbsence ? t("absenceReason") : t("notes")}
+            placeholder={getNotesPlaceholder()}
             required
             value={notes}
             onChange={(e) => setNotes(e.currentTarget.value)}
             error={err("notes")}
           />
-          <AppGroup justify="flex-end">
+
+          <AppGroup justify="flex-end" mt="xs">
             <AppButton variant="default" onClick={onClose}>
               {t("cancel")}
             </AppButton>

@@ -54,10 +54,19 @@ export function overlaps(a: Interval, b: Interval) {
   return toMinutes(a.fromTime) < toMinutes(b.toTime) && toMinutes(b.fromTime) < toMinutes(a.toTime);
 }
 
+export const ABSENCE_MODES: EntryMode[] = [
+  "Vacation_Urlaub",
+  "SickLeave_Krankenstand",
+  "Compensatory_Zeitausgleich",
+];
+
+export const isAbsenceMode = (mode: EntryMode) => ABSENCE_MODES.includes(mode);
+
 export interface EntryDraft extends Interval {
-  projectId: string;
+  projectId?: string | null;
   workNotes: string;
   entryMode: EntryMode;
+  activityId?: string | null;
 }
 export type ValidationError =
   "date" | "time" | "toBeforeFrom" | "project" | "notes" | "overlap" | "retro" | "future";
@@ -72,8 +81,11 @@ export function validateEntry(
   if (!/^\d{4}-\d{2}-\d{2}$/.test(e.entryDate)) errs.push("date");
   if (!/^\d{2}:\d{2}$/.test(e.fromTime) || !/^\d{2}:\d{2}$/.test(e.toTime)) errs.push("time");
   else if (toMinutes(e.toTime) <= toMinutes(e.fromTime)) errs.push("toBeforeFrom");
-  if (!e.projectId) errs.push("project");
-  if (e.workNotes.trim().length < MIN_NOTES_LENGTH) errs.push("notes");
+  // Projects are strictly required for work modes, but omitted for absences (Vacation, Sick Leave, ZA)
+  if (!isAbsenceMode(e.entryMode) && !e.projectId) errs.push("project");
+  // Work notes: minimum 5 characters for work; minimum 3 characters for absences if provided
+  const minNotes = isAbsenceMode(e.entryMode) ? 3 : MIN_NOTES_LENGTH;
+  if (e.workNotes.trim().length < minNotes) errs.push("notes");
   if (
     !errs.includes("time") &&
     !errs.includes("toBeforeFrom") &&

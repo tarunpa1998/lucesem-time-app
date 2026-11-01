@@ -48,6 +48,7 @@ export function Dashboard() {
   const data = useTimeData({
     userId: me?.id ?? "anon",
     requiresApproval: !!me?.requiresTimesheetApproval,
+    isAdmin: !!me?.isAdmin,
     isPendingProject: (id) =>
       projects.find((p) => p.id === id)?.approval_state === "Pending_Admin_Review",
   });
@@ -360,7 +361,11 @@ export function Dashboard() {
                       </AppMono>
                     ),
                   },
-                  { key: "p", label: t("project"), render: (r) => project(r.projectId)?.name },
+                  {
+                    key: "p",
+                    label: t("project"),
+                    render: (r) => (r.projectId ? project(r.projectId)?.name : t(r.entryMode)),
+                  },
                   {
                     key: "s",
                     label: t("status"),

@@ -263,6 +263,12 @@ const dict = {
     calLoggedThisMonth: "Diesen Monat erfasst",
     reasonPlaceholder: "Grund für Freischaltung angeben...",
     projectName: "Projektname...",
+    absenceReason: "Notiz / Abwesenheitsgrund",
+    vacationPlaceholder: "z.B. Urlaub, Sommerurlaub, Familienurlaub...",
+    sickPlaceholder: "z.B. Krankenstand, Arztbesuch, Grippe...",
+    compPlaceholder: "z.B. Zeitausgleich, Überstundenabbau...",
+    absenceNotice:
+      "Urlaub und Abwesenheiten erfordern keine Projektzuordnung und werden vom Admin freigegeben.",
   },
   en: {
     activity: "Activity",
@@ -519,6 +525,12 @@ const dict = {
     calLoggedThisMonth: "Logged this month",
     reasonPlaceholder: "Provide a reason for unlock...",
     projectName: "Project name...",
+    absenceReason: "Notes / Absence Reason",
+    vacationPlaceholder: "e.g. Vacation, summer holiday, family trip...",
+    sickPlaceholder: "e.g. Sick leave, doctor visit, medical rest...",
+    compPlaceholder: "e.g. Compensatory time off in lieu...",
+    absenceNotice:
+      "Vacation and absences do not require a project assignment and are reviewed by an admin.",
   },
 } as const;
 
