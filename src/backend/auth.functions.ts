@@ -81,9 +81,10 @@ export const setMyLanguage = createServerFn({ method: "POST" })
   .validator((d: unknown) => z.object({ language: z.enum(["de", "en"]) }).parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
-    const { requireUser } = await import("./auth.server");
+    const { requireUser, invalidateSessionCache } = await import("./auth.server");
     const u = await requireUser();
     await sql()`update app_users set language = ${data.language} where id = ${u.id}`;
+    invalidateSessionCache(u.id);
     return { ok: true };
   });
 
@@ -116,7 +117,7 @@ export const updateMyProfile = createServerFn({ method: "POST" })
   .validator((d: unknown) => profileSchema.parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
-    const { requireUser, audit } = await import("./auth.server");
+    const { requireUser, audit, invalidateSessionCache } = await import("./auth.server");
     const u = await requireUser();
     await sql()`
       update app_users
@@ -126,6 +127,7 @@ export const updateMyProfile = createServerFn({ method: "POST" })
           avatar_url = ${data.avatarUrl}
       where id = ${u.id}
     `;
+    invalidateSessionCache(u.id);
     await audit(u.id, "update_profile", "user", u.id, {
       displayName: data.displayName,
       phone: data.phone,

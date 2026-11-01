@@ -283,7 +283,8 @@ export const saveUser = createServerFn({ method: "POST" })
   .validator((d: unknown) => userSchema.parse(d))
   .handler(async ({ data }) => {
     const { sql } = await import("./db.server");
-    const { requireAdmin, hashPassword, audit } = await import("./auth.server");
+    const { requireAdmin, hashPassword, audit, invalidateSessionCache } =
+      await import("./auth.server");
     const a = await requireAdmin();
     if (!data.id && !data.password) throw new Error("PASSWORD_REQUIRED");
     const hash = data.password ? await hashPassword(data.password) : null;
@@ -316,6 +317,7 @@ export const saveUser = createServerFn({ method: "POST" })
       await tx`insert into user_roles values (${uid}, ${data.role})`;
       return uid;
     });
+    invalidateSessionCache(id);
     await audit(a.id, data.id ? "update" : "create", "user", id, { email: data.email });
     return { id };
   });
