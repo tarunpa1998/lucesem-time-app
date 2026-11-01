@@ -1120,6 +1120,52 @@ textarea:focus,
   margin: 0 !important;
 }
 
+/* Reports Quick Ranges Filter Bar */
+.reports-quick-ranges-bar {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.reports-quick-ranges-bar .app-folder-tabs-list {
+  justify-content: center !important;
+}
+
+.reports-quick-ranges-bar .reports-clear-filters-btn {
+  position: absolute !important;
+  right: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  flex-shrink: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .reports-quick-ranges-bar {
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: center !important;
+  }
+  .reports-quick-ranges-bar .app-folder-tabs-list {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    row-gap: 16px !important;
+    width: 100% !important;
+    overflow-x: visible !important;
+    padding: 3px 4px 14px 4px !important;
+  }
+  .reports-quick-ranges-bar .app-folder-tab {
+    flex: 0 1 auto !important;
+  }
+  .reports-quick-ranges-bar .reports-clear-filters-btn {
+    position: static !important;
+    transform: none !important;
+    margin-top: 2px !important;
+  }
+}
+
 /* Dashed Add / New tab */
 .app-folder-tab.is-add {
   border: 1px dashed var(--app-border-subtle) !important;

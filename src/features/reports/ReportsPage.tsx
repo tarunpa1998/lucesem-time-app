@@ -32,7 +32,6 @@ import {
   AppDataTable,
   AppIconButton,
   AppTooltip,
-  AppSegmented,
   AppFolderTabs,
   AppBox,
   AppMenu,
@@ -404,61 +403,35 @@ export function ReportsPage() {
       {/* Top Filter Section */}
       <AppCard>
         <AppStack gap="sm">
-          {/* Quick Date Range Pills with Horizontal Scroll on Mobile */}
-          <AppGroup justify="space-between" align="center" wrap="nowrap" gap="xs">
-            <AppBox
-              style={{
-                flex: 1,
-                minWidth: 0,
-                overflowX: "auto",
-                WebkitOverflowScrolling: "touch",
-                scrollbarWidth: "none",
-              }}
-            >
-              <div className="app-folder-tabs-row" style={{ marginBottom: 0 }}>
-                <AppGroup gap="xs" wrap="nowrap" align="center" style={{ width: "100%" }}>
-                  <AppText
-                    fz="xs"
-                    fw={700}
-                    c="var(--app-text-secondary)"
-                    tt="uppercase"
-                    style={{ flexShrink: 0 }}
-                  >
-                    {t("quickRanges")}:
-                  </AppText>
-                  <AppFolderTabs
-                    compact
-                    value={activeRange ?? ""}
-                    onChange={(v) =>
-                      handleQuickRange(
-                        v as "thisMonth" | "lastMonth" | "thisWeek" | "today" | "allYear",
-                      )
-                    }
-                    items={[
-                      { value: "thisMonth", label: t("thisMonth") },
-                      { value: "lastMonth", label: t("lastMonth") },
-                      { value: "thisWeek", label: t("thisWeek") },
-                      { value: "today", label: t("today") },
-                      { value: "allYear", label: t("allYear") },
-                    ]}
-                  />
-                </AppGroup>
-              </div>
-            </AppBox>
-
+          {/* Quick Date Range Filters - Centered on desktop, cleanly wrapped on mobile */}
+          <div className="reports-quick-ranges-bar">
+            <AppFolderTabs
+              compact
+              value={activeRange ?? ""}
+              onChange={(v) =>
+                handleQuickRange(v as "thisMonth" | "lastMonth" | "thisWeek" | "today" | "allYear")
+              }
+              items={[
+                { value: "thisMonth", label: t("thisMonth") },
+                { value: "lastMonth", label: t("lastMonth") },
+                { value: "thisWeek", label: t("thisWeek") },
+                { value: "today", label: t("today") },
+                { value: "allYear", label: t("allYear") },
+              ]}
+            />
             {hasActiveFilters && (
               <AppButton
                 size="compact-xs"
                 variant="subtle"
                 color="red"
                 leftSection={<X size={12} />}
-                style={{ flexShrink: 0 }}
+                className="reports-clear-filters-btn"
                 onClick={resetFilters}
               >
                 {t("clearFilters")}
               </AppButton>
             )}
-          </AppGroup>
+          </div>
 
           {/* Primary Filter Inputs - 2 columns on mobile for Date range */}
           <AppGrid cols={{ base: 2, sm: 2, lg: isAdmin ? 5 : 3 }}>
@@ -666,11 +639,11 @@ export function ReportsPage() {
                 {chartView === "project" ? t("byProject") : t("dailyTrend")}
               </AppText>
             </AppGroup>
-            <AppSegmented
-              size="xs"
+            <AppFolderTabs
+              compact
               value={chartView}
               onChange={(v) => setChartView(v as "project" | "daily")}
-              data={[
+              items={[
                 { value: "project", label: t("byProject") },
                 { value: "daily", label: t("dailyTrend") },
               ]}
