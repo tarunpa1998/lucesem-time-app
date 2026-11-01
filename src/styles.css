@@ -961,7 +961,7 @@ textarea:focus,
   display: inline-flex !important;
   align-items: center !important;
   gap: 4px !important;
-  padding: 2px 0 16px 0 !important;
+  padding: 3px 6px 16px 6px !important;
   margin: 0 !important;
   border-bottom: none !important;
   overflow-x: auto !important;
@@ -991,7 +991,7 @@ textarea:focus,
   border: 1px solid transparent !important;
   background-color: transparent !important;
   color: var(--app-text-secondary) !important;
-  margin-bottom: 0 !important;
+  margin: 1px 0 !important;
   overflow: visible !important;
   transition:
     background-color 150ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -1038,7 +1038,7 @@ textarea:focus,
   color: var(--app-brand-primary) !important;
 }
 
-/* The Glowing Blue Pill Indicator - matching sidebar indicator (outside the box with clear spacing) */
+/* Solid Blue Pill Indicator (clean line without glow/color around it) */
 .app-tab-active-indicator {
   position: absolute !important;
   bottom: -13px !important;
@@ -1048,14 +1048,14 @@ textarea:focus,
   height: 3px !important;
   border-radius: 3px !important;
   background-color: var(--app-brand-primary) !important;
-  box-shadow: 0 0 10px color-mix(in srgb, var(--app-brand-primary) 70%, transparent) !important;
+  box-shadow: none !important;
   z-index: 2 !important;
 }
 
 /* Compact variant for dashboards / headers / filter bars */
 .app-folder-tabs-list.is-compact {
   gap: 3px !important;
-  padding: 2px 0 14px 0 !important;
+  padding: 3px 6px 14px 6px !important;
   border-bottom: none !important;
 }
 .app-folder-tabs-list.is-compact .app-folder-tab,
@@ -1068,6 +1068,7 @@ textarea:focus,
   width: 18px !important;
   height: 2.5px !important;
   bottom: -11px !important;
+  box-shadow: none !important;
 }
 
 /* Header row variant with full-width continuous baseline */
