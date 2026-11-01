@@ -114,7 +114,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var m=localStorage.getItem("lucesem-mode")||"light";var s=m==="light"?"light":"dark";try{localStorage.setItem("mantine-color-scheme-value",s);}catch(_){}document.documentElement.setAttribute("data-mantine-color-scheme",s);document.documentElement.setAttribute("data-app-mode",m);if(m!=="light"){document.documentElement.classList.add("dark");}else{document.documentElement.classList.remove("dark");}}catch(e){}})();`,
+            __html: `(function(){try{var m=localStorage.getItem("lucesem-mode")||"light";var s=m==="light"?"light":"dark";try{localStorage.setItem("mantine-color-scheme-value",s);}catch(_){}document.documentElement.setAttribute("data-mantine-color-scheme",s);document.documentElement.setAttribute("data-app-mode",m);if(m!=="light"){document.documentElement.classList.add("dark");}else{document.documentElement.classList.remove("dark");}if(m==="night"){document.documentElement.classList.add("night");}else{document.documentElement.classList.remove("night");}}catch(e){}})();`,
           }}
         />
         <ColorSchemeScript

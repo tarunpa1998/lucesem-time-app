@@ -104,13 +104,11 @@ function vars(mode: ThemeMode): Record<string, string> {
   };
 }
 
-const cssVariablesResolverFor =
-  (mode: ThemeMode): CSSVariablesResolver =>
-  () => ({
-    variables: {},
-    light: vars("light"),
-    dark: vars(mode === "night" ? "night" : "dark"),
-  });
+const staticCssVariablesResolver: CSSVariablesResolver = () => ({
+  variables: {},
+  light: vars("light"),
+  dark: vars("dark"),
+});
 
 interface ModeCtx {
   mode: ThemeMode;
@@ -119,26 +117,20 @@ interface ModeCtx {
 const Ctx = createContext<ModeCtx>({ mode: "light", setMode: () => {} });
 export const useThemeMode = () => useContext(Ctx);
 
-function getInitialMode(): ThemeMode {
-  if (typeof window !== "undefined") {
-    try {
-      const s = localStorage.getItem("lucesem-mode") as ThemeMode | null;
-      if (s && s in T.modes) return s;
-    } catch {
-      // Fallback to light
-    }
-  }
-  return "light";
-}
-
 export function AppThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>(getInitialMode);
-  const resolver = useMemo(() => cssVariablesResolverFor(mode), [mode]);
+  const [mode, setMode] = useState<ThemeMode>("light");
 
   useEffect(() => {
-    const s = localStorage.getItem("lucesem-mode") as ThemeMode | null;
-    if (s && s in T.modes && s !== mode) setMode(s);
-  }, [mode]);
+    try {
+      const s = localStorage.getItem("lucesem-mode") as ThemeMode | null;
+      if (s && s in T.modes && s !== "light") {
+        setMode(s);
+      }
+    } catch {
+      // Fallback
+    }
+  }, []);
+
   const update = (m: ThemeMode) => {
     setMode(m);
     try {
@@ -152,17 +144,22 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
       } else {
         document.documentElement.classList.remove("dark");
       }
+      if (m === "night") {
+        document.documentElement.classList.add("night");
+      } else {
+        document.documentElement.classList.remove("night");
+      }
     } catch {
       // Ignore storage errors
     }
   };
+
   return (
     <Ctx.Provider value={{ mode, setMode: update }}>
       <MantineProvider
-        key={mode}
         theme={theme}
-        cssVariablesResolver={resolver}
-        forceColorScheme={mode === "light" ? "light" : "dark"}
+        cssVariablesResolver={staticCssVariablesResolver}
+        defaultColorScheme="light"
       >
         <ModalsProvider>
           <Notifications position="top-right" />
