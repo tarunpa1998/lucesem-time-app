@@ -69,12 +69,54 @@ const inputStyles = {
   },
 };
 
-export function AppButton(props: ButtonProps & ComponentPropsWithoutRef<"button">) {
-  return <Button radius="md" fw={600} {...props} />;
+export function AppButton({ radius, ...props }: ButtonProps & ComponentPropsWithoutRef<"button">) {
+  const resolvedRadius = radius ?? (props.size?.startsWith("compact") ? "sm" : "md");
+  return <Button radius={resolvedRadius} fw={600} {...props} />;
 }
 
-export function AppBadge(props: BadgeProps & { children?: ReactNode }) {
-  return <Badge radius="sm" variant="light" tt="none" fw={600} {...props} />;
+export interface AppBadgeProps extends BadgeProps {
+  children?: ReactNode;
+  withDot?: boolean;
+}
+
+export function AppBadge({
+  children,
+  withDot,
+  leftSection,
+  radius = "xl",
+  variant = "light",
+  className,
+  ...props
+}: AppBadgeProps) {
+  const showDot =
+    withDot ??
+    (!leftSection &&
+      (props.color === "green" ||
+        props.color === "orange" ||
+        props.color === "red" ||
+        props.color === "lucesem" ||
+        props.color === "blue" ||
+        props.color === "violet" ||
+        props.color === "gray"));
+
+  return (
+    <Badge
+      radius={radius}
+      variant={variant}
+      tt="none"
+      fw={600}
+      leftSection={
+        leftSection ??
+        (showDot ? (
+          <span className="app-badge-dot" data-color={props.color ?? "default"} />
+        ) : undefined)
+      }
+      className={`app-badge ${className ?? ""}`}
+      {...props}
+    >
+      {children}
+    </Badge>
+  );
 }
 
 export function AppCard({

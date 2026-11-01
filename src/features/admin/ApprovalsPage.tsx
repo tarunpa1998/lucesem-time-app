@@ -1,4 +1,4 @@
-import { Checks } from "@phosphor-icons/react";
+import { Checks, Check, X } from "@phosphor-icons/react";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
   AppCard,
@@ -43,6 +43,9 @@ export function ApprovalsPage() {
           {data.entries.length > 0 && (
             <AppButton
               size="xs"
+              color="green"
+              variant="light"
+              leftSection={<Check size={13} weight="bold" />}
               onClick={() =>
                 entries(
                   data.entries.map((e) => e.id),
@@ -72,14 +75,21 @@ export function ApprovalsPage() {
               key: "a",
               label: "",
               render: (r) => (
-                <AppGroup gap={4} wrap="nowrap">
-                  <AppButton size="compact-xs" onClick={() => entries([r.id], true)}>
+                <AppGroup gap={6} wrap="nowrap">
+                  <AppButton
+                    size="compact-xs"
+                    color="green"
+                    variant="light"
+                    leftSection={<Check size={12} weight="bold" />}
+                    onClick={() => entries([r.id], true)}
+                  >
                     {t("approve")}
                   </AppButton>
                   <AppButton
                     size="compact-xs"
                     color="red"
                     variant="light"
+                    leftSection={<X size={12} weight="bold" />}
                     onClick={() => entries([r.id], false)}
                   >
                     {t("reject")}
@@ -106,14 +116,21 @@ export function ApprovalsPage() {
               key: "a",
               label: "",
               render: (r) => (
-                <AppGroup gap={4} wrap="nowrap">
-                  <AppButton size="compact-xs" onClick={() => unlock(r.id, true)}>
+                <AppGroup gap={6} wrap="nowrap">
+                  <AppButton
+                    size="compact-xs"
+                    color="green"
+                    variant="light"
+                    leftSection={<Check size={12} weight="bold" />}
+                    onClick={() => unlock(r.id, true)}
+                  >
                     {t("approve")}
                   </AppButton>
                   <AppButton
                     size="compact-xs"
                     color="red"
                     variant="light"
+                    leftSection={<X size={12} weight="bold" />}
                     onClick={() => unlock(r.id, false)}
                   >
                     {t("reject")}

@@ -1,4 +1,4 @@
-import { Island, CaretLeft, CaretRight, Trash } from "@phosphor-icons/react";
+import { Island, CaretLeft, CaretRight, Trash, Check, X } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useQuery, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -154,6 +154,9 @@ export function AbsencesPage() {
                     <>
                       <AppButton
                         size="compact-xs"
+                        color="green"
+                        variant="light"
+                        leftSection={<Check size={12} weight="bold" />}
                         onClick={() => decide(r.id, true)}
                         loading={decidingId === r.id}
                         disabled={isBusy}
@@ -164,6 +167,7 @@ export function AbsencesPage() {
                         size="compact-xs"
                         color="red"
                         variant="light"
+                        leftSection={<X size={12} weight="bold" />}
                         onClick={() => decide(r.id, false)}
                         disabled={isBusy}
                       >
@@ -175,8 +179,8 @@ export function AbsencesPage() {
                     <AppButton
                       size="compact-xs"
                       color="red"
-                      variant="subtle"
-                      leftSection={<Trash size={13} weight="duotone" />}
+                      variant="light"
+                      leftSection={<Trash size={12} weight="duotone" />}
                       onClick={() => setTargetToDelete(r)}
                       disabled={isBusy}
                     >

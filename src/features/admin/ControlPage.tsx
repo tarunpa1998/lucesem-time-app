@@ -1,4 +1,4 @@
-import { LockSimple } from "@phosphor-icons/react";
+import { Broadcast, ClockCounterClockwise, LockSimple, Trash } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
@@ -14,7 +14,7 @@ import {
   AppDateInput,
   AppDataTable,
   AppMono,
-  AppTabs,
+  AppFolderTabs,
   formatDuration,
   notify,
   AppPageHeader,
@@ -38,6 +38,7 @@ export function ControlPage() {
     note: "",
   });
   const [lockToDelete, setLockToDelete] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("live");
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const i = setInterval(() => setNow(Date.now()), 1000);
@@ -58,107 +59,132 @@ export function ControlPage() {
   return (
     <AppStack gap="var(--app-grid-gap)" maw={1280} mx="auto">
       <AppPageHeader icon={LockSimple} title={t("control")} subtitle={t("sub_control")} />
-      <AppTabs defaultValue="live">
-        <AppTabs.List mb="md">
-          <AppTabs.Tab value="live">
-            {t("liveBoard")} ({live.length})
-          </AppTabs.Tab>
-          <AppTabs.Tab value="locks">{t("periodLocks")}</AppTabs.Tab>
-          <AppTabs.Tab value="audit">{t("auditLog")}</AppTabs.Tab>
-        </AppTabs.List>
 
-        <AppTabs.Panel value="live">
+      {/* Centered Folder Tabs matching theme with blue indicator */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          width: "100%",
+          marginBottom: 8,
+        }}
+      >
+        <AppFolderTabs
+          value={activeTab}
+          onChange={setActiveTab}
+          items={[
+            {
+              value: "live",
+              label: `${t("liveBoard")} (${live.length})`,
+              icon: <Broadcast size={15} weight="duotone" />,
+            },
+            {
+              value: "locks",
+              label: t("periodLocks"),
+              icon: <LockSimple size={15} weight="duotone" />,
+            },
+            {
+              value: "audit",
+              label: t("auditLog"),
+              icon: <ClockCounterClockwise size={15} weight="duotone" />,
+            },
+          ]}
+        />
+      </div>
+
+      {activeTab === "live" && (
+        <AppCard>
+          <AppDataTable
+            rows={live}
+            rowKey={(r) => r.user_id}
+            empty={t("nobodyRunning")}
+            columns={[
+              { key: "u", label: t("user"), render: (r) => r.user_name },
+              { key: "p", label: t("project"), render: (r) => r.project_name ?? "—" },
+              { key: "n", label: t("notes"), render: (r) => r.work_notes || "—" },
+              {
+                key: "d",
+                label: t("duration"),
+                render: (r) => (
+                  <AppMono>
+                    {formatDuration(
+                      Math.max(0, Math.floor((now - Date.parse(r.started_at)) / 1000)),
+                    )}
+                  </AppMono>
+                ),
+              },
+            ]}
+          />
+        </AppCard>
+      )}
+
+      {activeTab === "locks" && (
+        <AppStack>
+          <AppCard>
+            <AppText fw={700} mb="sm">
+              {t("addLock")}
+            </AppText>
+            <AppGrid cols={{ base: 1, sm: 2, lg: 5 }}>
+              <AppSelect
+                label={t("user")}
+                placeholder={t("everyone")}
+                clearable
+                value={form.userId}
+                onChange={(v) => setForm({ ...form, userId: v })}
+                data={users.map((u) => ({ value: u.id, label: u.display_name }))}
+              />
+              <AppDateInput
+                label={t("fromDate")}
+                placeholder="DD.MM.YYYY"
+                value={form.fromDate}
+                onChange={(val) => setForm({ ...form, fromDate: val })}
+              />
+              <AppDateInput
+                label={t("toDate")}
+                placeholder="DD.MM.YYYY"
+                value={form.toDate}
+                onChange={(val) => setForm({ ...form, toDate: val })}
+              />
+              <AppTextInput
+                label={t("note")}
+                placeholder={t("notes")}
+                value={form.note}
+                onChange={(e) => setForm({ ...form, note: e.currentTarget.value })}
+              />
+              <AppButton mt={24} disabled={!valid} onClick={add}>
+                {t("addLock")}
+              </AppButton>
+            </AppGrid>
+          </AppCard>
           <AppCard>
             <AppDataTable
-              rows={live}
-              rowKey={(r) => r.user_id}
-              empty={t("nobodyRunning")}
+              rows={locks}
+              rowKey={(r) => r.id}
+              empty="—"
               columns={[
-                { key: "u", label: t("user"), render: (r) => r.user_name },
-                { key: "p", label: t("project"), render: (r) => r.project_name ?? "—" },
-                { key: "n", label: t("notes"), render: (r) => r.work_notes || "—" },
+                { key: "u", label: t("user"), render: (r) => r.user_name ?? t("everyone") },
+                { key: "f", label: t("fromDate"), render: (r) => fmtDate(r.from_date) },
+                { key: "t", label: t("toDate"), render: (r) => fmtDate(r.to_date) },
+                { key: "n", label: t("note"), render: (r) => r.note || "—" },
                 {
-                  key: "d",
-                  label: t("duration"),
+                  key: "a",
+                  label: "",
                   render: (r) => (
-                    <AppMono>
-                      {formatDuration(
-                        Math.max(0, Math.floor((now - Date.parse(r.started_at)) / 1000)),
-                      )}
-                    </AppMono>
+                    <AppButton
+                      size="compact-xs"
+                      color="red"
+                      variant="light"
+                      leftSection={<Trash size={12} weight="duotone" />}
+                      onClick={() => setLockToDelete(r.id)}
+                    >
+                      {t("remove")}
+                    </AppButton>
                   ),
                 },
               ]}
             />
           </AppCard>
-        </AppTabs.Panel>
-
-        <AppTabs.Panel value="locks">
-          <AppStack>
-            <AppCard>
-              <AppText fw={700} mb="sm">
-                {t("addLock")}
-              </AppText>
-              <AppGrid cols={{ base: 1, sm: 2, lg: 5 }}>
-                <AppSelect
-                  label={t("user")}
-                  placeholder={t("everyone")}
-                  clearable
-                  value={form.userId}
-                  onChange={(v) => setForm({ ...form, userId: v })}
-                  data={users.map((u) => ({ value: u.id, label: u.display_name }))}
-                />
-                <AppDateInput
-                  label={t("fromDate")}
-                  placeholder="DD.MM.YYYY"
-                  value={form.fromDate}
-                  onChange={(val) => setForm({ ...form, fromDate: val })}
-                />
-                <AppDateInput
-                  label={t("toDate")}
-                  placeholder="DD.MM.YYYY"
-                  value={form.toDate}
-                  onChange={(val) => setForm({ ...form, toDate: val })}
-                />
-                <AppTextInput
-                  label={t("note")}
-                  placeholder={t("notes")}
-                  value={form.note}
-                  onChange={(e) => setForm({ ...form, note: e.currentTarget.value })}
-                />
-                <AppButton mt={24} disabled={!valid} onClick={add}>
-                  {t("addLock")}
-                </AppButton>
-              </AppGrid>
-            </AppCard>
-            <AppCard>
-              <AppDataTable
-                rows={locks}
-                rowKey={(r) => r.id}
-                empty="—"
-                columns={[
-                  { key: "u", label: t("user"), render: (r) => r.user_name ?? t("everyone") },
-                  { key: "f", label: t("fromDate"), render: (r) => fmtDate(r.from_date) },
-                  { key: "t", label: t("toDate"), render: (r) => fmtDate(r.to_date) },
-                  { key: "n", label: t("note"), render: (r) => r.note || "—" },
-                  {
-                    key: "a",
-                    label: "",
-                    render: (r) => (
-                      <AppButton
-                        size="compact-xs"
-                        color="red"
-                        variant="light"
-                        onClick={() => setLockToDelete(r.id)}
-                      >
-                        {t("remove")}
-                      </AppButton>
-                    ),
-                  },
-                ]}
-              />
-            </AppCard>
-          </AppStack>
 
           <AppConfirmModal
             opened={!!lockToDelete}
@@ -172,25 +198,24 @@ export function ControlPage() {
             title={t("periodLocks")}
             message={t("deleteConfirm")}
           />
-        </AppTabs.Panel>
+        </AppStack>
+      )}
 
-        <AppTabs.Panel value="audit">
-          <AppCard>
-            <AppDataTable
-              rows={audit}
-              rowKey={(r) => r.id}
-              empty="—"
-              columns={[
-                { key: "t", label: t("time"), render: (r) => r.created_at },
-                { key: "u", label: t("user"), render: (r) => r.actor ?? "—" },
-                { key: "a", label: t("action"), render: (r) => r.action },
-                { key: "e", label: "", render: (r) => r.entity },
-              ]}
-            />
-          </AppCard>
-        </AppTabs.Panel>
-      </AppTabs>
-      <AppGroup />
+      {activeTab === "audit" && (
+        <AppCard>
+          <AppDataTable
+            rows={audit}
+            rowKey={(r) => r.id}
+            empty="—"
+            columns={[
+              { key: "t", label: t("time"), render: (r) => r.created_at },
+              { key: "u", label: t("user"), render: (r) => r.actor ?? "—" },
+              { key: "a", label: t("action"), render: (r) => r.action },
+              { key: "e", label: "", render: (r) => r.entity },
+            ]}
+          />
+        </AppCard>
+      )}
     </AppStack>
   );
 }

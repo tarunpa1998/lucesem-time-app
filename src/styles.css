@@ -719,7 +719,8 @@ textarea:focus,
   border-color: var(--app-border-subtle);
   transform: translateY(-1px);
 }
-.app-calendar-day:hover:not(:disabled):not([data-disabled="true"]):not([data-selected="true"]) .app-cal-num {
+.app-calendar-day:hover:not(:disabled):not([data-disabled="true"]):not([data-selected="true"])
+  .app-cal-num {
   color: var(--app-brand-primary) !important;
 }
 
@@ -1328,3 +1329,320 @@ button[data-picker-control]:hover:not([data-disabled]):not([data-selected]),
   padding: 8px 12px !important;
 }
 
+/* ===== Centralized Premium Badge Design System ===== */
+.mantine-Badge-root,
+.app-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  font-family: var(--app-font-body) !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  height: 24px !important;
+  padding: 0 10px !important;
+  border-radius: 9999px !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.mantine-Badge-root[data-size="xs"],
+.app-badge[data-size="xs"] {
+  height: 20px !important;
+  font-size: 10.5px !important;
+  padding: 0 7px !important;
+}
+
+.mantine-Badge-root[data-size="sm"],
+.app-badge[data-size="sm"] {
+  height: 22px !important;
+  font-size: 11px !important;
+  padding: 0 8px !important;
+}
+
+.mantine-Badge-root[data-size="md"],
+.app-badge[data-size="md"] {
+  height: 26px !important;
+  font-size: 12px !important;
+  padding: 0 12px !important;
+}
+
+/* Status Dot inside Badge */
+.app-badge-dot {
+  display: inline-block !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background-color: currentColor !important;
+  margin-right: 3px !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.5) !important;
+}
+
+.dark .app-badge-dot,
+.night .app-badge-dot {
+  box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* --- LIGHT MODE BADGE PALETTES --- */
+.mantine-Badge-root[data-color="orange"],
+.app-badge[data-color="orange"] {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(217, 119, 6, 0.3) !important;
+  color: #b45309 !important;
+}
+
+.mantine-Badge-root[data-color="green"],
+.app-badge[data-color="green"] {
+  background: rgba(22, 163, 74, 0.1) !important;
+  border-color: rgba(22, 163, 74, 0.3) !important;
+  color: #15803d !important;
+}
+
+.mantine-Badge-root[data-color="red"],
+.app-badge[data-color="red"] {
+  background: rgba(220, 38, 38, 0.09) !important;
+  border-color: rgba(220, 38, 38, 0.3) !important;
+  color: #b91c1c !important;
+}
+
+.mantine-Badge-root[data-color="lucesem"],
+.mantine-Badge-root[data-color="blue"],
+.app-badge[data-color="lucesem"],
+.app-badge[data-color="blue"] {
+  background: rgba(0, 159, 227, 0.1) !important;
+  border-color: rgba(0, 159, 227, 0.32) !important;
+  color: #0284c7 !important;
+}
+
+.mantine-Badge-root[data-color="gray"],
+.app-badge[data-color="gray"] {
+  background: rgba(100, 116, 139, 0.08) !important;
+  border-color: rgba(100, 116, 139, 0.22) !important;
+  color: #475569 !important;
+}
+
+.mantine-Badge-root[data-color="violet"],
+.mantine-Badge-root[data-color="purple"],
+.app-badge[data-color="violet"],
+.app-badge[data-color="purple"] {
+  background: rgba(124, 58, 237, 0.1) !important;
+  border-color: rgba(124, 58, 237, 0.3) !important;
+  color: #6d28d9 !important;
+}
+
+/* --- DARK MODE BADGE PALETTES --- */
+.dark .mantine-Badge-root[data-color="orange"],
+.dark .app-badge[data-color="orange"] {
+  background: rgba(245, 158, 11, 0.16) !important;
+  border-color: rgba(245, 158, 11, 0.42) !important;
+  color: #fbbf24 !important;
+}
+
+.dark .mantine-Badge-root[data-color="green"],
+.dark .app-badge[data-color="green"] {
+  background: rgba(34, 197, 94, 0.16) !important;
+  border-color: rgba(34, 197, 94, 0.42) !important;
+  color: #4ade80 !important;
+}
+
+.dark .mantine-Badge-root[data-color="red"],
+.dark .app-badge[data-color="red"] {
+  background: rgba(239, 68, 68, 0.16) !important;
+  border-color: rgba(239, 68, 68, 0.42) !important;
+  color: #f87171 !important;
+}
+
+.dark .mantine-Badge-root[data-color="lucesem"],
+.dark .mantine-Badge-root[data-color="blue"],
+.dark .app-badge[data-color="lucesem"],
+.dark .app-badge[data-color="blue"] {
+  background: rgba(0, 159, 227, 0.18) !important;
+  border-color: rgba(0, 159, 227, 0.45) !important;
+  color: #38bdf8 !important;
+}
+
+.dark .mantine-Badge-root[data-color="gray"],
+.dark .app-badge[data-color="gray"] {
+  background: rgba(148, 163, 184, 0.12) !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+  color: #94a3b8 !important;
+}
+
+.dark .mantine-Badge-root[data-color="violet"],
+.dark .mantine-Badge-root[data-color="purple"],
+.dark .app-badge[data-color="violet"],
+.dark .app-badge[data-color="purple"] {
+  background: rgba(139, 92, 246, 0.18) !important;
+  border-color: rgba(139, 92, 246, 0.42) !important;
+  color: #a78bfa !important;
+}
+
+/* --- NIGHT (OLED) MODE BADGE PALETTES --- */
+.night .mantine-Badge-root[data-color="orange"],
+.night .app-badge[data-color="orange"] {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.48) !important;
+  color: #fde68a !important;
+}
+
+.night .mantine-Badge-root[data-color="green"],
+.night .app-badge[data-color="green"] {
+  background: rgba(34, 197, 94, 0.2) !important;
+  border-color: rgba(34, 197, 94, 0.48) !important;
+  color: #86efac !important;
+}
+
+.night .mantine-Badge-root[data-color="red"],
+.night .app-badge[data-color="red"] {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.48) !important;
+  color: #fca5a5 !important;
+}
+
+.night .mantine-Badge-root[data-color="lucesem"],
+.night .mantine-Badge-root[data-color="blue"],
+.night .app-badge[data-color="lucesem"],
+.night .app-badge[data-color="blue"] {
+  background: rgba(0, 159, 227, 0.22) !important;
+  border-color: rgba(0, 159, 227, 0.5) !important;
+  color: #7dd3fc !important;
+}
+
+.night .mantine-Badge-root[data-color="gray"],
+.night .app-badge[data-color="gray"] {
+  background: rgba(148, 163, 184, 0.15) !important;
+  border-color: rgba(148, 163, 184, 0.35) !important;
+  color: #cbd5e1 !important;
+}
+
+.night .mantine-Badge-root[data-color="violet"],
+.night .mantine-Badge-root[data-color="purple"],
+.night .app-badge[data-color="violet"],
+.night .app-badge[data-color="purple"] {
+  background: rgba(139, 92, 246, 0.22) !important;
+  border-color: rgba(139, 92, 246, 0.48) !important;
+  color: #c4b5fd !important;
+}
+
+/* ===== Action Buttons Design System (Tables, Cards & Lists) ===== */
+.mantine-Button-root[data-size="compact-xs"] {
+  height: 27px !important;
+  padding: 0 10px !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  border-radius: var(--app-radius-sm) !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Compact Buttons with variant="light" */
+.mantine-Button-root[data-size="compact-xs"][data-variant="light"] {
+  border-width: 1px !important;
+  border-style: solid !important;
+}
+
+/* Green (Approve) */
+.mantine-Button-root[data-size="compact-xs"][data-variant="light"][data-color="green"] {
+  background: rgba(22, 163, 74, 0.1) !important;
+  border-color: rgba(22, 163, 74, 0.32) !important;
+  color: #15803d !important;
+}
+.mantine-Button-root[data-size="compact-xs"][data-variant="light"][data-color="green"]:hover:not(
+    :disabled
+  ) {
+  background: #16a34a !important;
+  border-color: #16a34a !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25) !important;
+  transform: translateY(-0.5px) !important;
+}
+
+.dark .mantine-Button-root[data-size="compact-xs"][data-variant="light"][data-color="green"],
+.night .mantine-Button-root[data-size="compact-xs"][data-variant="light"][data-color="green"] {
+  background: rgba(34, 197, 94, 0.16) !important;
+  border-color: rgba(34, 197, 94, 0.42) !important;
+  color: #4ade80 !important;
+}
+.dark
+  .mantine-Button-root[data-size="compact-xs"][data-variant="light"][data-color="green"]:hover:not(
+    :disabled
+  ),
+.night
+  .mantine-Button-root[data-size="compact-xs"][data-variant="light"][data-color="green"]:hover:not(
+    :disabled
+  ) {
+  background: #22c55e !important;
+  border-color: #22c55e !important;
+  color: #0b1120 !important;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3) !important;
+}
+
+/* Red (Reject / Delete / Remove) */
+.mantine-Button-root[data-size="compact-xs"][data-variant="light"][data-color="red"],
+.mantine-Button-root[data-size="compact-xs"][data-variant="subtle"][data-color="red"] {
+  background: rgba(220, 38, 38, 0.09) !important;
+  border-color: rgba(220, 38, 38, 0.3) !important;
+  color: #b91c1c !important;
+}
+.mantine-Button-root[data-size="compact-xs"][data-variant="light"][data-color="red"]:hover:not(
+    :disabled
+  ),
+.mantine-Button-root[data-size="compact-xs"][data-variant="subtle"][data-color="red"]:hover:not(
+    :disabled
+  ) {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25) !important;
+  transform: translateY(-0.5px) !important;
+}
+
+.dark .mantine-Button-root[data-size="compact-xs"][data-variant="light"][data-color="red"],
+.dark .mantine-Button-root[data-size="compact-xs"][data-variant="subtle"][data-color="red"],
+.night .mantine-Button-root[data-size="compact-xs"][data-variant="light"][data-color="red"],
+.night .mantine-Button-root[data-size="compact-xs"][data-variant="subtle"][data-color="red"] {
+  background: rgba(239, 68, 68, 0.16) !important;
+  border-color: rgba(239, 68, 68, 0.42) !important;
+  color: #f87171 !important;
+}
+.dark
+  .mantine-Button-root[data-size="compact-xs"][data-variant="light"][data-color="red"]:hover:not(
+    :disabled
+  ),
+.dark
+  .mantine-Button-root[data-size="compact-xs"][data-variant="subtle"][data-color="red"]:hover:not(
+    :disabled
+  ),
+.night
+  .mantine-Button-root[data-size="compact-xs"][data-variant="light"][data-color="red"]:hover:not(
+    :disabled
+  ),
+.night
+  .mantine-Button-root[data-size="compact-xs"][data-variant="subtle"][data-color="red"]:hover:not(
+    :disabled
+  ) {
+  background: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Default / Subtle / Primary Compact Buttons (Edit, View, Manage) */
+.mantine-Button-root[data-size="compact-xs"][data-variant="default"],
+.mantine-Button-root[data-size="compact-xs"][data-variant="subtle"]:not([data-color="red"]) {
+  background: var(--app-bg-surface) !important;
+  border: 1px solid var(--app-border-subtle) !important;
+  color: var(--app-text-primary) !important;
+}
+.mantine-Button-root[data-size="compact-xs"][data-variant="default"]:hover:not(:disabled),
+.mantine-Button-root[data-size="compact-xs"][data-variant="subtle"]:not(
+    [data-color="red"]
+  ):hover:not(:disabled) {
+  background: var(--app-hover-surface) !important;
+  border-color: var(--app-brand-primary) !important;
+  color: var(--app-brand-primary) !important;
+  transform: translateY(-0.5px) !important;
+}

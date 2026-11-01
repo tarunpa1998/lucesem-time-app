@@ -1,7 +1,6 @@
-import { Kanban } from "@phosphor-icons/react";
+import { Kanban, Plus, Check, X } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { Plus } from "@phosphor-icons/react";
 import {
   AppCard,
   AppHeading,
@@ -141,6 +140,8 @@ export function ProjectsPage({ admin = false }: { admin?: boolean }) {
                             <AppButton
                               size="compact-xs"
                               color="green"
+                              variant="light"
+                              leftSection={<Check size={12} weight="bold" />}
                               onClick={() => review(r.id, true)}
                             >
                               {t("approve")}
@@ -149,6 +150,7 @@ export function ProjectsPage({ admin = false }: { admin?: boolean }) {
                               size="compact-xs"
                               color="red"
                               variant="light"
+                              leftSection={<X size={12} weight="bold" />}
                               onClick={() => review(r.id, false)}
                             >
                               {t("reject")}
