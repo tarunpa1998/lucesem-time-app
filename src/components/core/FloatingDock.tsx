@@ -1,6 +1,6 @@
-import { ActionIcon, Group, Paper, Tooltip } from "@mantine/core";
+import { Box, Group, Paper, Tooltip, UnstyledButton } from "@mantine/core";
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import { SquaresFour, ChartBar, Clock } from "@phosphor-icons/react";
+import { SquaresFour, ChartBar, Clock, type Icon } from "@phosphor-icons/react";
 import { useI18n } from "@/lib/i18n";
 
 export const LOG_TIME_EVENT = "app:log-time";
@@ -21,12 +21,92 @@ export function FloatingDock({ menuOpen }: { menuOpen?: boolean } = {}) {
     }
   };
 
-  const item = (active: boolean) => ({
-    size: 44,
-    radius: "xl" as const,
-    variant: active ? ("filled" as const) : ("subtle" as const),
-    color: active ? "lucesem" : "gray",
-  });
+  const renderItem = ({
+    to,
+    onClick,
+    isActive,
+    label,
+    icon: IconComponent,
+  }: {
+    to?: string;
+    onClick?: () => void;
+    isActive: boolean;
+    label: string;
+    icon: Icon;
+  }) => (
+    <Tooltip label={label} position="top" offset={10} withArrow>
+      <UnstyledButton
+        component={to ? Link : "button"}
+        {...(to ? { to } : { onClick, type: "button" })}
+        aria-label={label}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 44,
+          height: 44,
+          position: "relative",
+          textDecoration: "none",
+          borderRadius: "var(--app-radius-md)",
+          outline: "none",
+        }}
+      >
+        <Box
+          data-active={isActive || undefined}
+          className="app-sidebar-item"
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: "var(--app-radius-md)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            cursor: "pointer",
+          }}
+        >
+          <Box
+            style={{
+              width: 24,
+              height: 24,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <IconComponent
+              size={22}
+              weight={isActive ? "bold" : "duotone"}
+              style={{
+                color: isActive ? "var(--app-brand-primary)" : "var(--app-text-secondary)",
+                transition: "color 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
+            />
+          </Box>
+
+          {/* Active glowing blue pill matching the closed sidebar style */}
+          {isActive && (
+            <Box
+              style={{
+                position: "absolute",
+                bottom: 3,
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: 22,
+                height: 3,
+                borderRadius: 2,
+                background: "var(--app-brand-primary)",
+                boxShadow:
+                  "0 2px 10px color-mix(in srgb, var(--app-brand-primary) 60%, transparent)",
+                zIndex: 2,
+              }}
+            />
+          )}
+        </Box>
+      </UnstyledButton>
+    </Tooltip>
+  );
 
   return (
     <Paper
@@ -42,31 +122,31 @@ export function FloatingDock({ menuOpen }: { menuOpen?: boolean } = {}) {
         transition: "transform 260ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease",
         zIndex: 100,
         background: "var(--app-bg-surface)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
         border: "1px solid var(--app-border-subtle)",
         boxShadow: "var(--app-shadow-elevated)",
       }}
     >
       <Group gap={6} wrap="nowrap">
-        <Tooltip label={t("dashboard")} withArrow>
-          <ActionIcon component={Link} to="/" aria-label={t("dashboard")} {...item(path === "/")}>
-            <SquaresFour size={22} weight="duotone" />
-          </ActionIcon>
-        </Tooltip>
-        <Tooltip label={t("reportsTitle")} withArrow>
-          <ActionIcon
-            component={Link}
-            to="/reports"
-            aria-label={t("reportsTitle")}
-            {...item(path === "/reports")}
-          >
-            <ChartBar size={22} weight="duotone" />
-          </ActionIcon>
-        </Tooltip>
-        <Tooltip label={t("logTime")} withArrow>
-          <ActionIcon onClick={logTime} aria-label={t("logTime")} {...item(false)}>
-            <Clock size={22} weight="duotone" />
-          </ActionIcon>
-        </Tooltip>
+        {renderItem({
+          to: "/",
+          isActive: path === "/",
+          label: t("dashboard"),
+          icon: SquaresFour,
+        })}
+        {renderItem({
+          to: "/reports",
+          isActive: path === "/reports" || path.startsWith("/reports/"),
+          label: t("reportsTitle"),
+          icon: ChartBar,
+        })}
+        {renderItem({
+          onClick: logTime,
+          isActive: false,
+          label: t("logTime"),
+          icon: Clock,
+        })}
       </Group>
     </Paper>
   );

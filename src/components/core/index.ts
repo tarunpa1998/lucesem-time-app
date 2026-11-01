@@ -3,7 +3,7 @@ export { AppModal } from "./AppModal";
 export { AppLiveClock, formatDuration } from "./AppLiveClock";
 export { AppCalendar, type CalendarDayInfo } from "./AppCalendar";
 export { AppDataTable, type Column } from "./AppDataTable";
-export { AppChart } from "./AppChart";
+export { AppChart, AppBarChart, AppAreaChart, AppDonutChart } from "./AppChart";
 export { AppShellLayout } from "./AppShellLayout";
 export { DashboardSkeleton, TablePageSkeleton, ShellSkeleton } from "./PageSkeleton";
 export { AppPageHeader } from "./AppPageHeader";

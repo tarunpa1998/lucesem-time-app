@@ -1276,3 +1276,45 @@ button[data-picker-control]:hover:not([data-disabled]):not([data-selected]),
   --table-sticky-header-bg: transparent !important;
 }
 
+/* ===== Mantine Charts Theme Tuning ===== */
+.mantine-AreaChart-root,
+.mantine-BarChart-root,
+.mantine-DonutChart-root {
+  --chart-text-color: var(--app-text-secondary);
+  --chart-grid-color: var(--app-border-subtle);
+  --chart-cursor-fill: color-mix(in srgb, var(--app-brand-primary) 8%, transparent);
+}
+
+.mantine-DonutChart-label {
+  font-family: var(--app-font-mono) !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  fill: var(--app-text-primary) !important;
+}
+
+.recharts-cartesian-axis-tick text {
+  font-family: var(--app-font-mono) !important;
+  font-size: 11px !important;
+  fill: var(--app-text-secondary) !important;
+}
+
+.recharts-reference-line-line {
+  stroke-dasharray: 4 4;
+  opacity: 0.85;
+}
+
+.recharts-reference-line-text {
+  font-family: var(--app-font-mono) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+.mantine-ChartTooltip-root {
+  background: var(--app-bg-surface) !important;
+  border: 1px solid var(--app-border-subtle) !important;
+  border-radius: var(--app-radius-md) !important;
+  box-shadow: var(--app-shadow-elevated) !important;
+  color: var(--app-text-primary) !important;
+  padding: 8px 12px !important;
+}
+

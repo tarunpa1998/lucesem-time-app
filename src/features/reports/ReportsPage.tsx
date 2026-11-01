@@ -11,6 +11,9 @@ import {
   X,
   LockSimple,
   CalendarBlank,
+  CalendarCheck,
+  Lightning,
+  TrendUp,
   CaretDown,
   Folder,
   User as UserIcon,
@@ -32,12 +35,17 @@ import {
   AppMono,
   AppBadge,
   AppChart,
+  AppBarChart,
+  AppAreaChart,
+  AppDonutChart,
+  AppProgress,
   AppDataTable,
   AppIconButton,
   AppTooltip,
   AppFolderTabs,
   AppBox,
   AppMenu,
+  AppSegmented,
   notify,
   TablePageSkeleton,
   AppPageHeader,
@@ -52,6 +60,21 @@ import { canEditDate, isAbsenceMode, type EntryMode } from "@/domain/rules";
 import { viennaToday, isPeriodLocked } from "@/domain/locks";
 import type { LocalEntry } from "@/lib/offline-db";
 import { exportCsv, exportHtml, exportPdf, exportXlsx, type ExportTable } from "@/lib/exporters";
+
+const PROJECT_COLORS = [
+  "#009FE3", // Lucesem blue
+  "#38BDF8", // Sky blue
+  "#6366F1", // Indigo
+  "#8B5CF6", // Purple
+  "#EC4899", // Pink
+  "#10B981", // Emerald
+  "#F59E0B", // Amber
+  "#14B8A6", // Teal
+  "#84CC16", // Lime
+  "#F97316", // Orange
+  "#A855F7", // Violet
+  "#06B6D4", // Cyan
+];
 
 const getRange = (type: "thisMonth" | "lastMonth" | "thisWeek" | "today" | "allYear") => {
   const now = new Date();
@@ -118,6 +141,7 @@ export function ReportsPage() {
 
   // Chart view toggle
   const [chartView, setChartView] = useState<"project" | "daily">("project");
+  const [trendStyle, setTrendStyle] = useState<"bars" | "area">("bars");
 
   // Other state
   const [lockAfter, setLockAfter] = useState(false);
@@ -231,39 +255,118 @@ export function ReportsPage() {
     const approvalRate = sortedRows.length > 0 ? (approvedCount / sortedRows.length) * 100 : 0;
 
     // By Project Breakdown
-    const byProject = new Map<string, number>();
+    const projectMap = new Map<
+      string,
+      { projectName: string; customerName: string; hours: number }
+    >();
     for (const r of sortedRows) {
-      byProject.set(r.project_name, (byProject.get(r.project_name) ?? 0) + r.hours);
+      const key = r.project_id || r.project_name;
+      const current = projectMap.get(key);
+      if (current) {
+        current.hours += r.hours;
+      } else {
+        projectMap.set(key, {
+          projectName: r.project_name,
+          customerName: r.customer_name,
+          hours: r.hours,
+        });
+      }
     }
-    const chart = [...byProject]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([project, h]) => ({
-        project: project.length > 18 ? `${project.slice(0, 16)}…` : project,
-        hours: Math.round(h * 100) / 100,
-      }));
 
-    // Daily Trend
+    const projectBreakdown = [...projectMap.values()]
+      .sort((a, b) => b.hours - a.hours)
+      .map((item, idx) => {
+        const roundedHours = Math.round(item.hours * 100) / 100;
+        const percentage = hours > 0 ? (item.hours / hours) * 100 : 0;
+        const color = PROJECT_COLORS[idx % PROJECT_COLORS.length]!;
+        return {
+          name: item.projectName,
+          customerName: item.customerName,
+          value: roundedHours,
+          hours: roundedHours,
+          percentage,
+          color,
+        };
+      });
+
+    // Daily Trend & Calendar Continuity
     const byDay = new Map<string, number>();
     for (const r of sortedRows) {
       byDay.set(r.entry_date, (byDay.get(r.entry_date) ?? 0) + r.hours);
     }
-    const daily = [...byDay]
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .slice(-14)
-      .map(([date, h]) => ({
-        date: fmtDate(date),
+
+    let dailyDates: string[] = [];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to) && from <= to) {
+      const [sy, sm, sd] = from.split("-").map(Number);
+      const [ey, em, ed] = to.split("-").map(Number);
+      const startDate = new Date(sy!, sm! - 1, sd!);
+      const endDate = new Date(ey!, em! - 1, ed!);
+      const dayDiff =
+        Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+      if (dayDiff >= 1 && dayDiff <= 31) {
+        // Continuous calendar days for short ranges (today, week, month, custom <= 31 days)
+        const cur = new Date(startDate);
+        while (cur <= endDate) {
+          const cy = cur.getFullYear();
+          const cm = String(cur.getMonth() + 1).padStart(2, "0");
+          const cd = String(cur.getDate()).padStart(2, "0");
+          dailyDates.push(`${cy}-${cm}-${cd}`);
+          cur.setDate(cur.getDate() + 1);
+        }
+      } else {
+        // Large ranges: take active days with logged hours (up to 30 most recent)
+        dailyDates = [...byDay.keys()].sort((a, b) => a.localeCompare(b)).slice(-30);
+      }
+    } else {
+      dailyDates = [...byDay.keys()].sort((a, b) => a.localeCompare(b)).slice(-14);
+    }
+
+    const isShortRange = dailyDates.length <= 7;
+    const daily = dailyDates.map((dateStr) => {
+      const [y, m, d] = dateStr.split("-").map(Number);
+      const dt = new Date(y!, m! - 1, d!);
+      const dayNum = String(d).padStart(2, "0");
+      const monthNum = String(m).padStart(2, "0");
+      let label = "";
+      if (isShortRange) {
+        const weekday = dt.toLocaleDateString(lang === "de" ? "de-AT" : "en-US", {
+          weekday: "short",
+        });
+        label = lang === "de" ? `${weekday} ${dayNum}.` : `${weekday} ${dayNum}`;
+      } else {
+        label = lang === "de" ? `${dayNum}.${monthNum}.` : `${monthNum}/${dayNum}`;
+      }
+
+      const h = byDay.get(dateStr) ?? 0;
+      return {
+        dateStr,
+        label,
         hours: Math.round(h * 100) / 100,
-      }));
+      };
+    });
+
+    const activeDays = daily.filter((d) => d.hours > 0);
+    const workedDays = activeDays.length;
+    const totalDays = daily.length;
+    const avgDailyHours = workedDays > 0 ? hours / workedDays : 0;
+    const peakDay = daily.reduce<(typeof daily)[0] | null>(
+      (max, d) => (d.hours > (max?.hours ?? 0) ? d : max),
+      null,
+    );
 
     return {
       hours,
       amount,
       approvalRate,
-      chart,
+      projectBreakdown,
       daily,
+      workedDays,
+      totalDays,
+      avgDailyHours,
+      peakDay,
     };
-  }, [sortedRows, fmtDate]);
+  }, [sortedRows, from, to, lang]);
 
   const money = (n: number) =>
     n.toLocaleString(lang === "de" ? "de-AT" : "en-US", { style: "currency", currency: "EUR" });
@@ -651,7 +754,7 @@ export function ReportsPage() {
       </AppGrid>
 
       {/* Modern Analytics & Chart Section */}
-      {(totals.chart.length > 0 || totals.daily.length > 0) && (
+      {(totals.projectBreakdown.length > 0 || totals.daily.length > 0) && (
         <AppCard>
           <div className="app-folder-tabs-row">
             <div className="app-section-heading">
@@ -671,17 +774,260 @@ export function ReportsPage() {
             />
           </div>
           {chartView === "project" ? (
-            <AppChart
-              data={totals.chart}
-              dataKey="project"
-              series={[{ name: "hours", color: "lucesem.5", label: t("hours") }]}
-            />
+            totals.projectBreakdown.length === 0 ? (
+              <AppText c="var(--app-text-secondary)" ta="center" py="xl">
+                {t("noEntries")}
+              </AppText>
+            ) : (
+              <AppGrid cols={{ base: 1, md: 2 }}>
+                {/* Donut Chart with Center Total Stat */}
+                <AppStack align="center" justify="center" py="xs">
+                  <AppDonutChart
+                    data={totals.projectBreakdown.map((p) => ({
+                      name: p.name,
+                      value: p.value,
+                      color: p.color,
+                    }))}
+                    size={210}
+                    thickness={26}
+                    paddingAngle={3}
+                    valueFormatter={(v) => `${v.toFixed(2)} ${t("hours")}`}
+                    chartLabel={`${totals.hours.toFixed(1)} ${t("hours")}`}
+                  />
+                </AppStack>
+
+                {/* Ranked Project List Breakdown */}
+                <AppStack gap="xs" style={{ maxHeight: 250, overflowY: "auto", paddingRight: 6 }}>
+                  {totals.projectBreakdown.map((p) => (
+                    <AppStack
+                      key={p.name}
+                      gap={4}
+                      p="xs"
+                      style={{
+                        background: "var(--app-bg-surface)",
+                        borderRadius: "var(--app-radius-sm)",
+                        border: "1px solid var(--app-border-subtle)",
+                      }}
+                    >
+                      <AppGroup justify="space-between" align="center" wrap="nowrap">
+                        <AppGroup gap={8} wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
+                          <AppBox
+                            style={{
+                              width: 10,
+                              height: 10,
+                              borderRadius: "50%",
+                              background: p.color,
+                              flexShrink: 0,
+                            }}
+                          />
+                          <AppText fz="xs" fw={600} truncate c="var(--app-text-primary)">
+                            {p.name}
+                          </AppText>
+                          {p.customerName && (
+                            <AppText
+                              fz="11px"
+                              c="var(--app-text-secondary)"
+                              truncate
+                              visibleFrom="xs"
+                            >
+                              · {p.customerName}
+                            </AppText>
+                          )}
+                        </AppGroup>
+                        <AppGroup gap={8} wrap="nowrap" style={{ flexShrink: 0 }}>
+                          <AppMono size="12px" fw={700} c="var(--app-text-primary)">
+                            {p.hours.toFixed(2)} {t("hours")}
+                          </AppMono>
+                          <AppBadge size="xs" variant="light" color="gray" style={{ minWidth: 42 }}>
+                            {p.percentage.toFixed(0)}%
+                          </AppBadge>
+                        </AppGroup>
+                      </AppGroup>
+                      <AppProgress value={p.percentage} color={p.color} size={4} radius="xl" />
+                    </AppStack>
+                  ))}
+                </AppStack>
+              </AppGrid>
+            )
+          ) : totals.daily.length === 0 ? (
+            <AppText c="var(--app-text-secondary)" ta="center" py="xl">
+              {t("noEntries")}
+            </AppText>
           ) : (
-            <AppChart
-              data={totals.daily}
-              dataKey="date"
-              series={[{ name: "hours", color: "lucesem.6", label: t("hours") }]}
-            />
+            <AppStack gap="md" mt="md">
+              {/* Daily Trend KPI Summary Row & Style Switcher */}
+              <AppGroup justify="space-between" align="center" wrap="wrap" gap="sm">
+                <AppGroup gap="xs" wrap="wrap">
+                  {/* Worked Days Badge */}
+                  <AppBox
+                    style={{
+                      background: "var(--app-bg-surface)",
+                      border: "1px solid var(--app-border-subtle)",
+                      borderRadius: "var(--app-radius-md)",
+                      padding: "6px 14px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <CalendarCheck size={18} weight="duotone" color="var(--app-brand-primary)" />
+                    <AppStack gap={0}>
+                      <AppText fz={10} fw={600} c="var(--app-text-secondary)" tt="uppercase">
+                        {t("workedDays")}
+                      </AppText>
+                      <AppGroup gap={4} align="baseline">
+                        <AppMono size="15px" fw={700}>
+                          {totals.workedDays}
+                        </AppMono>
+                        {totals.totalDays > totals.workedDays && (
+                          <AppText fz={11} c="var(--app-text-secondary)">
+                            / {totals.totalDays}
+                          </AppText>
+                        )}
+                      </AppGroup>
+                    </AppStack>
+                  </AppBox>
+
+                  {/* Daily Average Badge */}
+                  <AppBox
+                    style={{
+                      background: "var(--app-bg-surface)",
+                      border: "1px solid var(--app-border-subtle)",
+                      borderRadius: "var(--app-radius-md)",
+                      padding: "6px 14px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Clock size={18} weight="duotone" color="var(--app-brand-primary)" />
+                    <AppStack gap={0}>
+                      <AppText fz={10} fw={600} c="var(--app-text-secondary)" tt="uppercase">
+                        {t("dailyAverage")}
+                      </AppText>
+                      <AppMono size="15px" fw={700}>
+                        {totals.avgDailyHours > 0
+                          ? `${totals.avgDailyHours.toFixed(1)} ${t("hours")}`
+                          : "—"}
+                      </AppMono>
+                    </AppStack>
+                  </AppBox>
+
+                  {/* Peak Day Badge */}
+                  {totals.peakDay && totals.peakDay.hours > 0 && (
+                    <AppBox
+                      style={{
+                        background: "var(--app-bg-surface)",
+                        border: "1px solid var(--app-border-subtle)",
+                        borderRadius: "var(--app-radius-md)",
+                        padding: "6px 14px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <Lightning size={18} weight="duotone" color="#f59e0b" />
+                      <AppStack gap={0}>
+                        <AppText fz={10} fw={600} c="var(--app-text-secondary)" tt="uppercase">
+                          {t("peakDay")}
+                        </AppText>
+                        <AppGroup gap={4} align="baseline">
+                          <AppMono size="15px" fw={700} c="#f59e0b">
+                            {totals.peakDay.hours.toFixed(1)} {t("hours")}
+                          </AppMono>
+                          <AppText fz={11} c="var(--app-text-secondary)">
+                            ({totals.peakDay.label})
+                          </AppText>
+                        </AppGroup>
+                      </AppStack>
+                    </AppBox>
+                  )}
+                </AppGroup>
+
+                {/* View style toggle: Bars vs Curve */}
+                <AppSegmented
+                  size="xs"
+                  value={trendStyle}
+                  onChange={(v) => setTrendStyle(v as "bars" | "area")}
+                  data={[
+                    {
+                      value: "bars",
+                      label: (
+                        <AppGroup gap={6} wrap="nowrap" align="center">
+                          <ChartBar size={14} weight="duotone" />
+                          <span>{t("bars")}</span>
+                        </AppGroup>
+                      ),
+                    },
+                    {
+                      value: "area",
+                      label: (
+                        <AppGroup gap={6} wrap="nowrap" align="center">
+                          <TrendUp size={14} weight="duotone" />
+                          <span>{t("curve")}</span>
+                        </AppGroup>
+                      ),
+                    },
+                  ]}
+                />
+              </AppGroup>
+
+              {/* Chart Visualization */}
+              <AppBox pt="xs">
+                {trendStyle === "bars" ? (
+                  <AppBarChart
+                    h={270}
+                    data={totals.daily}
+                    dataKey="label"
+                    series={[{ name: "hours", color: "lucesem.5", label: t("hours") }]}
+                    maxBarWidth={34}
+                    barProps={{ radius: [6, 6, 0, 0] }}
+                    gridAxis="y"
+                    tickLine="none"
+                    referenceLines={
+                      totals.avgDailyHours > 0
+                        ? [
+                            {
+                              y: totals.avgDailyHours,
+                              color: "lucesem.4",
+                              strokeDasharray: "4 4",
+                              label: `${t("avgLineLabel")}: ${totals.avgDailyHours.toFixed(1)} h`,
+                            },
+                          ]
+                        : []
+                    }
+                    valueFormatter={(v) => `${v.toFixed(2)} ${t("hours")}`}
+                  />
+                ) : (
+                  <AppAreaChart
+                    h={270}
+                    data={totals.daily}
+                    dataKey="label"
+                    series={[{ name: "hours", color: "lucesem.5", label: t("hours") }]}
+                    curveType="monotone"
+                    withGradient
+                    fillOpacity={0.25}
+                    strokeWidth={2.5}
+                    withDots={totals.daily.length <= 25}
+                    gridAxis="y"
+                    tickLine="none"
+                    referenceLines={
+                      totals.avgDailyHours > 0
+                        ? [
+                            {
+                              y: totals.avgDailyHours,
+                              color: "lucesem.4",
+                              strokeDasharray: "4 4",
+                              label: `${t("avgLineLabel")}: ${totals.avgDailyHours.toFixed(1)} h`,
+                            },
+                          ]
+                        : []
+                    }
+                    valueFormatter={(v) => `${v.toFixed(2)} ${t("hours")}`}
+                  />
+                )}
+              </AppBox>
+            </AppStack>
           )}
         </AppCard>
       )}
