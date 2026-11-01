@@ -56,7 +56,7 @@ export function Dashboard() {
   const [today, setToday] = useState<string | null>(null);
   const [online, setOnline] = useState(true);
   const [month, setMonth] = useState(() => new Date());
-  const [selected, setSelected] = useState<string | null>(() => ymd(new Date()));
+  const [selected, setSelected] = useState<string | null>(null);
   const [editing, setEditing] = useState<LocalEntry | null>(null);
   const [projectId, setProjectId] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
