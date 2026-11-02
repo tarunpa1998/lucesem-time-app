@@ -2,7 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import { notify } from "@/components/core";
 import { db, uid, type ActiveTimer, type LocalEntry } from "@/lib/offline-db";
 import { ymd } from "@/domain/holidays";
-import { elapsedSeconds, isAbsenceMode, type EntryMode } from "@/domain/rules";
+import {
+  deriveSlotFromElapsed,
+  elapsedSeconds,
+  isAbsenceMode,
+  type EntryMode,
+} from "@/domain/rules";
 import { listMyEntries, syncEntries, reportTimer, deleteMyEntry } from "@/backend/time.functions";
 
 const hhmm = (d: Date) =>
@@ -193,11 +198,8 @@ export function useTimeData(ctx: TimeCtx) {
       const start = new Date(currentTimer.startTimeUtc);
       const end = new Date();
       const entryDate = ymd(start);
-      const fromTime = hhmm(start);
-      let toTime = hhmm(end);
-      if (toTime <= fromTime) {
-        toTime = hhmm(new Date(start.getTime() + 60_000));
-      }
+      const elapsedMs = Math.max(0, end.getTime() - currentTimer.startTimeUtc);
+      const { fromTime, toTime } = deriveSlotFromElapsed(hhmm(start), elapsedMs);
 
       // Check if this slot already exists in Dexie to avoid duplicating
       const existingSlot = await db()

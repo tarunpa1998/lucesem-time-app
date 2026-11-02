@@ -196,3 +196,33 @@ export function periodRange(
 /** Deterministic elapsed time: never an incrementing counter. */
 export const elapsedSeconds = (startUtcMs: number, nowUtcMs: number) =>
   Math.max(0, Math.floor((nowUtcMs - startUtcMs) / 1000));
+
+/**
+ * Calculates a valid [fromTime, toTime] slot based on fromTime ("HH:MM") and actual elapsed milliseconds.
+ * Guarantees that (toTime - fromTime) strictly equals Math.max(1, Math.round(elapsedSeconds / 60)) minutes,
+ * preventing wall-clock second boundary truncation from doubling the logged duration.
+ */
+export function deriveSlotFromElapsed(
+  fromTime: string,
+  elapsedMs: number,
+): { fromTime: string; toTime: string } {
+  const elapsedMinutes = Math.max(1, Math.round(Math.max(0, elapsedMs) / 60_000));
+  const [fh = 0, fm = 0] = fromTime.split(":").map(Number);
+  let totalMinutes = fh * 60 + fm + elapsedMinutes;
+
+  // Cap at 23:59 if crossing midnight on the same date
+  if (totalMinutes >= 24 * 60) {
+    totalMinutes = 23 * 60 + 59;
+  }
+
+  const th = Math.floor(totalMinutes / 60);
+  const tm = totalMinutes % 60;
+  let toTime = `${String(th).padStart(2, "0")}:${String(tm).padStart(2, "0")}`;
+
+  if (toTime <= fromTime) {
+    const nextMin = Math.min(23 * 60 + 59, fh * 60 + fm + 1);
+    toTime = `${String(Math.floor(nextMin / 60)).padStart(2, "0")}:${String(nextMin % 60).padStart(2, "0")}`;
+  }
+
+  return { fromTime, toTime };
+}

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { austrianHolidays, easterSunday, ymd } from "./holidays";
-import { canEditDate, dailyTarget, elapsedSeconds, targetForRange, validateEntry } from "./rules";
+import {
+  canEditDate,
+  dailyTarget,
+  deriveSlotFromElapsed,
+  elapsedSeconds,
+  targetForRange,
+  validateEntry,
+} from "./rules";
 
 const c = { weeklyTargetHours: 20, workDays: [1, 2, 3, 4, 5] };
 
@@ -133,3 +140,25 @@ describe("Austrian holidays", () => {
 });
 
 it("elapsed time is deterministic", () => expect(elapsedSeconds(1000, 61_500)).toBe(60));
+
+describe("deriveSlotFromElapsed", () => {
+  it("derives exact 1 minute slot when 60s elapsed", () => {
+    const slot = deriveSlotFromElapsed("11:42", 60_000);
+    expect(slot).toEqual({ fromTime: "11:42", toTime: "11:43" });
+  });
+
+  it("does not double to 2 minutes when 70s elapsed across a boundary", () => {
+    const slot = deriveSlotFromElapsed("11:42", 70_000);
+    expect(slot).toEqual({ fromTime: "11:42", toTime: "11:43" });
+  });
+
+  it("derives exact 2 minutes slot when 120s elapsed", () => {
+    const slot = deriveSlotFromElapsed("11:42", 120_000);
+    expect(slot).toEqual({ fromTime: "11:42", toTime: "11:44" });
+  });
+
+  it("enforces minimum 1 minute for short tests", () => {
+    const slot = deriveSlotFromElapsed("11:42", 15_000);
+    expect(slot).toEqual({ fromTime: "11:42", toTime: "11:43" });
+  });
+});
