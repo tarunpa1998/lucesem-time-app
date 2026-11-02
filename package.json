@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "migrate": "node db/migrate.mjs"
+    "migrate": "node db/migrate.mjs",
+    "seed": "node scripts/seed-demo-data.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
