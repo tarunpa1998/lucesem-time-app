@@ -31,6 +31,7 @@ import {
   validateEntry,
   canEditDate,
   toMinutes,
+  formatSlotDuration,
   type EntryMode,
   type ValidationError,
 } from "@/domain/rules";
@@ -527,7 +528,7 @@ export function TimeAllocationModal({
                 <AppDateInput label={t("date")} value={date} disabled />
                 <AppTextInput
                   label={t("time")}
-                  value={`${from}–${to} (${entryHours} ${t("hours")})`}
+                  value={`${from}–${to} (${formatSlotDuration(from, to)} · ${entryHours} ${t("hours")})`}
                   disabled
                 />
               </AppGrid>

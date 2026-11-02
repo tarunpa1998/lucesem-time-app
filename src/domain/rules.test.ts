@@ -5,6 +5,8 @@ import {
   dailyTarget,
   deriveSlotFromElapsed,
   elapsedSeconds,
+  formatHoursMinutes,
+  formatSlotDuration,
   targetForRange,
   validateEntry,
 } from "./rules";
@@ -160,5 +162,27 @@ describe("deriveSlotFromElapsed", () => {
   it("enforces minimum 1 minute for short tests", () => {
     const slot = deriveSlotFromElapsed("11:42", 15_000);
     expect(slot).toEqual({ fromTime: "11:42", toTime: "11:43" });
+  });
+});
+
+describe("formatSlotDuration and formatHoursMinutes", () => {
+  it("formats 10 minutes as 0h 10m", () => {
+    expect(formatSlotDuration("11:57", "12:07")).toBe("0h 10m");
+    expect(formatHoursMinutes(10 / 60)).toBe("0h 10m");
+  });
+
+  it("formats 18 minutes as 0h 18m", () => {
+    expect(formatSlotDuration("09:00", "09:18")).toBe("0h 18m");
+    expect(formatHoursMinutes(18 / 60)).toBe("0h 18m");
+  });
+
+  it("formats 1 hour 20 minutes as 1h 20m", () => {
+    expect(formatSlotDuration("08:00", "09:20")).toBe("1h 20m");
+    expect(formatHoursMinutes(80 / 60)).toBe("1h 20m");
+  });
+
+  it("formats 4 hours as 4h 00m", () => {
+    expect(formatSlotDuration("13:15", "17:15")).toBe("4h 00m");
+    expect(formatHoursMinutes(4)).toBe("4h 00m");
   });
 });

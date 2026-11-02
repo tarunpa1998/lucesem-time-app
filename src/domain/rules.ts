@@ -49,6 +49,29 @@ export const toMinutes = (hhmm: string) => {
   return h * 60 + m;
 };
 
+/**
+ * Formats duration between fromTime and toTime ("HH:MM") into standard "Xh YYm" format (e.g. "0h 10m", "1h 20m").
+ */
+export function formatSlotDuration(fromTime: string, toTime: string): string {
+  if (!fromTime || !toTime) return "0h 00m";
+  const [fh = 0, fm = 0] = fromTime.split(":").map(Number);
+  const [th = 0, tm = 0] = toTime.split(":").map(Number);
+  const totalMinutes = Math.max(0, th * 60 + tm - (fh * 60 + fm));
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return `${h}h ${String(m).padStart(2, "0")}m`;
+}
+
+/**
+ * Formats decimal hours into standard "Xh YYm" format (e.g. 0.1666 -> "0h 10m", 1.333 -> "1h 20m").
+ */
+export function formatHoursMinutes(hours: number): string {
+  const totalMinutes = Math.max(0, Math.round(hours * 60));
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return `${h}h ${String(m).padStart(2, "0")}m`;
+}
+
 export interface Interval {
   id?: string;
   entryDate: string;

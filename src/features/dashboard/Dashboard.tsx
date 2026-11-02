@@ -40,7 +40,14 @@ import {
 } from "@/components/core";
 import { useI18n } from "@/lib/i18n";
 import { austrianHolidays, ymd } from "@/domain/holidays";
-import { canEditDate, periodRange, targetForRange, isAbsenceMode } from "@/domain/rules";
+import {
+  canEditDate,
+  periodRange,
+  targetForRange,
+  isAbsenceMode,
+  formatSlotDuration,
+  formatHoursMinutes,
+} from "@/domain/rules";
 import { viennaToday, isPeriodLocked } from "@/domain/locks";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { meQuery, myProjectsQuery, myAccessQuery } from "@/lib/session";
@@ -644,15 +651,19 @@ export function Dashboard() {
                       label: t("hoursColumn"),
                       render: (r) => {
                         const h = entryHours(r);
-                        const timeRange = `${r.fromTime}–${r.toTime}`;
+                        const timeRange =
+                          r.fromTime && r.toTime ? `${r.fromTime}–${r.toTime}` : null;
                         const formattedH = fmtHours(h);
-                        const mins = Math.round(h * 60);
+                        const durationHM =
+                          r.fromTime && r.toTime
+                            ? formatSlotDuration(r.fromTime, r.toTime)
+                            : formatHoursMinutes(h);
                         return (
                           <AppTooltip
                             label={
                               <div style={{ lineHeight: 1.4, fontSize: 12 }}>
                                 <div style={{ fontWeight: 600 }}>
-                                  {timeRange} ({mins} min)
+                                  {timeRange ? `${timeRange} (${durationHM})` : durationHM}
                                 </div>
                                 <div style={{ opacity: 0.85 }}>{formattedH}</div>
                               </div>
@@ -662,7 +673,7 @@ export function Dashboard() {
                           >
                             <div style={{ cursor: "default", display: "inline-block" }}>
                               <AppMono size="sm" fw={600}>
-                                {formattedH}
+                                {durationHM}
                               </AppMono>
                             </div>
                           </AppTooltip>
@@ -848,6 +859,10 @@ export function Dashboard() {
                       const h = entryHours(r);
                       const timeRange = r.fromTime && r.toTime ? `${r.fromTime}–${r.toTime}` : null;
                       const formattedH = fmtHours(h);
+                      const durationHM =
+                        r.fromTime && r.toTime
+                          ? formatSlotDuration(r.fromTime, r.toTime)
+                          : formatHoursMinutes(h);
                       const proj = r.projectId ? project(r.projectId) : null;
                       const projName = proj
                         ? proj.name
@@ -885,7 +900,7 @@ export function Dashboard() {
                             </div>
                             <div className="recent-entry-mobile-hours-wrap">
                               <AppMono size="sm" fw={700} className="recent-entry-mobile-hours">
-                                {formattedH}
+                                {durationHM}
                               </AppMono>
                               {timeRange && (
                                 <AppMono
@@ -893,7 +908,7 @@ export function Dashboard() {
                                   c="dimmed"
                                   className="recent-entry-mobile-timerange"
                                 >
-                                  {timeRange} ({Math.round(h * 60)} min)
+                                  {timeRange} ({formattedH})
                                 </AppMono>
                               )}
                             </div>
