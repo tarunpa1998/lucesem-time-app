@@ -193,6 +193,31 @@ export function TimeAllocationModal({
       return;
     }
 
+    // If opening in readOnly mode or date is locked/not editable, show existing entries if any
+    const isUnlockedDate = Boolean(date && access?.unlocked.includes(date));
+    const isDatePeriodLocked =
+      !isAdmin &&
+      !isUnlockedDate &&
+      Boolean(date && isPeriodLocked(date, userId, access?.locks ?? []));
+    const isDateEditable =
+      !isDatePeriodLocked &&
+      (isAdmin ||
+        isUnlockedDate ||
+        Boolean(date && canEditDate(date, today, { isAdmin: false, unlocked: isUnlockedDate })));
+
+    const firstEntry = dayEntries[0];
+    if ((readOnly || !isDateEditable) && dayEntries.length > 0 && firstEntry) {
+      setSelectedEntryId(firstEntry.id);
+      setMode(firstEntry.entryMode);
+      setFrom(firstEntry.fromTime);
+      setTo(firstEntry.toTime);
+      setProjectId(firstEntry.projectId ?? null);
+      setTaskId(firstEntry.taskId ?? null);
+      setNotes(firstEntry.workNotes);
+      setActivityId(firstEntry.activityId ?? null);
+      return;
+    }
+
     // Default to the fresh "new" entry state when opening without a specific entry
     setSelectedEntryId("new");
     setMode("CustomHours");
@@ -203,13 +228,13 @@ export function TimeAllocationModal({
     setTaskId(null);
     setActivityId(null);
     setNotes("");
-  }, [date, entry, dayAbsence, today]);
+  }, [date, entry, dayAbsence, today, dayEntries, readOnly, access, isAdmin, userId]);
 
   if (!date) return null;
   const isFuture = date > today;
   const maxTime = date === today && !isAbsence ? nowHHMM() : undefined;
   const unlocked = !!access?.unlocked.includes(date);
-  const periodLocked = !isAdmin && isPeriodLocked(date, userId, access?.locks ?? []);
+  const periodLocked = !isAdmin && !unlocked && isPeriodLocked(date, userId, access?.locks ?? []);
   // Existing leaves can always be edited or rescheduled regardless of approval state
   const canEdit =
     isEditingExistingAbsence ||
@@ -413,7 +438,7 @@ export function TimeAllocationModal({
   const err = (k: ValidationError) => (errors.includes(k) ? t(`err.${k}` as const) : undefined);
 
   const isReadOnly = Boolean(
-    !isAdmin && (activeEntry?.exported || periodLocked || !canEdit || (readOnly && !canEdit)),
+    !isAdmin && (activeEntry?.exported || periodLocked || !canEdit || readOnly),
   );
 
   const matchedProject = projects.find((p) => p.id === projectId);
@@ -445,7 +470,7 @@ export function TimeAllocationModal({
             <AppText c="var(--app-text-secondary)" fz="sm">
               {periodLocked ? t("periodLocked") : isFuture ? t("futureLocked") : t("retroLocked")}
             </AppText>
-            {!periodLocked && !isFuture && (
+            {!isFuture && !unlocked && (
               <>
                 <AppTextarea
                   label={t("reason")}
@@ -515,7 +540,11 @@ export function TimeAllocationModal({
                   value={
                     matchedProject
                       ? `${matchedProject.name} — ${matchedProject.customer_name}`
-                      : "—"
+                      : activeEntry.projectId
+                        ? lang === "de"
+                          ? "Projekt"
+                          : "Project"
+                        : t(activeEntry.entryMode)
                   }
                   disabled
                 />
@@ -565,7 +594,7 @@ export function TimeAllocationModal({
                       ? t("futureLocked")
                       : t("retroLocked")}
               </AppText>
-              {!activeEntry.exported && !periodLocked && !isFuture && (
+              {!activeEntry.exported && !isFuture && !unlocked && (
                 <>
                   <AppTextarea
                     label={t("reason")}

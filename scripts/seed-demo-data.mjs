@@ -44,11 +44,15 @@ async function run() {
   console.log("🚀 Starting demo data population for Tarun Patel and Patrick Janesch...");
 
   // 1. Fetch the two users
-  const [tarun] = await sql`select id, email, display_name from app_users where email ilike 'tarun%'`;
-  const [testUser] = await sql`select id, email, display_name from app_users where email ilike 'test@lucesem.at'`;
+  const [tarun] =
+    await sql`select id, email, display_name from app_users where email ilike 'tarun%'`;
+  const [testUser] =
+    await sql`select id, email, display_name from app_users where email ilike 'test@lucesem.at'`;
 
   if (!tarun || !testUser) {
-    throw new Error(`Could not find both users in database! Tarun: ${!!tarun}, Test: ${!!testUser}`);
+    throw new Error(
+      `Could not find both users in database! Tarun: ${!!tarun}, Test: ${!!testUser}`,
+    );
   }
 
   console.log(`Found User 1: ${tarun.display_name} (${tarun.email}, ${tarun.id})`);
@@ -212,20 +216,25 @@ async function run() {
     {
       projectIdx: 0,
       title: "Set up OAuth2 authentication & permission scopes",
-      description: "Implement RFC 6749 authorization server integration, token refresh mechanism, and scope claims.",
+      description:
+        "Implement RFC 6749 authorization server integration, token refresh mechanism, and scope claims.",
       status: "closed",
       priority: "high",
       creatorId: testUser.id,
       assignees: [tarun.id, testUser.id],
       comments: [
-        { userId: testUser.id, text: "Let's ensure the token payload supports granular role permissions." },
+        {
+          userId: testUser.id,
+          text: "Let's ensure the token payload supports granular role permissions.",
+        },
         { userId: tarun.id, text: "Done. Added signed PBKDF2 claims and 14-day expiry tokens." },
       ],
     },
     {
       projectIdx: 0,
       title: "Implement LangChain vector embeddings pipeline",
-      description: "Chunk unstructured documents, generate OpenAI text-embedding-3-small vectors, and store in pgvector.",
+      description:
+        "Chunk unstructured documents, generate OpenAI text-embedding-3-small vectors, and store in pgvector.",
       status: "in_progress",
       priority: "urgent",
       creatorId: tarun.id,
@@ -237,7 +246,8 @@ async function run() {
     {
       projectIdx: 0,
       title: "Add benchmark latency metrics & alert dashboards",
-      description: "Export P95/P99 query response latencies to Grafana and configure notification alerts.",
+      description:
+        "Export P95/P99 query response latencies to Grafana and configure notification alerts.",
       status: "pending",
       priority: "medium",
       creatorId: testUser.id,
@@ -249,19 +259,24 @@ async function run() {
     {
       projectIdx: 1,
       title: "Conduct security penetration audit on API endpoints",
-      description: "Audit OWASP Top 10 vulnerabilities, verify RBAC authorization checks, and test rate-limit policies.",
+      description:
+        "Audit OWASP Top 10 vulnerabilities, verify RBAC authorization checks, and test rate-limit policies.",
       status: "closed",
       priority: "urgent",
       creatorId: testUser.id,
       assignees: [testUser.id, tarun.id],
       comments: [
-        { userId: testUser.id, text: "All public endpoints inspected. Zero unauthenticated leakage found." },
+        {
+          userId: testUser.id,
+          text: "All public endpoints inspected. Zero unauthenticated leakage found.",
+        },
       ],
     },
     {
       projectIdx: 1,
       title: "Automate SSL/TLS certificate rotation and cipher hardening",
-      description: "Configure automated ACME challenge hooks and disable legacy TLS 1.0/1.1 protocols.",
+      description:
+        "Configure automated ACME challenge hooks and disable legacy TLS 1.0/1.1 protocols.",
       status: "in_progress",
       priority: "high",
       creatorId: tarun.id,
@@ -273,32 +288,41 @@ async function run() {
     {
       projectIdx: 2,
       title: "Design responsive dashboard navigation layout",
-      description: "Create sleek sticky sub-header cards with backdrop blur filters and mobile responsive tabs.",
+      description:
+        "Create sleek sticky sub-header cards with backdrop blur filters and mobile responsive tabs.",
       status: "closed",
       priority: "medium",
       creatorId: tarun.id,
       assignees: [tarun.id],
       comments: [
-        { userId: tarun.id, text: "Mobile swipeable tabs implemented and tested across viewport sizes." },
+        {
+          userId: tarun.id,
+          text: "Mobile swipeable tabs implemented and tested across viewport sizes.",
+        },
       ],
     },
     {
       projectIdx: 2,
       title: "Integrate Stripe payment webhook processing",
-      description: "Implement webhook receiver with signature validation, idempotent event processing, and customer receipts.",
+      description:
+        "Implement webhook receiver with signature validation, idempotent event processing, and customer receipts.",
       status: "in_progress",
       priority: "urgent",
       creatorId: testUser.id,
       assignees: [tarun.id, testUser.id],
       comments: [
         { userId: testUser.id, text: "Check webhook retry handling on network hiccups." },
-        { userId: tarun.id, text: "Added transactional ledger entries to guarantee zero double charges." },
+        {
+          userId: tarun.id,
+          text: "Added transactional ledger entries to guarantee zero double charges.",
+        },
       ],
     },
     {
       projectIdx: 2,
       title: "Build automated PDF invoice generation service",
-      description: "Generate compliant Austrian UID invoice PDFs client-side with QR payment payload.",
+      description:
+        "Generate compliant Austrian UID invoice PDFs client-side with QR payment payload.",
       status: "pending",
       priority: "medium",
       creatorId: testUser.id,
@@ -310,7 +334,8 @@ async function run() {
     {
       projectIdx: 3,
       title: "Optimize PostgreSQL indexing for telemetry timeseries",
-      description: "Add composite indexes on (user_id, entry_date) and evaluate BRIN index performance.",
+      description:
+        "Add composite indexes on (user_id, entry_date) and evaluate BRIN index performance.",
       status: "closed",
       priority: "high",
       creatorId: tarun.id,
@@ -322,7 +347,8 @@ async function run() {
     {
       projectIdx: 3,
       title: "Implement WebSocket live sync gateway",
-      description: "Provide bi-directional heartbeat connection for instant state broadcasts across active user tabs.",
+      description:
+        "Provide bi-directional heartbeat connection for instant state broadcasts across active user tabs.",
       status: "in_progress",
       priority: "urgent",
       creatorId: testUser.id,
@@ -334,19 +360,19 @@ async function run() {
     {
       projectIdx: 4,
       title: "Connect MQTT broker for GPS tracker ingestion",
-      description: "Handle incoming 10Hz GPS telemetry packets, parse NMEA data, and write to pipeline buffer.",
+      description:
+        "Handle incoming 10Hz GPS telemetry packets, parse NMEA data, and write to pipeline buffer.",
       status: "closed",
       priority: "high",
       creatorId: tarun.id,
       assignees: [tarun.id],
-      comments: [
-        { userId: tarun.id, text: "MQTT broker connected with TLS client certificates." },
-      ],
+      comments: [{ userId: tarun.id, text: "MQTT broker connected with TLS client certificates." }],
     },
     {
       projectIdx: 4,
       title: "Implement geofencing boundary polygon calculation",
-      description: "Calculate point-in-polygon containment checks to alert dispatchers when vehicles exit zones.",
+      description:
+        "Calculate point-in-polygon containment checks to alert dispatchers when vehicles exit zones.",
       status: "in_progress",
       priority: "medium",
       creatorId: testUser.id,
@@ -356,7 +382,8 @@ async function run() {
     {
       projectIdx: 4,
       title: "Build hardware diagnostic battery telemetry alerts",
-      description: "Monitor low-voltage battery warnings and trigger SMS/Email webhook notifications.",
+      description:
+        "Monitor low-voltage battery warnings and trigger SMS/Email webhook notifications.",
       status: "pending",
       priority: "low",
       creatorId: testUser.id,
@@ -407,9 +434,11 @@ async function run() {
   // 5. Generate 2 Full Months of Time Entries (September 1, 2026 to November 2, 2026)
   // Let's iterate day by day
   const startDate = new Date(2026, 8, 1); // 2026-09-01 (month index 8 is September)
-  const endDate = new Date(2026, 10, 2);  // 2026-11-02 (month index 10 is November)
+  const endDate = new Date(2026, 10, 2); // 2026-11-02 (month index 10 is November)
 
-  console.log(`\n📅 Generating realistic working time entries from ${ymd(startDate)} to ${ymd(endDate)}...`);
+  console.log(
+    `\n📅 Generating realistic working time entries from ${ymd(startDate)} to ${ymd(endDate)}...`,
+  );
 
   // Austrian holidays in this range:
   // Oct 26: Nationalfeiertag
@@ -445,9 +474,9 @@ async function run() {
   ];
 
   const morningStarts = ["08:00", "08:15", "08:30", "08:45"];
-  const morningEnds   = ["12:00", "12:15", "12:30"];
+  const morningEnds = ["12:00", "12:15", "12:30"];
   const afternoonStarts = ["13:00", "13:15", "13:30"];
-  const afternoonEnds   = ["16:45", "17:00", "17:15", "17:30", "17:45"];
+  const afternoonEnds = ["16:45", "17:00", "17:15", "17:30", "17:45"];
 
   let entriesInserted = 0;
   let curr = new Date(startDate);
@@ -604,8 +633,10 @@ async function run() {
   // 6. Summary stats
   console.log(`\n✅ Finished! Inserted ${entriesInserted} new time entries.`);
 
-  const [tCount] = await sql`select count(*) as count from time_entries where user_id = ${tarun.id}`;
-  const [pCount] = await sql`select count(*) as count from time_entries where user_id = ${testUser.id}`;
+  const [tCount] =
+    await sql`select count(*) as count from time_entries where user_id = ${tarun.id}`;
+  const [pCount] =
+    await sql`select count(*) as count from time_entries where user_id = ${testUser.id}`;
   const [totalHours] = await sql`
     select round(sum(extract(epoch from (to_time - from_time))) / 3600.0, 2) as total
     from time_entries

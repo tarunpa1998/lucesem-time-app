@@ -378,6 +378,7 @@ const dict = {
     taskOptional: "Aufgabe (Optional)",
     openDayTimesheet: "Tagestabelle öffnen",
     selectTaskPlaceholder: "Aufgabe auswählen (optional)...",
+    last7Days: "Letzte 7 Tage",
   },
   en: {
     activity: "Activity",
@@ -750,6 +751,7 @@ const dict = {
     taskOptional: "Task / Issue (Optional)",
     openDayTimesheet: "Open day timesheet",
     selectTaskPlaceholder: "Select task or issue (optional)...",
+    last7Days: "Last 7 days",
   },
 } as const;
 

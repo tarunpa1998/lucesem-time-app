@@ -34,6 +34,7 @@ import {
   AppProgress,
   AppSegmented,
   AppFolderTabs,
+  AppTooltip,
   formatDuration,
 } from "@/components/core";
 import { useI18n } from "@/lib/i18n";
@@ -205,10 +206,33 @@ export function Dashboard() {
     return out;
   }, [today, hoursByDate]);
 
-  const weekEntries = useMemo(() => {
+  const recentEntries = useMemo(() => {
     if (!today) return [];
-    const [from, to] = periodRange("week", today);
-    return data.entries.filter((e) => e.entryDate >= from && e.entryDate <= to);
+    const [y, m, d] = today.split("-").map(Number) as [number, number, number];
+    const dt = new Date(y, m - 1, d);
+    dt.setDate(dt.getDate() - 7);
+    const sevenDaysAgo = ymd(dt);
+
+    // Filter entries from at least the last 7 days (rolling window)
+    const inWindow = data.entries.filter((e) => e.entryDate >= sevenDaysAgo);
+
+    // If fewer than 8 entries in last 7 days, backfill with recent entries up to 25
+    const pool =
+      inWindow.length >= 8
+        ? inWindow
+        : [...data.entries]
+            .sort(
+              (a, b) =>
+                b.entryDate.localeCompare(a.entryDate) || b.fromTime.localeCompare(a.fromTime),
+            )
+            .slice(0, 25);
+
+    // Always sort descending: latest date first, latest time first
+    return [...pool].sort((a, b) => {
+      const cmpDate = b.entryDate.localeCompare(a.entryDate);
+      if (cmpDate !== 0) return cmpDate;
+      return b.fromTime.localeCompare(a.fromTime);
+    });
   }, [data.entries, today]);
 
   const vacationUsed = data.entries.filter((e) => e.entryMode === "Vacation_Urlaub").length;
@@ -240,10 +264,12 @@ export function Dashboard() {
     if (me?.isAdmin) return true;
     if (r.exported) return false;
     if (isAbsenceMode(r.entryMode)) return true;
-    const isUnlocked = !!access?.unlocked?.includes(r.entryDate);
-    const isLocked = isPeriodLocked(r.entryDate, me?.id ?? "", access?.locks ?? []);
+    const isUnlocked = !access?.unlocked?.includes(r.entryDate);
+    const isLocked = !isUnlocked && isPeriodLocked(r.entryDate, me?.id ?? "", access?.locks ?? []);
     if (isLocked) return false;
-    return !!today && canEditDate(r.entryDate, today, { isAdmin: false, unlocked: isUnlocked });
+    return Boolean(
+      today && canEditDate(r.entryDate, today, { isAdmin: false, unlocked: isUnlocked }),
+    );
   };
 
   if (!data.ready || !today)
@@ -528,13 +554,24 @@ export function Dashboard() {
                     return;
                   }
                   setSelected(d);
-                  setEditing(null);
+                  const isUnlocked = !access?.unlocked?.includes(d);
+                  const isLocked =
+                    !isUnlocked &&
+                    !me?.isAdmin &&
+                    isPeriodLocked(d, me?.id ?? "", access?.locks ?? []);
                   const isDayEditable =
+                    !isLocked &&
                     canEditDate(d, today, {
-                      isAdmin: !!me?.isAdmin,
-                      unlocked: !!access?.unlocked?.includes(d),
-                    }) && !isPeriodLocked(d, me?.id ?? "", access?.locks ?? []);
+                      isAdmin: !me?.isAdmin,
+                      unlocked: isUnlocked,
+                    });
                   setReadOnlyEntry(!isDayEditable);
+                  const dayEntries = data.entries.filter((e) => e.entryDate === d);
+                  if (!isDayEditable && dayEntries.length > 0 && dayEntries[0]) {
+                    setEditing(dayEntries[0]);
+                  } else {
+                    setEditing(null);
+                  }
                 }}
                 today={today}
                 weekdayLabels={weekdayLabels}
@@ -582,7 +619,7 @@ export function Dashboard() {
             </div>
             <AppStack mt="sm">
               <AppDataTable<LocalEntry>
-                rows={weekEntries}
+                rows={recentEntries}
                 rowKey={(r) => r.id}
                 empty={t("noEntries")}
                 scrollable
@@ -596,18 +633,142 @@ export function Dashboard() {
                 columns={[
                   { key: "d", label: t("date"), render: (r) => fmtDate(r.entryDate) },
                   {
-                    key: "t",
-                    label: `${t("from")}–${t("to")}`,
-                    render: (r) => (
-                      <AppMono size="sm">
-                        {r.fromTime}–{r.toTime}
-                      </AppMono>
-                    ),
+                    key: "h",
+                    label: t("hoursColumn"),
+                    render: (r) => {
+                      const h = entryHours(r);
+                      const timeRange = `${r.fromTime}–${r.toTime}`;
+                      const formattedH = fmtHours(h);
+                      return (
+                        <AppTooltip
+                          label={
+                            <div style={{ lineHeight: 1.4, fontSize: 12 }}>
+                              <div style={{ fontWeight: 600 }}>{timeRange}</div>
+                              <div style={{ opacity: 0.85 }}>{formattedH}</div>
+                            </div>
+                          }
+                          withArrow
+                          position="top-start"
+                        >
+                          <div style={{ cursor: "default", display: "inline-block" }}>
+                            <AppMono size="sm" fw={600}>
+                              {formattedH}
+                            </AppMono>
+                          </div>
+                        </AppTooltip>
+                      );
+                    },
                   },
                   {
                     key: "p",
                     label: t("project"),
-                    render: (r) => (r.projectId ? project(r.projectId)?.name : t(r.entryMode)),
+                    width: 260,
+                    render: (r) => {
+                      const proj = r.projectId ? project(r.projectId) : null;
+                      const projName = proj
+                        ? proj.name
+                        : r.projectId
+                          ? lang === "de"
+                            ? "Projekt"
+                            : "Project"
+                          : t(r.entryMode);
+                      const customerName = proj?.customer_name ?? null;
+                      const taskText = r.taskTitle
+                        ? `#${r.taskNumber ?? "—"} · ${r.taskTitle}`
+                        : null;
+
+                      return (
+                        <AppTooltip
+                          label={
+                            <div style={{ maxWidth: 300, whiteSpace: "normal", lineHeight: 1.4 }}>
+                              <div style={{ fontWeight: 600, fontSize: 13 }}>{projName}</div>
+                              {customerName && (
+                                <div style={{ fontSize: 11, opacity: 0.85, marginTop: 2 }}>
+                                  {customerName}
+                                </div>
+                              )}
+                              {taskText && (
+                                <div
+                                  style={{
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                    color: "var(--app-brand-primary, #38bdf8)",
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {taskText}
+                                </div>
+                              )}
+                              {r.workNotes && (
+                                <div
+                                  style={{
+                                    fontSize: 11,
+                                    marginTop: 4,
+                                    fontStyle: "italic",
+                                    opacity: 0.9,
+                                  }}
+                                >
+                                  {r.workNotes}
+                                </div>
+                              )}
+                            </div>
+                          }
+                          multiline
+                          withArrow
+                          position="top-start"
+                        >
+                          <div
+                            style={{
+                              maxWidth: 260,
+                              whiteSpace: "normal",
+                              wordBreak: "break-word",
+                              cursor: "default",
+                            }}
+                          >
+                            <AppStack gap={2}>
+                              <AppText
+                                size="sm"
+                                fw={500}
+                                style={{
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: "vertical",
+                                  overflow: "hidden",
+                                  lineHeight: 1.3,
+                                }}
+                              >
+                                {projName}
+                              </AppText>
+                              {r.taskTitle ? (
+                                <AppGroup gap={4} wrap="nowrap" align="flex-start">
+                                  <AppBadge
+                                    size="xs"
+                                    variant="outline"
+                                    color="blue"
+                                    style={{ flexShrink: 0, marginTop: 1 }}
+                                  >
+                                    #{r.taskNumber ?? "—"}
+                                  </AppBadge>
+                                  <AppText
+                                    size="xs"
+                                    c="dimmed"
+                                    style={{
+                                      display: "-webkit-box",
+                                      WebkitLineClamp: 1,
+                                      WebkitBoxOrient: "vertical",
+                                      overflow: "hidden",
+                                      lineHeight: 1.25,
+                                    }}
+                                  >
+                                    {r.taskTitle}
+                                  </AppText>
+                                </AppGroup>
+                              ) : null}
+                            </AppStack>
+                          </div>
+                        </AppTooltip>
+                      );
+                    },
                   },
                   {
                     key: "s",
