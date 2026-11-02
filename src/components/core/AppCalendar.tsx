@@ -18,6 +18,7 @@ import {
   Clock,
 } from "@phosphor-icons/react";
 import { ymd } from "@/domain/holidays";
+import { formatHoursMinutes } from "@/domain/rules";
 import { useI18n } from "@/lib/i18n";
 
 export interface CalendarDayInfo {
@@ -331,7 +332,7 @@ export function AppCalendar({
               },
             }}
           >
-            {fmtHours(monthTotal)}
+            <span title={fmtHours(monthTotal)}>{formatHoursMinutes(monthTotal)}</span>
           </Badge>
         </Group>
         <Group gap={12} wrap="nowrap" align="center">

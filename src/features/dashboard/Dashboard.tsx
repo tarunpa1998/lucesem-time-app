@@ -531,16 +531,25 @@ export function Dashboard() {
               const delta = s.worked - s.toDate;
               return (
                 <>
-                  <StatCard label={t("target")} value={fmtHours(s.target, { full: true })} />
+                  <StatCard
+                    label={t("target")}
+                    value={formatHoursMinutes(s.target)}
+                    sub={fmtHours(s.target)}
+                  />
                   <StatCard
                     label={t("worked")}
-                    value={fmtHours(s.worked, { full: true })}
+                    value={formatHoursMinutes(s.worked)}
+                    sub={fmtHours(s.worked)}
                     progress={s.target ? (s.worked / s.target) * 100 : 0}
                   />
-                  <StatCard label={t("remaining")} value={fmtHours(remaining, { full: true })} />
+                  <StatCard
+                    label={t("remaining")}
+                    value={formatHoursMinutes(remaining)}
+                    sub={fmtHours(remaining)}
+                  />
                   <StatCard
                     label={t("flextime")}
-                    value={`${delta >= 0 ? "+" : "−"}${fmtHours(Math.abs(delta), { full: true })}`}
+                    value={`${delta >= 0 ? "+" : "−"}${formatHoursMinutes(Math.abs(delta))}`}
                     tone={delta >= 0 ? "var(--app-success)" : "var(--app-danger)"}
                     sub={`${t("vacationLeft")}: ${contract.vacationDays - vacationUsed} ${t("days")}`}
                   />

@@ -15,11 +15,13 @@ import {
   AppMono,
   AppDataTable,
   AppGrid,
+  AppTooltip,
 } from "@/components/core";
 import { Logo } from "@/components/core/AppShellLayout";
 import { useI18n } from "@/lib/i18n";
 import { portalData, type PortalView } from "@/backend/workflow.functions";
 import { exportPdf, exportCsv } from "@/lib/exporters";
+import { formatHoursMinutes } from "@/domain/rules";
 
 const monthStart = () => {
   const d = new Date();
@@ -125,7 +127,19 @@ export function PortalPage({ token }: { token: string }) {
         {view && (
           <AppCard>
             <AppGroup justify="space-between" mb="sm">
-              <AppMono size="20px">{fmtHours(total)}</AppMono>
+              <AppTooltip
+                label={
+                  <div style={{ lineHeight: 1.4, fontSize: 12 }}>
+                    <div style={{ fontWeight: 600 }}>{formatHoursMinutes(total)}</div>
+                    <div style={{ opacity: 0.85 }}>{fmtHours(total)}</div>
+                  </div>
+                }
+                withArrow
+              >
+                <div style={{ cursor: "default", display: "inline-block" }}>
+                  <AppMono size="20px">{formatHoursMinutes(total)}</AppMono>
+                </div>
+              </AppTooltip>
               <AppGroup gap="xs">
                 <AppButton
                   size="xs"
@@ -155,7 +169,28 @@ export function PortalPage({ token }: { token: string }) {
                 { key: "d", label: t("date"), render: (r) => fmtDate(r.entry_date) },
                 { key: "p", label: t("project"), render: (r) => r.project_name },
                 { key: "u", label: t("user"), render: (r) => r.user_name },
-                { key: "h", label: t("hours"), render: (r) => r.hours.toFixed(2) },
+                {
+                  key: "h",
+                  label: t("hours"),
+                  render: (r) => (
+                    <AppTooltip
+                      label={
+                        <div style={{ lineHeight: 1.4, fontSize: 12 }}>
+                          <div style={{ fontWeight: 600 }}>{formatHoursMinutes(r.hours)}</div>
+                          <div style={{ opacity: 0.85 }}>{fmtHours(r.hours)}</div>
+                        </div>
+                      }
+                      withArrow
+                      position="top-start"
+                    >
+                      <div style={{ cursor: "default", display: "inline-block" }}>
+                        <AppMono size="sm" fw={600}>
+                          {formatHoursMinutes(r.hours)}
+                        </AppMono>
+                      </div>
+                    </AppTooltip>
+                  ),
+                },
                 { key: "n", label: t("notes"), render: (r) => r.work_notes },
               ]}
             />

@@ -53,7 +53,13 @@ import { reportData, markExported, type ReportRow } from "@/backend/workflow.fun
 import { AdminEntryModal } from "./AdminEntryModal";
 import { TimeAllocationModal } from "@/features/time/TimeAllocationModal";
 import { useTimeData } from "@/features/time/useTimeData";
-import { canEditDate, isAbsenceMode, type EntryMode } from "@/domain/rules";
+import {
+  canEditDate,
+  isAbsenceMode,
+  formatSlotDuration,
+  formatHoursMinutes,
+  type EntryMode,
+} from "@/domain/rules";
 import { viennaToday, isPeriodLocked } from "@/domain/locks";
 import type { LocalEntry } from "@/lib/offline-db";
 import { exportCsv, exportHtml, exportPdf, exportXlsx, type ExportTable } from "@/lib/exporters";
@@ -677,7 +683,19 @@ export function ReportsPage() {
               style={{ flexShrink: 0 }}
             />
           </AppGroup>
-          <AppMono size="20px">{fmtHours(totals.hours)}</AppMono>
+          <AppTooltip
+            label={
+              <div style={{ lineHeight: 1.4, fontSize: 12 }}>
+                <div style={{ fontWeight: 600 }}>{formatHoursMinutes(totals.hours)}</div>
+                <div style={{ opacity: 0.85 }}>{fmtHours(totals.hours)}</div>
+              </div>
+            }
+            withArrow
+          >
+            <div style={{ cursor: "default", display: "inline-block" }}>
+              <AppMono size="20px">{formatHoursMinutes(totals.hours)}</AppMono>
+            </div>
+          </AppTooltip>
         </AppCard>
 
         <AppCard p={{ base: 12, sm: "md" }}>
@@ -787,8 +805,8 @@ export function ReportsPage() {
                     size={210}
                     thickness={26}
                     paddingAngle={3}
-                    valueFormatter={(v) => `${v.toFixed(2)} ${t("hours")}`}
-                    chartLabel={`${totals.hours.toFixed(1)} ${t("hours")}`}
+                    valueFormatter={(v) => formatHoursMinutes(v)}
+                    chartLabel={formatHoursMinutes(totals.hours)}
                   />
                 </AppStack>
 
@@ -831,9 +849,21 @@ export function ReportsPage() {
                           )}
                         </AppGroup>
                         <AppGroup gap={8} wrap="nowrap" style={{ flexShrink: 0 }}>
-                          <AppMono size="12px" fw={700} c="var(--app-text-primary)">
-                            {p.hours.toFixed(2)} {t("hours")}
-                          </AppMono>
+                          <AppTooltip
+                            label={
+                              <div style={{ lineHeight: 1.4, fontSize: 12 }}>
+                                <div style={{ fontWeight: 600 }}>{formatHoursMinutes(p.hours)}</div>
+                                <div style={{ opacity: 0.85 }}>{fmtHours(p.hours)}</div>
+                              </div>
+                            }
+                            withArrow
+                          >
+                            <div style={{ cursor: "default", display: "inline-block" }}>
+                              <AppMono size="12px" fw={700} c="var(--app-text-primary)">
+                                {formatHoursMinutes(p.hours)}
+                              </AppMono>
+                            </div>
+                          </AppTooltip>
                           <AppBadge size="xs" variant="light" color="gray" style={{ minWidth: 42 }}>
                             {p.percentage.toFixed(0)}%
                           </AppBadge>
@@ -902,9 +932,7 @@ export function ReportsPage() {
                         {t("dailyAverage")}
                       </AppText>
                       <AppMono size="15px" fw={700}>
-                        {totals.avgDailyHours > 0
-                          ? `${totals.avgDailyHours.toFixed(1)} ${t("hours")}`
-                          : "—"}
+                        {totals.avgDailyHours > 0 ? formatHoursMinutes(totals.avgDailyHours) : "—"}
                       </AppMono>
                     </AppStack>
                   </AppBox>
@@ -929,7 +957,7 @@ export function ReportsPage() {
                         </AppText>
                         <AppGroup gap={4} align="baseline">
                           <AppMono size="15px" fw={700} c="#f59e0b">
-                            {totals.peakDay.hours.toFixed(1)} {t("hours")}
+                            {formatHoursMinutes(totals.peakDay.hours)}
                           </AppMono>
                           <AppText fz={11} c="var(--app-text-secondary)">
                             ({totals.peakDay.label})
@@ -966,12 +994,12 @@ export function ReportsPage() {
                             y: totals.avgDailyHours,
                             color: "#009FE3",
                             strokeDasharray: "4 4",
-                            label: `${t("avgLineLabel")}: ${totals.avgDailyHours.toFixed(1)} h`,
+                            label: `${t("avgLineLabel")}: ${formatHoursMinutes(totals.avgDailyHours)}`,
                           },
                         ]
                       : []
                   }
-                  valueFormatter={(v) => `${v.toFixed(2)} ${t("hours")}`}
+                  valueFormatter={(v) => formatHoursMinutes(v)}
                 />
 
                 {/* Clean From-To Date Range Timeline Bar (replaces overcrowded axis ticks) */}
@@ -1152,11 +1180,30 @@ export function ReportsPage() {
               key: "hours",
               label: t("hoursColumn"),
               sortable: true,
-              render: (r) => (
-                <AppMono size="13px" fw={700}>
-                  {r.hours.toFixed(2)}
-                </AppMono>
-              ),
+              render: (r) => {
+                const durationHM =
+                  r.from_time && r.to_time
+                    ? formatSlotDuration(r.from_time, r.to_time)
+                    : formatHoursMinutes(r.hours);
+                return (
+                  <AppTooltip
+                    label={
+                      <div style={{ lineHeight: 1.4, fontSize: 12 }}>
+                        <div style={{ fontWeight: 600 }}>{durationHM}</div>
+                        <div style={{ opacity: 0.85 }}>{fmtHours(r.hours)}</div>
+                      </div>
+                    }
+                    withArrow
+                    position="top-start"
+                  >
+                    <div style={{ cursor: "default", display: "inline-block" }}>
+                      <AppMono size="13px" fw={700}>
+                        {durationHM}
+                      </AppMono>
+                    </div>
+                  </AppTooltip>
+                );
+              },
             },
             {
               key: "status",

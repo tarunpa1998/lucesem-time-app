@@ -31,6 +31,7 @@ import {
   ArrowsClockwise,
 } from "@phosphor-icons/react";
 import { useI18n } from "@/lib/i18n";
+import { formatHoursMinutes } from "@/domain/rules";
 import {
   listTaskComments,
   addBoardTaskComment,
@@ -593,7 +594,7 @@ export function TaskDetailModal({
                   </AppGroup>
                   <AppBadge color="blue" variant="light" size="sm">
                     <AppMono size="xs" fw={700}>
-                      {fmtHours(totalLoggedHours)}
+                      {formatHoursMinutes(totalLoggedHours)}
                     </AppMono>
                   </AppBadge>
                 </AppGroup>
@@ -636,9 +637,22 @@ export function TaskDetailModal({
                             </AppText>
                           )}
                         </AppStack>
-                        <AppMono size="xs" fw={700} c="var(--app-brand-primary)">
-                          {fmtHours(te.hours)}
-                        </AppMono>
+                        <AppTooltip
+                          label={
+                            <div style={{ lineHeight: 1.4, fontSize: 12 }}>
+                              <div style={{ fontWeight: 600 }}>{formatHoursMinutes(te.hours)}</div>
+                              <div style={{ opacity: 0.85 }}>{fmtHours(te.hours)}</div>
+                            </div>
+                          }
+                          withArrow
+                          position="top-start"
+                        >
+                          <div style={{ cursor: "default", display: "inline-block" }}>
+                            <AppMono size="xs" fw={700} c="var(--app-brand-primary)">
+                              {formatHoursMinutes(te.hours)}
+                            </AppMono>
+                          </div>
+                        </AppTooltip>
                       </AppGroup>
                     ))}
                   </AppStack>
