@@ -229,9 +229,14 @@ export async function createSession(userId: string) {
       jobTitle: r.job_title ?? null,
       phone: r.phone ?? null,
     };
+    // Strip large base64 avatarUrl from cookie payload to strictly stay under 4096-byte RFC/browser limit
+    const cookieUser: SessionUser = {
+      ...user,
+      avatarUrl: null,
+    };
     const payload = JSON.stringify({
       sid: id,
-      u: user,
+      u: cookieUser,
       exp: expires.getTime(),
     });
     const b64Payload = Buffer.from(payload, "utf8").toString("base64url");
@@ -293,6 +298,13 @@ export async function currentUser(): Promise<SessionUser | null> {
           };
           if (decoded.exp > Date.now()) {
             pruneExpiredCache();
+            // On cache miss / cold start, attempt to fetch full user details (including avatar) from DB
+            const dbUser = await fetchUserFromDb(sid);
+            if (dbUser) {
+              sessionMemoryCache.set(cookieVal, { user: dbUser, exp: decoded.exp });
+              return dbUser;
+            }
+            // Fallback to decoded user from signed token (e.g. if DB is offline or in mock test environments)
             sessionMemoryCache.set(cookieVal, { user: decoded.u, exp: decoded.exp });
             return decoded.u;
           }

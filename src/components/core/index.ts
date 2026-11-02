@@ -1,6 +1,7 @@
 export * from "./primitives";
 export { AppModal } from "./AppModal";
 export { AppLiveClock, formatDuration } from "./AppLiveClock";
+export { AppCircularClock, type AppCircularClockProps } from "./AppCircularClock";
 export { AppCalendar, type CalendarDayInfo } from "./AppCalendar";
 export { AppDataTable, type Column } from "./AppDataTable";
 export { AppChart, AppBarChart, AppAreaChart, AppDonutChart } from "./AppChart";

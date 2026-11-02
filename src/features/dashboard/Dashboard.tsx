@@ -36,6 +36,7 @@ import {
   AppFolderTabs,
   AppTooltip,
   formatDuration,
+  AppCircularClock,
 } from "@/components/core";
 import { useI18n } from "@/lib/i18n";
 import { austrianHolidays, ymd } from "@/domain/holidays";
@@ -304,7 +305,7 @@ export function Dashboard() {
         {/* Live chronometer & Work timer section */}
         <div id="timer" className="app-timer-card" data-running={!!data.timer}>
           <div style={{ padding: "20px 24px" }}>
-            <AppGrid cols={{ base: 1, md: 2 }}>
+            <div className="app-timer-layout">
               {/* Left Column: Interactive Chronometer Pod */}
               <div
                 className="app-timer-display-pod"
@@ -327,49 +328,47 @@ export function Dashboard() {
                   }
                 }}
               >
-                {/* Status header row */}
-                <AppGroup justify="space-between" align="center">
-                  <AppGroup gap={8} align="center">
-                    {data.timer && (
-                      <>
+                {/* Live tracking indicator (only when timer is active) */}
+                {data.timer && (
+                  <div style={{ paddingBottom: 6 }}>
+                    <AppBadge
+                      color="green"
+                      variant="light"
+                      size="sm"
+                      style={{ fontWeight: 600, letterSpacing: "0.04em" }}
+                    >
+                      <AppGroup gap={6} align="center" wrap="nowrap">
                         <span className="app-timer-pulse-dot" />
-                        <AppBadge
-                          color="green"
-                          variant="light"
-                          size="sm"
-                          style={{ fontWeight: 600, letterSpacing: "0.04em" }}
-                        >
-                          {online ? t("liveTracking") : t("offlineRunning")}
-                        </AppBadge>
-                      </>
-                    )}
-                  </AppGroup>
-                  {today && (
-                    <AppText fz="xs" c="var(--app-text-secondary)" fw={500}>
-                      {fmtDate(today)}
-                    </AppText>
-                  )}
-                </AppGroup>
+                        {online ? t("liveTracking") : t("offlineRunning")}
+                      </AppGroup>
+                    </AppBadge>
+                  </div>
+                )}
 
-                {/* Big monospace digits */}
-                <div style={{ padding: "12px 0" }}>
+                {/* Circular Clock Dial */}
+                <div style={{ padding: "4px 0" }}>
+                  <AppCircularClock elapsed={data.elapsed} running={!!data.timer} size={118} />
+                </div>
+
+                {/* Digital Chronometer Readout Below the Clock */}
+                <div style={{ textAlign: "center", padding: "2px 0" }}>
                   <div className="app-timer-digits" data-running={!!data.timer}>
                     {formatDuration(data.elapsed)}
                   </div>
                 </div>
 
                 {/* Metadata and footer */}
-                <div>
+                <div style={{ width: "100%", textAlign: "center" }}>
                   {data.timer ? (
-                    <AppStack gap={4}>
-                      <AppGroup gap={6} align="center" wrap="nowrap">
+                    <AppStack gap={4} align="center">
+                      <AppGroup gap={6} align="center" wrap="nowrap" justify="center">
                         <FolderSimple weight="duotone" size={15} color="var(--app-brand-primary)" />
                         <AppText fz="xs" fw={600} truncate c="var(--app-text-primary)">
                           {project(data.timer.projectId)?.name ?? t("project")}
                         </AppText>
                       </AppGroup>
                       {(data.timer.taskTitle || data.timer.taskId) && (
-                        <AppGroup gap={6} align="center" wrap="nowrap">
+                        <AppGroup gap={6} align="center" wrap="nowrap" justify="center">
                           <Kanban weight="duotone" size={15} color="var(--app-brand-primary)" />
                           <AppBadge color="blue" variant="outline" size="xs">
                             {data.timer.taskNumber ? `#${data.timer.taskNumber} ` : ""}
@@ -382,7 +381,7 @@ export function Dashboard() {
                       </AppText>
                     </AppStack>
                   ) : (
-                    <AppGroup justify="space-between" align="center">
+                    <AppGroup justify="center" gap={6} align="center">
                       <AppText fz="xs" c="var(--app-text-secondary)">
                         {t("clickToOpenDay")}
                       </AppText>
@@ -496,7 +495,7 @@ export function Dashboard() {
                   </AppGrid>
                 </div>
               </div>
-            </AppGrid>
+            </div>
           </div>
         </div>
 

@@ -1714,12 +1714,16 @@ html.night {
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-shadow-card);
   overflow: hidden;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .app-timer-card[data-running="true"] {
   border-color: color-mix(in srgb, var(--app-brand-primary) 35%, var(--app-border-subtle));
-  box-shadow: 0 8px 30px -4px rgba(0, 159, 227, 0.15), var(--app-shadow-card);
+  box-shadow:
+    0 8px 30px -4px rgba(0, 159, 227, 0.15),
+    var(--app-shadow-card);
 }
 
 .app-timer-card[data-running="true"]::before {
@@ -1747,50 +1751,65 @@ html.night {
   }
 }
 
+.app-timer-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+@media (min-width: 820px) {
+  .app-timer-layout {
+    grid-template-columns: 1fr 1.25fr;
+    gap: 36px;
+  }
+}
+
 .app-timer-display-pod {
-  background: color-mix(in srgb, var(--app-bg-canvas) 85%, var(--app-bg-surface));
-  border: 1px solid var(--app-border-subtle);
+  background: transparent;
+  border: none;
   border-radius: var(--app-radius-md);
-  padding: 18px 22px;
+  padding: 6px 12px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  min-height: 160px;
+  align-items: center;
+  justify-content: center;
   position: relative;
   cursor: pointer;
   user-select: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
 }
 
 .app-timer-display-pod:hover {
-  background: color-mix(in srgb, var(--app-bg-canvas) 65%, var(--app-bg-surface));
-  border-color: color-mix(in srgb, var(--app-brand-primary) 30%, var(--app-border-subtle));
   transform: translateY(-1px);
 }
 
+.app-timer-display-pod:hover .app-timer-digits {
+  color: var(--app-brand-primary);
+}
+
 .app-timer-display-pod[data-running="true"] {
-  background: color-mix(
-    in srgb,
-    var(--app-bg-canvas) 82%,
-    color-mix(in srgb, var(--app-brand-primary) 12%, transparent)
-  );
-  border-color: color-mix(in srgb, var(--app-brand-primary) 40%, var(--app-border-subtle));
+  background: transparent;
+  border: none;
 }
 
 .app-timer-digits {
   font-family: var(--app-font-mono);
-  font-size: 2.5rem;
+  font-size: 1.85rem;
   line-height: 1;
   font-weight: 700;
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
   color: var(--app-text-primary);
-  transition: color 0.2s ease, text-shadow 0.2s ease;
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease;
 }
 
 @media (min-width: 640px) {
   .app-timer-digits {
-    font-size: 2.85rem;
+    font-size: 2.05rem;
   }
 }
 
@@ -1982,5 +2001,3 @@ html.night {
   align-items: center;
   gap: 8px;
 }
-
-
