@@ -226,3 +226,19 @@ export function deriveSlotFromElapsed(
 
   return { fromTime, toTime };
 }
+
+/**
+ * Formats a duration in minutes into a human-friendly string (e.g. "10 min", "1h 30m").
+ */
+export function formatHumanDuration(mins: number, lang: "de" | "en" = "en"): string {
+  const safeMins = Math.max(0, Math.round(mins));
+  if (safeMins < 60) {
+    return lang === "de" ? `${safeMins} Min.` : `${safeMins} min`;
+  }
+  const h = Math.floor(safeMins / 60);
+  const m = safeMins % 60;
+  if (m === 0) {
+    return lang === "de" ? `${h} Std.` : `${h}h`;
+  }
+  return lang === "de" ? `${h} Std. ${m} Min.` : `${h}h ${m}m`;
+}
