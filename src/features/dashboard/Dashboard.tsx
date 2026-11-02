@@ -6,7 +6,6 @@ import {
   Stop,
   CloudSlash,
   PencilSimple,
-  Clock,
   FolderSimple,
   Kanban,
   ArrowUpRight,
@@ -299,7 +298,7 @@ export function Dashboard() {
                 {/* Status header row */}
                 <AppGroup justify="space-between" align="center">
                   <AppGroup gap={8} align="center">
-                    {data.timer ? (
+                    {data.timer && (
                       <>
                         <span className="app-timer-pulse-dot" />
                         <AppBadge
@@ -311,16 +310,6 @@ export function Dashboard() {
                           {online ? t("liveTracking") : t("offlineRunning")}
                         </AppBadge>
                       </>
-                    ) : (
-                      <AppBadge
-                        color="gray"
-                        variant="light"
-                        size="sm"
-                        leftSection={<Clock weight="bold" size={12} />}
-                        style={{ fontWeight: 600, letterSpacing: "0.04em" }}
-                      >
-                        {t("timerIdle")}
-                      </AppBadge>
                     )}
                   </AppGroup>
                   {today && (
@@ -390,14 +379,7 @@ export function Dashboard() {
                       leftSection={<FolderSimple weight="duotone" size={15} />}
                     />
                     <AppSelect
-                      label={
-                        <AppGroup gap={6} align="center">
-                          <span>{t("taskIssue")}</span>
-                          <AppBadge size="xs" variant="light" color="gray">
-                            {lang === "de" ? "Optional" : "Optional"}
-                          </AppBadge>
-                        </AppGroup>
-                      }
+                      label={t("taskIssue")}
                       placeholder={
                         !activeProjectId
                           ? t("selectProject")
