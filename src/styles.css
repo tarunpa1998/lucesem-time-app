@@ -1714,12 +1714,16 @@ html.night {
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-shadow-card);
   overflow: hidden;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .app-timer-card[data-running="true"] {
   border-color: color-mix(in srgb, var(--app-brand-primary) 35%, var(--app-border-subtle));
-  box-shadow: 0 8px 30px -4px rgba(0, 159, 227, 0.15), var(--app-shadow-card);
+  box-shadow:
+    0 8px 30px -4px rgba(0, 159, 227, 0.15),
+    var(--app-shadow-card);
 }
 
 .app-timer-card[data-running="true"]::before {
@@ -1798,7 +1802,9 @@ html.night {
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
   color: var(--app-text-primary);
-  transition: color 0.2s ease, text-shadow 0.2s ease;
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease;
 }
 
 @media (min-width: 640px) {
@@ -1995,5 +2001,3 @@ html.night {
   align-items: center;
   gap: 8px;
 }
-
-
