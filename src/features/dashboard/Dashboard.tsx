@@ -463,7 +463,7 @@ export function Dashboard() {
                         leftSection={<Stop weight="duotone" size={18} />}
                         onClick={handleStopTimer}
                       >
-                        {`${t("stopWork")} · ${formatDuration(data.elapsed)}`}
+                        {t("stopWork")}
                       </AppButton>
                     ) : (
                       <AppButton
