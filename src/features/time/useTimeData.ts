@@ -23,6 +23,7 @@ export interface TimeCtx {
 export function useTimeData(ctx: TimeCtx) {
   const [entries, setEntries] = useState<LocalEntry[]>([]);
   const [timer, setTimer] = useState<ActiveTimer | null>(null);
+  const [starting, setStarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [outbox, setOutbox] = useState(0);
   const [now, setNow] = useState(() => Date.now());
@@ -38,7 +39,19 @@ export function useTimeData(ctx: TimeCtx) {
       localStorage.setItem(OWNER, ctx.userId);
     }
     setEntries(await d.entries.orderBy("entryDate").reverse().toArray());
-    setTimer((await d.activeTimers.where("userId").equals(ctx.userId).first()) ?? null);
+
+    // Clean up any stale or duplicate active timers and keep only the single latest timer
+    const userTimers = await d.activeTimers.where("userId").equals(ctx.userId).toArray();
+    if (userTimers.length > 1) {
+      userTimers.sort((a, b) => b.startTimeUtc - a.startTimeUtc);
+      const latest = userTimers[0];
+      const obsoleteIds = userTimers.slice(1).map((x) => x.clientTimerId);
+      await d.activeTimers.bulkDelete(obsoleteIds);
+      setTimer(latest ?? null);
+    } else {
+      setTimer(userTimers[0] ?? null);
+    }
+
     setOutbox(await d.syncOutbox.filter((i) => i.userId === ctx.userId).count());
   }, [ctx.userId]);
 
@@ -135,29 +148,39 @@ export function useTimeData(ctx: TimeCtx) {
     workNotes: string,
     task?: { id: string; title: string; number?: number | null } | null,
   ) => {
-    const t: ActiveTimer = {
-      clientTimerId: uid(),
-      userId: ctx.userId,
-      projectId,
-      startTimeUtc: Date.now(),
-      workNotes,
-      taskId: task?.id ?? null,
-      taskTitle: task?.title ?? null,
-      taskNumber: task?.number ?? null,
-    };
-    await db().activeTimers.put(t);
-    setTimer(t);
-    setNow(Date.now());
-    await db().syncOutbox.add({
-      kind: "timer.start",
-      payload: t,
-      userId: ctx.userId,
-      createdAt: Date.now(),
-    });
-    reportTimer({ data: { running: true, projectId, startedAt: t.startTimeUtc, workNotes } }).catch(
-      () => {},
-    );
-    reload();
+    if (starting) return;
+    setStarting(true);
+    try {
+      const d = db();
+      // Purge any stale active timers for this user to guarantee a clean start
+      await d.activeTimers.where("userId").equals(ctx.userId).delete();
+
+      const t: ActiveTimer = {
+        clientTimerId: uid(),
+        userId: ctx.userId,
+        projectId,
+        startTimeUtc: Date.now(),
+        workNotes,
+        taskId: task?.id ?? null,
+        taskTitle: task?.title ?? null,
+        taskNumber: task?.number ?? null,
+      };
+      await d.activeTimers.put(t);
+      setTimer(t);
+      setNow(Date.now());
+      await d.syncOutbox.add({
+        kind: "timer.start",
+        payload: t,
+        userId: ctx.userId,
+        createdAt: Date.now(),
+      });
+      reportTimer({
+        data: { running: true, projectId, startedAt: t.startTimeUtc, workNotes },
+      }).catch(() => {});
+      reload();
+    } finally {
+      setStarting(false);
+    }
   };
 
   const stopTimer = async (workNotes: string) => {
@@ -171,7 +194,10 @@ export function useTimeData(ctx: TimeCtx) {
       const end = new Date();
       const entryDate = ymd(start);
       const fromTime = hhmm(start);
-      const toTime = hhmm(end) === hhmm(start) ? hhmm(new Date(end.getTime() + 60_000)) : hhmm(end);
+      let toTime = hhmm(end);
+      if (toTime <= fromTime) {
+        toTime = hhmm(new Date(start.getTime() + 60_000));
+      }
 
       // Check if this slot already exists in Dexie to avoid duplicating
       const existingSlot = await db()
@@ -197,7 +223,8 @@ export function useTimeData(ctx: TimeCtx) {
       };
 
       await db().entries.put(entry);
-      await db().activeTimers.delete(currentTimer.clientTimerId);
+      // Clean up all active timers for this user
+      await db().activeTimers.where("userId").equals(ctx.userId).delete();
       reportTimer({ data: { running: false } }).catch(() => {});
       await db().syncOutbox.add({
         kind: "timer.stop",
@@ -326,6 +353,7 @@ export function useTimeData(ctx: TimeCtx) {
     ready,
     entries,
     timer,
+    starting,
     stopping,
     elapsed,
     outbox,

@@ -471,7 +471,8 @@ export function Dashboard() {
                         fullWidth
                         size="md"
                         leftSection={<Play weight="duotone" size={18} />}
-                        disabled={!activeProjectId}
+                        disabled={!activeProjectId || data.starting}
+                        loading={data.starting}
                         onClick={handleStartTimer}
                       >
                         {t("startWork")}
