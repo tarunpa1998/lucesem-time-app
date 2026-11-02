@@ -134,7 +134,7 @@ export function TimeAllocationModal({
         unique.push(item);
       }
     }
-    return unique;
+    return unique.sort((a, b) => a.fromTime.localeCompare(b.fromTime));
   }, [date, existing]);
 
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
@@ -196,9 +196,7 @@ export function TimeAllocationModal({
     // If opening in readOnly mode or date is locked/not editable, show existing entries if any
     const isUnlockedDate = Boolean(date && access?.unlocked.includes(date));
     const isDatePeriodLocked =
-      !isAdmin &&
-      !isUnlockedDate &&
-      Boolean(date && isPeriodLocked(date, userId, access?.locks ?? []));
+      !isAdmin && Boolean(date && isPeriodLocked(date, userId, access?.locks ?? []));
     const isDateEditable =
       !isDatePeriodLocked &&
       (isAdmin ||
@@ -234,7 +232,7 @@ export function TimeAllocationModal({
   const isFuture = date > today;
   const maxTime = date === today && !isAbsence ? nowHHMM() : undefined;
   const unlocked = !!access?.unlocked.includes(date);
-  const periodLocked = !isAdmin && !unlocked && isPeriodLocked(date, userId, access?.locks ?? []);
+  const periodLocked = !isAdmin && isPeriodLocked(date, userId, access?.locks ?? []);
   // Existing leaves can always be edited or rescheduled regardless of approval state
   const canEdit =
     isEditingExistingAbsence ||
@@ -631,6 +629,16 @@ export function TimeAllocationModal({
                 onChange={handleSelectEntry}
                 style={{ marginBottom: 0 }}
                 items={[
+                  ...(!dayAbsence && editable
+                    ? [
+                        {
+                          value: "new",
+                          label: t("newItem"),
+                          icon: <Plus size={14} weight="bold" />,
+                          isAdd: true,
+                        },
+                      ]
+                    : []),
                   ...dayEntries.map((e) => ({
                     value: e.id,
                     label: isAbsenceMode(e.entryMode)
@@ -642,16 +650,6 @@ export function TimeAllocationModal({
                       <Clock size={14} weight="duotone" />
                     ),
                   })),
-                  ...(!dayAbsence && editable
-                    ? [
-                        {
-                          value: "new",
-                          label: t("newItem"),
-                          icon: <Plus size={14} weight="bold" />,
-                          isAdd: true,
-                        },
-                      ]
-                    : []),
                 ]}
               />
             </div>

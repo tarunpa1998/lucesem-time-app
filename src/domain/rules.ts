@@ -22,7 +22,7 @@ export const MIN_NOTES_LENGTH = 5;
 
 const parse = (s: string) => {
   const [y, m, d] = s.split("-").map(Number) as [number, number, number];
-  return new Date(y, m - 1, d);
+  return new Date(Date.UTC(y, m - 1, d));
 };
 export const daysBetween = (from: string, to: string) =>
   Math.round((parse(to).getTime() - parse(from).getTime()) / 86_400_000);

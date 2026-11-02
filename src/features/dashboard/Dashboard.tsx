@@ -263,12 +263,18 @@ export function Dashboard() {
   const isRowEditable = (r: LocalEntry) => {
     if (me?.isAdmin) return true;
     if (r.exported) return false;
-    if (isAbsenceMode(r.entryMode)) return true;
-    const isUnlocked = !access?.unlocked?.includes(r.entryDate);
-    const isLocked = !isUnlocked && isPeriodLocked(r.entryDate, me?.id ?? "", access?.locks ?? []);
+    const isAbsence = isAbsenceMode(r.entryMode);
+    if (isAbsence) return true;
+    const isUnlocked = Boolean(access?.unlocked?.includes(r.entryDate));
+    const isLocked = isPeriodLocked(r.entryDate, me?.id ?? "", access?.locks ?? []);
     if (isLocked) return false;
     return Boolean(
-      today && canEditDate(r.entryDate, today, { isAdmin: false, unlocked: isUnlocked }),
+      today &&
+      canEditDate(r.entryDate, today, {
+        isAdmin: false,
+        unlocked: isUnlocked,
+        isAbsence,
+      }),
     );
   };
 
@@ -554,11 +560,9 @@ export function Dashboard() {
                     return;
                   }
                   setSelected(d);
-                  const isUnlocked = !access?.unlocked?.includes(d);
+                  const isUnlocked = Boolean(access?.unlocked?.includes(d));
                   const isLocked =
-                    !isUnlocked &&
-                    !me?.isAdmin &&
-                    isPeriodLocked(d, me?.id ?? "", access?.locks ?? []);
+                    !me?.isAdmin && isPeriodLocked(d, me?.id ?? "", access?.locks ?? []);
                   const isDayEditable =
                     !isLocked &&
                     canEditDate(d, today, {
