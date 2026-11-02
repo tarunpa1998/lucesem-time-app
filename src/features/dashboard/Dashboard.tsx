@@ -454,6 +454,7 @@ export function Dashboard() {
                   <AppGrid cols={{ base: 1, sm: 2 }}>
                     {data.timer ? (
                       <AppButton
+                        key="stop-work-btn"
                         fullWidth
                         size="md"
                         color="red"
@@ -462,10 +463,11 @@ export function Dashboard() {
                         leftSection={<Stop weight="duotone" size={18} />}
                         onClick={handleStopTimer}
                       >
-                        {t("stopWork")} · {formatDuration(data.elapsed)}
+                        {`${t("stopWork")} · ${formatDuration(data.elapsed)}`}
                       </AppButton>
                     ) : (
                       <AppButton
+                        key="start-work-btn"
                         fullWidth
                         size="md"
                         leftSection={<Play weight="duotone" size={18} />}
@@ -622,52 +624,227 @@ export function Dashboard() {
               </Link>
             </div>
             <AppStack mt="sm">
-              <AppDataTable<LocalEntry>
-                rows={recentEntries}
-                rowKey={(r) => r.id}
-                empty={t("noEntries")}
-                scrollable
-                maxHeight={420}
-                stickyHeader
-                onRowClick={(r) => {
-                  const editable = isRowEditable(r);
-                  setReadOnlyEntry(!editable);
-                  setEditing(r);
-                }}
-                columns={[
-                  { key: "d", label: t("date"), render: (r) => fmtDate(r.entryDate) },
-                  {
-                    key: "h",
-                    label: t("hoursColumn"),
-                    render: (r) => {
-                      const h = entryHours(r);
-                      const timeRange = `${r.fromTime}–${r.toTime}`;
-                      const formattedH = fmtHours(h);
-                      return (
-                        <AppTooltip
-                          label={
-                            <div style={{ lineHeight: 1.4, fontSize: 12 }}>
-                              <div style={{ fontWeight: 600 }}>{timeRange}</div>
-                              <div style={{ opacity: 0.85 }}>{formattedH}</div>
+              <div className="recent-entries-desktop">
+                <AppDataTable<LocalEntry>
+                  rows={recentEntries}
+                  rowKey={(r) => r.id}
+                  empty={t("noEntries")}
+                  scrollable
+                  maxHeight={420}
+                  stickyHeader
+                  onRowClick={(r) => {
+                    const editable = isRowEditable(r);
+                    setReadOnlyEntry(!editable);
+                    setEditing(r);
+                  }}
+                  columns={[
+                    { key: "d", label: t("date"), render: (r) => fmtDate(r.entryDate) },
+                    {
+                      key: "h",
+                      label: t("hoursColumn"),
+                      render: (r) => {
+                        const h = entryHours(r);
+                        const timeRange = `${r.fromTime}–${r.toTime}`;
+                        const formattedH = fmtHours(h);
+                        return (
+                          <AppTooltip
+                            label={
+                              <div style={{ lineHeight: 1.4, fontSize: 12 }}>
+                                <div style={{ fontWeight: 600 }}>{timeRange}</div>
+                                <div style={{ opacity: 0.85 }}>{formattedH}</div>
+                              </div>
+                            }
+                            withArrow
+                            position="top-start"
+                          >
+                            <div style={{ cursor: "default", display: "inline-block" }}>
+                              <AppMono size="sm" fw={600}>
+                                {formattedH}
+                              </AppMono>
                             </div>
-                          }
-                          withArrow
-                          position="top-start"
-                        >
-                          <div style={{ cursor: "default", display: "inline-block" }}>
-                            <AppMono size="sm" fw={600}>
-                              {formattedH}
-                            </AppMono>
-                          </div>
-                        </AppTooltip>
-                      );
+                          </AppTooltip>
+                        );
+                      },
                     },
-                  },
-                  {
-                    key: "p",
-                    label: t("project"),
-                    width: 260,
-                    render: (r) => {
+                    {
+                      key: "p",
+                      label: t("project"),
+                      width: 260,
+                      render: (r) => {
+                        const proj = r.projectId ? project(r.projectId) : null;
+                        const projName = proj
+                          ? proj.name
+                          : r.projectId
+                            ? lang === "de"
+                              ? "Projekt"
+                              : "Project"
+                            : t(r.entryMode);
+                        const customerName = proj?.customer_name ?? null;
+                        const taskText = r.taskTitle
+                          ? `#${r.taskNumber ?? "—"} · ${r.taskTitle}`
+                          : null;
+
+                        return (
+                          <AppTooltip
+                            label={
+                              <div style={{ maxWidth: 300, whiteSpace: "normal", lineHeight: 1.4 }}>
+                                <div style={{ fontWeight: 600, fontSize: 13 }}>{projName}</div>
+                                {customerName && (
+                                  <div style={{ fontSize: 11, opacity: 0.85, marginTop: 2 }}>
+                                    {customerName}
+                                  </div>
+                                )}
+                                {taskText && (
+                                  <div
+                                    style={{
+                                      fontSize: 12,
+                                      marginTop: 4,
+                                      color: "var(--app-brand-primary, #38bdf8)",
+                                      fontWeight: 500,
+                                    }}
+                                  >
+                                    {taskText}
+                                  </div>
+                                )}
+                                {r.workNotes && (
+                                  <div
+                                    style={{
+                                      fontSize: 11,
+                                      marginTop: 4,
+                                      fontStyle: "italic",
+                                      opacity: 0.9,
+                                    }}
+                                  >
+                                    {r.workNotes}
+                                  </div>
+                                )}
+                              </div>
+                            }
+                            multiline
+                            withArrow
+                            position="top-start"
+                          >
+                            <div
+                              style={{
+                                maxWidth: 260,
+                                whiteSpace: "normal",
+                                wordBreak: "break-word",
+                                cursor: "default",
+                              }}
+                            >
+                              <AppStack gap={2}>
+                                <AppText
+                                  size="sm"
+                                  fw={500}
+                                  style={{
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    lineHeight: 1.3,
+                                  }}
+                                >
+                                  {projName}
+                                </AppText>
+                                {r.taskTitle ? (
+                                  <AppGroup gap={4} wrap="nowrap" align="flex-start">
+                                    <AppBadge
+                                      size="xs"
+                                      variant="outline"
+                                      color="blue"
+                                      style={{ flexShrink: 0, marginTop: 1 }}
+                                    >
+                                      #{r.taskNumber ?? "—"}
+                                    </AppBadge>
+                                    <AppText
+                                      size="xs"
+                                      c="dimmed"
+                                      style={{
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: 1,
+                                        WebkitBoxOrient: "vertical",
+                                        overflow: "hidden",
+                                        lineHeight: 1.25,
+                                      }}
+                                    >
+                                      {r.taskTitle}
+                                    </AppText>
+                                  </AppGroup>
+                                ) : null}
+                              </AppStack>
+                            </div>
+                          </AppTooltip>
+                        );
+                      },
+                    },
+                    {
+                      key: "s",
+                      label: t("status"),
+                      render: (r) => (
+                        <AppBadge
+                          color={
+                            r.status === "pending"
+                              ? "orange"
+                              : r.status === "rejected"
+                                ? "red"
+                                : "green"
+                          }
+                        >
+                          {r.status === "pending"
+                            ? t("pendingApproval")
+                            : r.status === "rejected"
+                              ? t("reject")
+                              : t("approved")}
+                        </AppBadge>
+                      ),
+                    },
+                    {
+                      key: "e",
+                      label: "",
+                      render: (r) =>
+                        isRowEditable(r) ? (
+                          <AppButton
+                            size="compact-xs"
+                            variant="subtle"
+                            leftSection={<PencilSimple weight="duotone" size={12} />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReadOnlyEntry(false);
+                              setEditing(r);
+                            }}
+                          >
+                            {lang === "de" ? "Bearbeiten" : "Edit"}
+                          </AppButton>
+                        ) : (
+                          <AppButton
+                            size="compact-xs"
+                            variant="subtle"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReadOnlyEntry(true);
+                              setEditing(r);
+                            }}
+                            aria-label={t("entryDetails")}
+                          >
+                            🔒
+                          </AppButton>
+                        ),
+                    },
+                  ]}
+                />
+              </div>
+
+              <div className="recent-entries-mobile">
+                {recentEntries.length === 0 ? (
+                  <AppText c="var(--app-text-secondary)" size="sm" py="xl" ta="center">
+                    {t("noEntries")}
+                  </AppText>
+                ) : (
+                  <div className="recent-entries-mobile-list">
+                    {recentEntries.map((r) => {
+                      const h = entryHours(r);
+                      const timeRange = r.fromTime && r.toTime ? `${r.fromTime}–${r.toTime}` : null;
+                      const formattedH = fmtHours(h);
                       const proj = r.projectId ? project(r.projectId) : null;
                       const projName = proj
                         ? proj.name
@@ -677,74 +854,52 @@ export function Dashboard() {
                             : "Project"
                           : t(r.entryMode);
                       const customerName = proj?.customer_name ?? null;
-                      const taskText = r.taskTitle
-                        ? `#${r.taskNumber ?? "—"} · ${r.taskTitle}`
-                        : null;
+                      const editable = isRowEditable(r);
 
                       return (
-                        <AppTooltip
-                          label={
-                            <div style={{ maxWidth: 300, whiteSpace: "normal", lineHeight: 1.4 }}>
-                              <div style={{ fontWeight: 600, fontSize: 13 }}>{projName}</div>
-                              {customerName && (
-                                <div style={{ fontSize: 11, opacity: 0.85, marginTop: 2 }}>
-                                  {customerName}
-                                </div>
-                              )}
-                              {taskText && (
-                                <div
-                                  style={{
-                                    fontSize: 12,
-                                    marginTop: 4,
-                                    color: "var(--app-brand-primary, #38bdf8)",
-                                    fontWeight: 500,
-                                  }}
-                                >
-                                  {taskText}
-                                </div>
-                              )}
-                              {r.workNotes && (
-                                <div
-                                  style={{
-                                    fontSize: 11,
-                                    marginTop: 4,
-                                    fontStyle: "italic",
-                                    opacity: 0.9,
-                                  }}
-                                >
-                                  {r.workNotes}
-                                </div>
-                              )}
-                            </div>
-                          }
-                          multiline
-                          withArrow
-                          position="top-start"
+                        <div
+                          key={r.id}
+                          className="recent-entry-mobile-item"
+                          onClick={() => {
+                            setReadOnlyEntry(!editable);
+                            setEditing(r);
+                          }}
                         >
-                          <div
-                            style={{
-                              maxWidth: 260,
-                              whiteSpace: "normal",
-                              wordBreak: "break-word",
-                              cursor: "default",
-                            }}
-                          >
-                            <AppStack gap={2}>
-                              <AppText
-                                size="sm"
-                                fw={500}
-                                style={{
-                                  display: "-webkit-box",
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: "vertical",
-                                  overflow: "hidden",
-                                  lineHeight: 1.3,
-                                }}
-                              >
+                          <div className="recent-entry-mobile-header">
+                            <div className="recent-entry-mobile-proj-wrap">
+                              <AppText size="sm" fw={600} className="recent-entry-mobile-proj-name">
                                 {projName}
                               </AppText>
-                              {r.taskTitle ? (
-                                <AppGroup gap={4} wrap="nowrap" align="flex-start">
+                              {customerName && (
+                                <AppText
+                                  size="xs"
+                                  c="dimmed"
+                                  className="recent-entry-mobile-customer"
+                                >
+                                  {customerName}
+                                </AppText>
+                              )}
+                            </div>
+                            <div className="recent-entry-mobile-hours-wrap">
+                              <AppMono size="sm" fw={700} className="recent-entry-mobile-hours">
+                                {formattedH}
+                              </AppMono>
+                              {timeRange && (
+                                <AppMono
+                                  size="xs"
+                                  c="dimmed"
+                                  className="recent-entry-mobile-timerange"
+                                >
+                                  {timeRange}
+                                </AppMono>
+                              )}
+                            </div>
+                          </div>
+
+                          {(r.taskTitle || r.workNotes) && (
+                            <div className="recent-entry-mobile-body">
+                              {r.taskTitle && (
+                                <div className="recent-entry-mobile-task">
                                   <AppBadge
                                     size="xs"
                                     variant="outline"
@@ -755,80 +910,85 @@ export function Dashboard() {
                                   </AppBadge>
                                   <AppText
                                     size="xs"
-                                    c="dimmed"
-                                    style={{
-                                      display: "-webkit-box",
-                                      WebkitLineClamp: 1,
-                                      WebkitBoxOrient: "vertical",
-                                      overflow: "hidden",
-                                      lineHeight: 1.25,
-                                    }}
+                                    c="var(--app-text-secondary)"
+                                    className="recent-entry-mobile-task-title"
                                   >
                                     {r.taskTitle}
                                   </AppText>
-                                </AppGroup>
-                              ) : null}
-                            </AppStack>
+                                </div>
+                              )}
+                              {r.workNotes && (
+                                <AppText
+                                  size="xs"
+                                  c="dimmed"
+                                  fs="italic"
+                                  className="recent-entry-mobile-notes"
+                                >
+                                  {r.workNotes}
+                                </AppText>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="recent-entry-mobile-footer">
+                            <div className="recent-entry-mobile-date">
+                              <AppMono size="xs" c="dimmed" fw={500}>
+                                {fmtDate(r.entryDate)}
+                              </AppMono>
+                            </div>
+                            <div className="recent-entry-mobile-actions">
+                              <AppBadge
+                                size="xs"
+                                color={
+                                  r.status === "pending"
+                                    ? "orange"
+                                    : r.status === "rejected"
+                                      ? "red"
+                                      : "green"
+                                }
+                              >
+                                {r.status === "pending"
+                                  ? t("pendingApproval")
+                                  : r.status === "rejected"
+                                    ? t("reject")
+                                    : t("approved")}
+                              </AppBadge>
+
+                              {editable ? (
+                                <AppButton
+                                  size="compact-xs"
+                                  variant="subtle"
+                                  leftSection={<PencilSimple weight="duotone" size={12} />}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setReadOnlyEntry(false);
+                                    setEditing(r);
+                                  }}
+                                >
+                                  {lang === "de" ? "Bearbeiten" : "Edit"}
+                                </AppButton>
+                              ) : (
+                                <AppButton
+                                  size="compact-xs"
+                                  variant="subtle"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setReadOnlyEntry(true);
+                                    setEditing(r);
+                                  }}
+                                  aria-label={t("entryDetails")}
+                                >
+                                  🔒
+                                </AppButton>
+                              )}
+                            </div>
                           </div>
-                        </AppTooltip>
+                        </div>
                       );
-                    },
-                  },
-                  {
-                    key: "s",
-                    label: t("status"),
-                    render: (r) => (
-                      <AppBadge
-                        color={
-                          r.status === "pending"
-                            ? "orange"
-                            : r.status === "rejected"
-                              ? "red"
-                              : "green"
-                        }
-                      >
-                        {r.status === "pending"
-                          ? t("pendingApproval")
-                          : r.status === "rejected"
-                            ? t("reject")
-                            : t("approved")}
-                      </AppBadge>
-                    ),
-                  },
-                  {
-                    key: "e",
-                    label: "",
-                    render: (r) =>
-                      isRowEditable(r) ? (
-                        <AppButton
-                          size="compact-xs"
-                          variant="subtle"
-                          leftSection={<PencilSimple weight="duotone" size={12} />}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setReadOnlyEntry(false);
-                            setEditing(r);
-                          }}
-                        >
-                          {lang === "de" ? "Bearbeiten" : "Edit"}
-                        </AppButton>
-                      ) : (
-                        <AppButton
-                          size="compact-xs"
-                          variant="subtle"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setReadOnlyEntry(true);
-                            setEditing(r);
-                          }}
-                          aria-label={t("entryDetails")}
-                        >
-                          🔒
-                        </AppButton>
-                      ),
-                  },
-                ]}
-              />
+                    })}
+                  </div>
+                )}
+              </div>
             </AppStack>
           </AppCard>
         </AppGrid>

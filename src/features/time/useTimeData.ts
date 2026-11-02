@@ -146,6 +146,8 @@ export function useTimeData(ctx: TimeCtx) {
       taskNumber: task?.number ?? null,
     };
     await db().activeTimers.put(t);
+    setTimer(t);
+    setNow(Date.now());
     await db().syncOutbox.add({
       kind: "timer.start",
       payload: t,

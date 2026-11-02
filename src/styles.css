@@ -1829,3 +1829,158 @@ html.night {
   height: 100%;
 }
 
+/* ==========================================================================
+   Recent Entries: Responsive Desktop vs Mobile View
+   ========================================================================== */
+
+.recent-entries-desktop {
+  display: block;
+  width: 100%;
+}
+
+.recent-entries-mobile {
+  display: none;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .recent-entries-desktop {
+    display: none !important;
+  }
+
+  .recent-entries-mobile {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+}
+
+.recent-entries-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.recent-entry-mobile-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--app-bg-elevated);
+  border: 1px solid var(--app-border-subtle);
+  border-radius: var(--app-radius-md);
+  box-shadow: var(--app-shadow-card);
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.recent-entry-mobile-item:hover {
+  border-color: color-mix(in srgb, var(--app-brand-primary) 40%, var(--app-border-subtle));
+}
+
+.recent-entry-mobile-item:active {
+  background: var(--app-hover-surface);
+  transform: scale(0.995);
+}
+
+.recent-entry-mobile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.recent-entry-mobile-proj-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.recent-entry-mobile-proj-name {
+  line-height: 1.35;
+  color: var(--app-text-primary);
+  word-break: break-word;
+}
+
+.recent-entry-mobile-customer {
+  line-height: 1.25;
+}
+
+.recent-entry-mobile-hours-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.recent-entry-mobile-hours {
+  color: var(--app-brand-primary);
+  line-height: 1.3;
+}
+
+.recent-entry-mobile-timerange {
+  line-height: 1.2;
+}
+
+.recent-entry-mobile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.recent-entry-mobile-task {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.recent-entry-mobile-task-title {
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.recent-entry-mobile-notes {
+  line-height: 1.35;
+  padding-left: 2px;
+  word-break: break-word;
+}
+
+.recent-entry-mobile-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--app-border-subtle);
+  margin-top: 2px;
+}
+
+.recent-entry-mobile-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.recent-entry-mobile-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
