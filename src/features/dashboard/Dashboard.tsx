@@ -524,16 +524,16 @@ export function Dashboard() {
               const delta = s.worked - s.toDate;
               return (
                 <>
-                  <StatCard label={t("target")} value={fmtHours(s.target)} />
+                  <StatCard label={t("target")} value={fmtHours(s.target, { full: true })} />
                   <StatCard
                     label={t("worked")}
-                    value={fmtHours(s.worked)}
+                    value={fmtHours(s.worked, { full: true })}
                     progress={s.target ? (s.worked / s.target) * 100 : 0}
                   />
-                  <StatCard label={t("remaining")} value={fmtHours(remaining)} />
+                  <StatCard label={t("remaining")} value={fmtHours(remaining, { full: true })} />
                   <StatCard
                     label={t("flextime")}
-                    value={`${delta >= 0 ? "+" : "−"}${fmtHours(Math.abs(delta))}`}
+                    value={`${delta >= 0 ? "+" : "−"}${fmtHours(Math.abs(delta), { full: true })}`}
                     tone={delta >= 0 ? "var(--app-success)" : "var(--app-danger)"}
                     sub={`${t("vacationLeft")}: ${contract.vacationDays - vacationUsed} ${t("days")}`}
                   />
@@ -646,11 +646,14 @@ export function Dashboard() {
                         const h = entryHours(r);
                         const timeRange = `${r.fromTime}–${r.toTime}`;
                         const formattedH = fmtHours(h);
+                        const mins = Math.round(h * 60);
                         return (
                           <AppTooltip
                             label={
                               <div style={{ lineHeight: 1.4, fontSize: 12 }}>
-                                <div style={{ fontWeight: 600 }}>{timeRange}</div>
+                                <div style={{ fontWeight: 600 }}>
+                                  {timeRange} ({mins} min)
+                                </div>
                                 <div style={{ opacity: 0.85 }}>{formattedH}</div>
                               </div>
                             }
@@ -890,7 +893,7 @@ export function Dashboard() {
                                   c="dimmed"
                                   className="recent-entry-mobile-timerange"
                                 >
-                                  {timeRange}
+                                  {timeRange} ({Math.round(h * 60)} min)
                                 </AppMono>
                               )}
                             </div>

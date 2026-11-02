@@ -762,7 +762,7 @@ interface I18n {
   setLang: (l: Lang) => void;
   t: (k: TKey) => string;
   fmtDate: (ymd: string) => string;
-  fmtHours: (h: number) => string;
+  fmtHours: (h: number, options?: { full?: boolean }) => string;
 }
 const Ctx = createContext<I18n | null>(null);
 
@@ -799,8 +799,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       const [y, m, d] = s.split("-");
       return lang === "de" ? `${d}.${m}.${y}` : `${m}/${d}/${y}`;
     },
-    fmtHours: (h) =>
-      `${h.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${dict[lang].hours}`,
+    fmtHours: (h, options) => {
+      const unit = options?.full ? (lang === "de" ? "Stunden" : "hours") : dict[lang].hours;
+      return `${h.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${unit}`;
+    },
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
