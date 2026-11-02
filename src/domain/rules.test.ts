@@ -5,7 +5,6 @@ import {
   dailyTarget,
   deriveSlotFromElapsed,
   elapsedSeconds,
-  formatHumanDuration,
   targetForRange,
   validateEntry,
 } from "./rules";
@@ -161,24 +160,5 @@ describe("deriveSlotFromElapsed", () => {
   it("enforces minimum 1 minute for short tests", () => {
     const slot = deriveSlotFromElapsed("11:42", 15_000);
     expect(slot).toEqual({ fromTime: "11:42", toTime: "11:43" });
-  });
-});
-
-describe("formatHumanDuration", () => {
-  it("formats minutes < 60", () => {
-    expect(formatHumanDuration(10, "en")).toBe("10 min");
-    expect(formatHumanDuration(10, "de")).toBe("10 Min.");
-    expect(formatHumanDuration(1, "en")).toBe("1 min");
-  });
-
-  it("formats exact hours", () => {
-    expect(formatHumanDuration(60, "en")).toBe("1h");
-    expect(formatHumanDuration(60, "de")).toBe("1 Std.");
-    expect(formatHumanDuration(120, "en")).toBe("2h");
-  });
-
-  it("formats hours and minutes", () => {
-    expect(formatHumanDuration(90, "en")).toBe("1h 30m");
-    expect(formatHumanDuration(90, "de")).toBe("1 Std. 30 Min.");
   });
 });

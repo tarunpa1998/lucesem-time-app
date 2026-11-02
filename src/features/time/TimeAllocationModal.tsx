@@ -31,7 +31,6 @@ import {
   validateEntry,
   canEditDate,
   toMinutes,
-  formatHumanDuration,
   type EntryMode,
   type ValidationError,
 } from "@/domain/rules";
@@ -442,9 +441,8 @@ export function TimeAllocationModal({
 
   const matchedProject = projects.find((p) => p.id === projectId);
   const matchedActivity = activities.find((a) => a.id === activityId);
-  const entryMins = from && to ? Math.max(0, toMinutes(to) - toMinutes(from)) : 0;
-  const entryHours = (entryMins / 60).toFixed(2);
-  const humanDuration = formatHumanDuration(entryMins, lang);
+  const entryHours =
+    from && to ? (Math.max(0, toMinutes(to) - toMinutes(from)) / 60).toFixed(2) : "0.00";
 
   return (
     <AppModal
@@ -529,7 +527,7 @@ export function TimeAllocationModal({
                 <AppDateInput label={t("date")} value={date} disabled />
                 <AppTextInput
                   label={t("time")}
-                  value={`${from}–${to} (${humanDuration} · ${entryHours} ${t("hours")})`}
+                  value={`${from}–${to} (${entryHours} ${t("hours")})`}
                   disabled
                 />
               </AppGrid>
@@ -826,13 +824,6 @@ export function TimeAllocationModal({
                 }
               />
             </AppGrid>
-          )}
-
-          {from && to && to > from && (
-            <AppText fz="xs" c="var(--app-text-secondary)" mt={-4}>
-              {t("duration")}: <span style={{ fontWeight: 600 }}>{humanDuration}</span> (
-              {entryHours} {t("hours")})
-            </AppText>
           )}
 
           <AppTextarea

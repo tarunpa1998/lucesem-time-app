@@ -39,13 +39,7 @@ import {
 } from "@/components/core";
 import { useI18n } from "@/lib/i18n";
 import { austrianHolidays, ymd } from "@/domain/holidays";
-import {
-  canEditDate,
-  periodRange,
-  targetForRange,
-  isAbsenceMode,
-  formatHumanDuration,
-} from "@/domain/rules";
+import { canEditDate, periodRange, targetForRange, isAbsenceMode } from "@/domain/rules";
 import { viennaToday, isPeriodLocked } from "@/domain/locks";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { meQuery, myProjectsQuery, myAccessQuery } from "@/lib/session";
@@ -654,13 +648,12 @@ export function Dashboard() {
                         const timeRange = `${r.fromTime}–${r.toTime}`;
                         const formattedH = fmtHours(h);
                         const mins = Math.round(h * 60);
-                        const humanDuration = formatHumanDuration(mins, lang);
                         return (
                           <AppTooltip
                             label={
                               <div style={{ lineHeight: 1.4, fontSize: 12 }}>
                                 <div style={{ fontWeight: 600 }}>
-                                  {timeRange} ({humanDuration})
+                                  {timeRange} ({mins} min)
                                 </div>
                                 <div style={{ opacity: 0.85 }}>{formattedH}</div>
                               </div>
@@ -668,20 +661,10 @@ export function Dashboard() {
                             withArrow
                             position="top-start"
                           >
-                            <div
-                              style={{
-                                cursor: "default",
-                                display: "inline-flex",
-                                alignItems: "baseline",
-                                gap: 6,
-                              }}
-                            >
+                            <div style={{ cursor: "default", display: "inline-block" }}>
                               <AppMono size="sm" fw={600}>
                                 {formattedH}
                               </AppMono>
-                              <AppText fz="xs" c="var(--app-text-secondary)" fw={500}>
-                                ({humanDuration})
-                              </AppText>
                             </div>
                           </AppTooltip>
                         );
@@ -911,7 +894,7 @@ export function Dashboard() {
                                   c="dimmed"
                                   className="recent-entry-mobile-timerange"
                                 >
-                                  {timeRange} ({formatHumanDuration(Math.round(h * 60), lang)})
+                                  {timeRange} ({Math.round(h * 60)} min)
                                 </AppMono>
                               )}
                             </div>
